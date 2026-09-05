@@ -1,43 +1,45 @@
 {
-	"name": "rdd",
-	"version": "0.1.0",
-	"private": true,
-	"scripts": {
-		"dev": "next dev",
-		"dev:cf": "opennextjs-cloudflare build && wrangler pages dev .open-next/assets --service env.WORKER_SELF_REFERENCE=.open-next/worker.js --compatibility-flag nodejs_compat",
-		"build": "next build",
-		"start": "next start",
-		"lint": "next lint",
-		"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-		"upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
-		"gen:d1": "tsx scripts/gen-d1.ts",
-		"db:migrate:local": "wrangler d1 migrations apply rdd --local",
-		"db:migrate:remote": "wrangler d1 migrations apply rdd --remote",
-		"db:restart": "tsx scripts/db-restart.ts",
-		"db:list": "wrangler d1 list",
-		"test:db": "tsx scripts/test-db.ts"
-	},
-	"dependencies": {
-		"@opennextjs/cloudflare": "^1.17.1",
-		"next": "16.1.5",
-		"react": "19.1.5",
-		"react-dom": "19.1.5",
-		"zod": "^4.3.6"
-	},
-	"devDependencies": {
-		"@eslint/eslintrc": "^3",
-		"@tailwindcss/postcss": "^4",
-		"@types/node": "^20.19.35",
-		"@types/react": "^19.1.5",
-		"@types/react-dom": "^19.1.5",
-		"eslint": "^9",
-		"eslint-config-next": "15.4.6",
-		"prettier-plugin-tailwindcss": "^0.7.2",
-		"tailwindcss": "^4",
-		"tsx": "^4.23.13",
-		"typescript": "^5.7.4",
-		"wrangler": "^4.70.0"
-	}
+  "name": "rdd",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:cf": "opennextjs-cloudflare build && wrangler pages dev .open-next/assets --service env.WORKER_SELF_REFERENCE=.open-next/worker.js --compatibility-flag nodejs_compat",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "steiger": "steiger src",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
+    "gen:d1": "tsx scripts/gen-d1.ts",
+    "db:migrate:local": "wrangler d1 migrations apply rdd --local",
+    "db:migrate:remote": "wrangler d1 migrations apply rdd --remote",
+    "db:restart": "tsx scripts/db-restart.ts",
+    "db:list": "wrangler d1 list",
+    "test:db": "tsx scripts/test-db.ts"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.17.1",
+    "next": "16.1.5",
+    "react": "19.1.5",
+    "react-dom": "19.1.5",
+    "steiger": "^0.6.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.35",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.6",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.13",
+    "typescript": "^5.7.4",
+    "wrangler": "^4.70.0"
+  }
 }
