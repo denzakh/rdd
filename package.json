@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "steiger": "steiger src",
+    "steiger:fix": "steiger src --fix",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
