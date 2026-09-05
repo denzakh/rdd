@@ -14,7 +14,7 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
     ui: 'badge-readonly',
     db_type: 'INTEGER',
     is_current_only: true,
-    calculate: (score) => {
+    calculate: (score: number) => {
       if (score === null || score === undefined) return null
       if (score <= 7) return 1 // Отсутствует
       if (score <= 14) return 2 // Легкая

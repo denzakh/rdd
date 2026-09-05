@@ -1,3 +1,5 @@
+import { diffYears, map_age_to_group } from '../../lib/intl/calculations'
+
 export const PATIENT_REGISTRY = {
   // --- Системные и опорные даты ---
   study_entry_date: {
@@ -25,7 +27,7 @@ export const PATIENT_REGISTRY = {
     ui: 'number-readonly',
     db_type: 'INTEGER',
     // Логика: study_entry_date.year - birth_year
-    calculate: (data) => diffYears(data.study_entry_date, data.birth_year),
+    calculate: (data: Record<string, any>) => diffYears(data.study_entry_date, data.birth_year),
     scope: 'patient',
   },
   age_group: {
@@ -41,7 +43,7 @@ export const PATIENT_REGISTRY = {
       { value: 5, label: '80 и старше' },
     ],
     // Авто-выбор на основе current_age
-    calculate: (data) => map_age_to_group(data.current_age),
+    calculate: (data: Record<string, any>) => map_age_to_group(data.current_age),
     scope: 'patient',
   },
 

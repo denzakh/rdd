@@ -52,3 +52,9 @@ export const getAgeGroup = (age: number): number => {
   if (age < 80) return 4
   return 5
 }
+
+/**
+ * Алиас для использования в реестре пациента (`patient.ts`):
+ * маппинг возраста (полных лет) в возрастную группу 1..5.
+ */
+export const map_age_to_group = getAgeGroup

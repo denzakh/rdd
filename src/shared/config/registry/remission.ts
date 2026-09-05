@@ -51,7 +51,7 @@ export const REMISSION_REGISTRY = {
     ui: 'badge-readonly',
     db_type: 'BOOLEAN',
     // Логика: если сумма признаков патологии > 0, то ремиссия не чистая (0)
-    calculate: (data) => {
+    calculate: (data: Record<string, any>) => {
       const sum =
         Number(data.subdepression_const) +
         Number(data.affective_lability_rem) +

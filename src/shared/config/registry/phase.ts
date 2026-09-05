@@ -11,7 +11,7 @@ export const PHASE_CONTROL_REGISTRY = {
     id: 'phase_relative_id',
     label: { ru: 'Тип точки', en: 'Point Type' },
     ui: 'badge-readonly', // Отображается как метка (Анамнез/98/99)
-    calculate: (index, total) => {
+    calculate: (index: number, total: number) => {
       if (index === total - 1) return 99
       if (index === total - 2) return 98
       return 1 // Анамнестическая
