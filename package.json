@@ -12,7 +12,11 @@
 		"upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
-		"gen:d1": "tsx scripts/gen-d1.ts"
+		"gen:d1": "tsx scripts/gen-d1.ts",
+		"db:migrate:local": "wrangler d1 migrations apply rdd --local",
+		"db:migrate:remote": "wrangler d1 migrations apply rdd --remote",
+		"db:restart": "tsx scripts/db-restart.ts",
+		"db:list": "wrangler d1 list"
 	},
 	"dependencies": {
 		"@opennextjs/cloudflare": "^1.17.1",

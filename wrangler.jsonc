@@ -18,6 +18,14 @@
             "bucket_name": "ux42-assets", // Реальное имя в Cloudflare
         },
     ],
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "rdd",
+            "database_id": "5a15f362-da8d-4696-b703-9d97ecec0ec1",
+            "migrations_dir": "migrations",
+        },
+    ],
     "routes": [
         {
             "pattern": "ux42.studio",

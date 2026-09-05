@@ -28,7 +28,9 @@ const here = dirname(fileURLToPath(import.meta.url))
 const projectRoot = resolve(here, '..')
 const migrationsDir = join(projectRoot, 'migrations')
 const snapshotPath = join(migrationsDir, '.schema-snapshot.json')
-const referencePath = join(migrationsDir, 'schema.sql')
+// Референс-базовый SQL. Храним ВНЕ каталога migrations, т.к. Wrangler применяет
+// все *.sql из migrations_dir как миграции (шаблон `NNNN_*.sql` не обязателен).
+const referencePath = join(projectRoot, 'schema-reference.sql')
 
 mkdirSync(migrationsDir, { recursive: true })
 

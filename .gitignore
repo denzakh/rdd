@@ -56,3 +56,6 @@ next-env.d.ts
 /UX42 Den (Copy).zip
 
 
+
+# сгенерированный базовый DDL-референс из реестра
+schema-reference.sql
