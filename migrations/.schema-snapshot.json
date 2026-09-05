@@ -1,0 +1,353 @@
+{
+  "version": 1,
+  "tables": {
+    "patients": [
+      {
+        "name": "id",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "study_entry_date",
+        "sqlType": "TEXT"
+      },
+      {
+        "name": "birth_year",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "gender",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "education_level",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "career_level",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "living_status",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "disability_status",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "family_history",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "personality_type",
+        "sqlType": "INTEGER"
+      }
+    ],
+    "phases": [
+      {
+        "name": "id",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "patient_id",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "phase_order_id",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "phase_start_date",
+        "sqlType": "TEXT"
+      },
+      {
+        "name": "phase_duration_months",
+        "sqlType": "REAL"
+      },
+      {
+        "name": "intermission_duration",
+        "sqlType": "REAL"
+      },
+      {
+        "name": "subdepression_const",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "affective_lability_rem",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "anxiety_lability_rem",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "unfavorable_env",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "pain_in_remission",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "treatment_in_remission",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "prophylaxis_type",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "onset_trigger",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "main_component",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "orientation",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "melancholy_obj",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "anxiety_obj",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "apathy_obj",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "sleep_worsening",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "appetite_loss",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "cognitive_impair",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "physical_pain",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "fatigue",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "fixed_posture",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "mimic_poverty",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "monotonous_voice",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "motor_retardation",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "delayed_response",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "restlessness",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "affect_lability",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "motor_agitation",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "hygiene_decline",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "diurnal_rhythm",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "hypochondria",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "hallucinations",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "delusions",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "obsessions",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "insight",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "beta_blockers",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ca_blockers",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "other_depressogenic",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "vitamins",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "vascular_drugs",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "nootropics",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "mood_stabilizers",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_tricyclic",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_tetracyclic",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_other_noradr",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_serotonergic",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_snri",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_maoi",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_atypical_mech",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_transitional",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_dose_level",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_route",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "days_to_improvement",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "total_days",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_efficacy",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "ad_switch",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "switch_reason",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "nl_typical",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "nl_atypical",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "nl_dose_level",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_benzodiazep",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_barbiturates",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_other_chem",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_herbal",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "hypnotics",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_dose_level",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_route",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "trank_efficacy",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "hamd_total",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "beck_total",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "clock_drawing_test",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "mmse_total",
+        "sqlType": "INTEGER"
+      }
+    ]
+  }
+}
