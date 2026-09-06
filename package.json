@@ -26,11 +26,13 @@
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
+    "@tanstack/react-virtual": "^3.14.10",
     "next": "16.1.5",
     "react": "19.1.5",
     "react-dom": "19.1.5",
     "steiger": "^0.6.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
