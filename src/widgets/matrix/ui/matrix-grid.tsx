@@ -8,7 +8,9 @@ import {
   initMatrixData,
   subscribeDirty,
   useCell,
+  useCellConflict,
   useMatrixStore,
+  type CellConflict,
   type DirtyCommit,
   type MatrixData,
 } from '../model/matrix-store'
@@ -52,6 +54,7 @@ function CellConnector({
   computedValue,
   error,
   onChange,
+  onResolveConflict,
   tabIndex,
   row,
   colIdx,
@@ -65,12 +68,14 @@ function CellConnector({
   computedValue: FieldValue
   error?: string
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
+  onResolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
   tabIndex: number
   row: number
   colIdx: number
   registerCellRef: (row: number, col: number) => (el: HTMLElement | null) => void
 }) {
   const storeValue = useCell(phaseId, field.id)
+  const conflict: CellConflict | undefined = useCellConflict(phaseId, field.id)
   const value: FieldValue = isComputed ? computedValue : storeValue
   const disabled = isReadOnly || isComputed || disabledFor(field, col)
 
@@ -91,8 +96,10 @@ function CellConnector({
         value={value}
         disabled={disabled}
         error={error}
+        conflict={conflict}
         options={field.options}
         onChange={onChange}
+        onResolveConflict={onResolveConflict}
       />
     </div>
   )
@@ -222,6 +229,14 @@ export function MatrixGrid({
 
   const [cellErrors, setCellErrors] = useState<Record<string, string | undefined>>({})
 
+  // стабильный обработчик разрешения конфликта (§6.5)
+  const resolveConflict = useCallback(
+    (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => {
+      useMatrixStore.getState().resolveConflict(phaseId, fieldId, resolution)
+    },
+    []
+  )
+
   const gridWidth = LABEL_W + columns.length * COL_W
 
   return (
@@ -308,6 +323,7 @@ export function MatrixGrid({
                         }
                         error={cellErrors[`${col.id}:${row.field.id}`]}
                         onChange={commit}
+                        onResolveConflict={resolveConflict}
                         tabIndex={
                           activeRef.current[0] === vRow.index && activeRef.current[1] === colIdx
                             ? 0

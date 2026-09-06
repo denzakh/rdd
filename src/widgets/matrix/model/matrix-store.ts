@@ -3,9 +3,24 @@ import type { FieldValue } from '../types'
 
 export type MatrixData = Record<string, Record<string, FieldValue>>
 
+/** Конфликт ячейки: «моё» уже в data, «чужое» — здесь (§6.5 спеки). */
+export interface CellConflict {
+  mine: FieldValue
+  theirs: FieldValue
+  /** Токен версии сервера, с которым пройдёт повторный PATCH. */
+  serverUpdatedAt: string
+  actor?: string
+}
+
+export type MatrixConflicts = Record<string, CellConflict>
+
 interface MatrixState {
   data: MatrixData
+  conflicts: MatrixConflicts
   setValue: (phaseId: string, fieldId: string, value: FieldValue) => void
+  markConflict: (phaseId: string, fieldId: string, c: CellConflict) => void
+  resolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
+  clearConflicts: (phaseId: string) => void
 }
 
 /**
@@ -19,6 +34,7 @@ interface MatrixState {
  */
 export const useMatrixStore = create<MatrixState>((set) => ({
   data: {},
+  conflicts: {},
   setValue: (phaseId, fieldId, value) =>
     set((s) => ({
       data: {
@@ -26,11 +42,50 @@ export const useMatrixStore = create<MatrixState>((set) => ({
         [phaseId]: { ...s.data[phaseId], [fieldId]: value },
       },
     })),
+  markConflict: (phaseId, fieldId, c) =>
+    set((s) => ({
+      conflicts: { ...s.conflicts, [`${phaseId}:${fieldId}`]: c },
+    })),
+  resolveConflict: (phaseId, fieldId, resolution) =>
+    set((s) => {
+      const key = `${phaseId}:${fieldId}`
+      const c = s.conflicts[key]
+      if (!c) return s
+      const restConflicts = { ...s.conflicts }
+      delete restConflicts[key]
+      return {
+        conflicts: restConflicts,
+        data:
+          resolution === 'theirs'
+            ? {
+                ...s.data,
+                [phaseId]: { ...s.data[phaseId], [fieldId]: c.theirs },
+              }
+            : s.data, // 'mine' — значение уже в data
+      }
+    }),
+  clearConflicts: (phaseId) =>
+    set((s) => {
+      const prefix = `${phaseId}:`
+      const rest = Object.fromEntries(
+        Object.entries(s.conflicts).filter(([k]) => !k.startsWith(prefix))
+      )
+      return { conflicts: rest }
+    }),
 }))
 
 /** Гранулярный селектор: подписка строго на одну ячейку. */
 export const useCell = (phaseId: string, fieldId: string): FieldValue =>
   useMatrixStore((s) => s.data[phaseId]?.[fieldId] ?? null)
+
+/** Селектор конфликта ячейки (§6.5). */
+export const useCellConflict = (phaseId: string, fieldId: string): CellConflict | undefined =>
+  useMatrixStore((s) => s.conflicts[`${phaseId}:${fieldId}`])
+
+/** Императивные экшены (для обработчиков вне React-компонентов, напр. 409). */
+export const markConflict = useMatrixStore.getState().markConflict
+export const resolveConflict = useMatrixStore.getState().resolveConflict
+export const clearConflicts = useMatrixStore.getState().clearConflicts
 
 /** Инициализация данных грида (вызывается из MatrixGrid при монтировании). */
 export function initMatrixData(data: MatrixData): void {

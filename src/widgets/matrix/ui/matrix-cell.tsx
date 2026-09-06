@@ -1,8 +1,9 @@
 'use client'
 
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useRef, useState } from 'react'
 import type { RegistryField, RegistryOption } from '@/shared/config/registry/types'
 import type { FieldValue } from '../types'
+import type { CellConflict } from '../model/matrix-store'
 
 export interface MatrixCellProps {
   phaseId: string
@@ -11,8 +12,10 @@ export interface MatrixCellProps {
   value: FieldValue
   disabled: boolean
   error?: string
+  conflict?: CellConflict
   options?: readonly RegistryOption[]
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
+  onResolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
 }
 
 /**
@@ -27,8 +30,10 @@ function MatrixCellBase({
   value,
   disabled,
   error,
+  conflict,
   options,
   onChange,
+  onResolveConflict,
 }: MatrixCellProps) {
   const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -132,11 +137,72 @@ function MatrixCellBase({
 
   return (
     <div
-      className={`flex h-full w-full items-center px-2 ${error ? 'bg-red-50' : ''}`}
-      title={error ?? undefined}
+      className={`relative flex h-full w-full items-center px-2 ${error ? 'bg-red-50' : ''}`}
+      title={conflict ? undefined : (error ?? undefined)}
     >
       {control}
+      {conflict && (
+        <ConflictBadge
+          conflict={conflict}
+          onResolve={onResolveConflict}
+          phaseId={phaseId}
+          fieldId={fieldId}
+        />
+      )}
     </div>
+  )
+}
+
+/**
+ * Мини-меню разрешения конфликта (§6.4): «Оставить моё / Принять значение
+ * коллеги». Tooltip показывает дифф значений.
+ */
+function ConflictBadge({
+  conflict,
+  onResolve,
+  phaseId,
+  fieldId,
+}: {
+  conflict: CellConflict
+  onResolve: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
+  phaseId: string
+  fieldId: string
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <span className="absolute top-0 right-0 z-20">
+      <button
+        type="button"
+        title={`Ваше: ${String(conflict.mine ?? '—')} → Значение коллеги: ${String(conflict.theirs ?? '—')}`}
+        onClick={() => setOpen((o) => !o)}
+        className="h-3 w-3 rounded-full border border-amber-600 bg-amber-400"
+        aria-label="Разрешить конфликт"
+      />
+      {open && (
+        <span className="absolute top-4 right-0 z-30 flex flex-col gap-0.5 rounded border border-neutral-300 bg-white p-1 text-[10px] shadow-md">
+          <button
+            type="button"
+            className="rounded px-1 py-0.5 text-left hover:bg-neutral-100"
+            onClick={() => {
+              onResolve(phaseId, fieldId, 'mine')
+              setOpen(false)
+            }}
+          >
+            Оставить моё ({String(conflict.mine ?? '—')})
+          </button>
+          <button
+            type="button"
+            className="rounded px-1 py-0.5 text-left hover:bg-neutral-100"
+            onClick={() => {
+              onResolve(phaseId, fieldId, 'theirs')
+              setOpen(false)
+            }}
+          >
+            Принять значение коллеги ({String(conflict.theirs ?? '—')})
+          </button>
+        </span>
+      )}
+    </span>
   )
 }
 
@@ -162,5 +228,6 @@ export const MatrixCell = memo(
     prev.disabled === next.disabled &&
     prev.error === next.error &&
     prev.ui === next.ui &&
-    prev.options === next.options
+    prev.options === next.options &&
+    prev.conflict === next.conflict
 )

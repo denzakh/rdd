@@ -1,4 +1,5 @@
 import type { PhaseRow } from './rows'
+import { createAuditRepository, type AuditEntry } from './audit-repo'
 
 /**
  * Входные данные для создания фазы. Все клинические колонки опциональны —
@@ -15,6 +16,17 @@ export interface PhaseRepository {
   listByPatient(patientId: number): Promise<PhaseRow[]>
   findById(id: number): Promise<PhaseRow | null>
   update(id: number, patch: Partial<PhaseInput>): Promise<void>
+  /**
+   * Оптимистичная блокировка (docs/matrix.md §6.2): UPDATE выполняется
+   * с `WHERE updated_at = baseVersion`. Аудит пишется в том же db.batch.
+   * Возвращает `applied: false` и актуальную строку при конфликте (409).
+   */
+  updateWithVersion(
+    id: number,
+    patch: Partial<PhaseInput>,
+    baseVersion: string,
+    actorId?: string
+  ): Promise<{ applied: boolean; row: PhaseRow | null }>
   remove(id: number): Promise<void>
 }
 
@@ -111,6 +123,7 @@ async function nextOrderId(db: D1Database, patientId: number): Promise<number> {
 }
 
 export function createPhaseRepository(db: D1Database): PhaseRepository {
+  const audit = createAuditRepository(db)
   const selectById = db.prepare('SELECT * FROM phases WHERE id = ?')
   const selectByPatient = db.prepare(
     'SELECT * FROM phases WHERE patient_id = ? ORDER BY phase_order_id'
@@ -154,6 +167,45 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
         .prepare(`UPDATE phases SET ${setSql} WHERE id = ?`)
         .bind(...keys.map((k) => (patch as Record<string, unknown>)[k] ?? null), id)
         .run()
+    },
+
+    async updateWithVersion(id, patch, baseVersion, actorId) {
+      const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
+      const keys = Object.keys(patch).filter((k) => allowed.has(k))
+      if (keys.length === 0) return { applied: false, row: await this.findById(id) }
+
+      const existing = await this.findById(id)
+      if (!existing) return { applied: false, row: null }
+
+      const setSql = [
+        ...keys.map((k) => `${k} = ?`),
+        `updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
+      ].join(', ')
+      const stmt = db
+        .prepare(`UPDATE phases SET ${setSql} WHERE id = ? AND updated_at = ?`)
+        .bind(...keys.map((k) => (patch as Record<string, unknown>)[k] ?? null), id, baseVersion)
+
+      // Данные + аудит — один db.batch (атомарно, §6.6)
+      const auditEntries: AuditEntry[] = keys.map((k) => ({
+        actorId,
+        patientId: existing.patient_id,
+        phaseId: id,
+        fieldId: k,
+        action: 'update',
+        oldValue: (existing as Record<string, unknown>)[k] ?? null,
+        newValue: (patch as Record<string, unknown>)[k] ?? null,
+        baseVersion,
+      }))
+
+      const results = await db.batch([stmt, ...audit.insertStatements(auditEntries)])
+      const applied = results[0].meta.changes > 0
+
+      if (applied) {
+        return { applied: true, row: await this.findById(id) }
+      }
+      // Конфликт (409): возвращаем актуальную строку + текущий токен версии
+      const row = await this.findById(id)
+      return { applied: false, row }
     },
 
     async remove(id) {

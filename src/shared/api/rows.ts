@@ -99,6 +99,8 @@ export type PhaseRow = {
   beck_total: number | null
   clock_drawing_test: number | null
   mmse_total: number | null
+  /** Токен версии для CAS (migrations/0002_audit.sql, docs/matrix.md §6.2). */
+  updated_at?: string | null
 }
 
 // Типовая страховка от рассинхрона: хранимое поле реестра `patients`,
