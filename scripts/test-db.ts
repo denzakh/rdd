@@ -5,7 +5,9 @@
  * Использует тот же `getPlatformProxy`, что opennext — читает wrangler.jsonc
  * и даёт типизированный env (в т.ч. env.DB) для локального состояния.
  *
- * База должна быть создана: npm run db:restart
+ * Команда `npm run test:db` сначала проверяет через `ensure-local-db.ts`
+ * (применены ли все миграции) и накатывает их только при необходимости,
+ * поэтому база создаётся сама — отдельный `db:restart` не обязателен.
  */
 import { getPlatformProxy } from 'wrangler'
 import {

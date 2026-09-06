@@ -22,7 +22,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply rdd --remote",
     "db:restart": "tsx scripts/db-restart.ts",
     "db:list": "wrangler d1 list",
-    "test:db": "tsx scripts/test-db.ts"
+    "test:db": "tsx scripts/ensure-local-db.ts && tsx scripts/test-db.ts"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
