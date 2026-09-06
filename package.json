@@ -22,6 +22,8 @@
     "db:migrate:remote": "wrangler d1 migrations apply rdd --remote",
     "db:restart": "tsx scripts/db-restart.ts",
     "db:list": "wrangler d1 list",
+    "user:create": "tsx scripts/create-user.ts",
+    "user:create:remote": "tsx scripts/create-user.ts --remote",
     "test:db": "tsx scripts/ensure-local-db.ts && tsx scripts/test-db.ts"
   },
   "dependencies": {

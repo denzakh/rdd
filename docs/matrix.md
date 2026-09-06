@@ -361,4 +361,4 @@ CREATE INDEX idx_audit_patient ON audit_log (patient_id, ts);
 - Значения — JSON-строки (`JSON.stringify(FieldValue)`); PII в лог не дублируется (только id).
 - **Атомарность:** запись данных + аудит — один `db.batch([...])`; CAS-результат проверяется после batch, при неуспехе — отдельное событие `conflict_received`/без аудита записи.
 - Репозиторий: `src/shared/api/audit-repo.ts` (`insertBatch`, `listByPhase`, `listByPatient`).
-- Зависимость: без аутентификации `actor_id` пуст — для клинического регистра auth является блокером.
+- Зависимость: ~~без аутентификации `actor_id` пуст~~ — **auth реализован** (миграция `0003_auth.sql`): сессии в D1 (`session-repo.ts`), вход через `features/auth`, `actor_id = SessionUser.id` из `requireUser()`/`getCurrentUser()`. До появления реальных Server Actions записи матрицы остаются демо (mock), поэтому аудит пока не пишет `actor_id` — подстановка выполняется на месте будущих мутаций.
