@@ -82,7 +82,7 @@ export const REMISSION_REGISTRY = {
       { value: 3, label: 'Комбинированная' },
     ],
     scope: 'phase',
-    // Поле активно только если treatment_in_remission === 1
-    visibility: 'treatment_in_remission === true',
+    // Условная видимость (treatment_in_remission === true) будет реализована
+    // в UI-слое; здесь — только декларация поля.
   },
 }

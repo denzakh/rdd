@@ -116,14 +116,16 @@ export const THERAPY_REGISTRY = {
   days_to_improvement: {
     id: 'days_to_improvement',
     label: 'Дней до улучшения',
-    ui: 'number',
+    ui: 'number-input',
     db_type: 'INTEGER',
+    min: 0,
   },
   total_days: {
     id: 'total_days',
     label: 'Длительность всего (дней)',
-    ui: 'number',
+    ui: 'number-input',
     db_type: 'INTEGER',
+    min: 0,
   },
   ad_efficacy: {
     id: 'ad_efficacy',
@@ -150,7 +152,8 @@ export const THERAPY_REGISTRY = {
       { value: 4, label: 'Другие (цена, отсутствие)' },
     ],
     db_type: 'INTEGER',
-    visibility: 'ad_switch === true',
+    // Условная видимость (ad_switch === true) будет реализована в UI-слое
+    // через options/условия рендера; здесь — только декларация поля.
   },
 
   // --- 4. НЕЙРОЛЕПТИКИ И ТРАНКВИЛИЗАТОРЫ ---

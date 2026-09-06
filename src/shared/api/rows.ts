@@ -104,11 +104,13 @@ export type PhaseRow = {
 // Типовая страховка от рассинхрона: хранимое поле реестра `patients`,
 // не являющееся вычисляемым, обязано присутствовать как ключ в PatientRow.
 type _PatientsSync = {
-  [K in keyof typeof PATIENT_REGISTRY as (typeof PATIENT_REGISTRY)[K] extends {
-    calculate?: any
-  }
-    ? never
-    : K]: PatientRow
+  [
+    K in keyof typeof PATIENT_REGISTRY as (typeof PATIENT_REGISTRY)[K] extends {
+      calculate?: any
+    }
+      ? never
+      : K
+  ]: PatientRow
 }
 declare const _patientsSync: _PatientsSync
 // Хранимые поля фаз (scope 'phase') обязаны быть ключами в PhaseRow.

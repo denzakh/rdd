@@ -7,7 +7,10 @@
     "dev:cf": "opennextjs-cloudflare build && wrangler pages dev .open-next/assets --service env.WORKER_SELF_REFERENCE=.open-next/worker.js --compatibility-flag nodejs_compat",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
     "steiger": "steiger src",
     "steiger:fix": "steiger src --fix",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
@@ -36,11 +39,23 @@
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "eslint": "^9",
-    "eslint-config-next": "15.4.6",
+    "eslint-config-next": "^16.3.4",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5.7.4",
     "wrangler": "^4.70.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write"
+    ],
+    "*.{json,md,css,html}": [
+      "prettier --write"
+    ]
   }
 }

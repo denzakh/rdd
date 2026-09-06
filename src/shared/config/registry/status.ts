@@ -35,7 +35,7 @@ export const MENTAL_STATUS_REGISTRY = {
   orientation: {
     id: 'orientation',
     label: 'Ориентировка',
-    ui: 'binary-toggle',
+    ui: 'toggle-binary',
     options: [
       { value: 0, label: 'Нарушена' },
       { value: 1, label: 'Сохранена' },
@@ -176,7 +176,7 @@ export const MENTAL_STATUS_REGISTRY = {
   insight: {
     id: 'insight',
     label: 'Критика к болезни',
-    ui: 'binary-toggle',
+    ui: 'toggle-binary',
     options: [
       { value: 0, label: 'Снижена' },
       { value: 1, label: 'Сохранена' },

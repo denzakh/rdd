@@ -28,14 +28,18 @@ export interface RegistryField {
   ui: UIComponent
   db_type?: 'INTEGER' | 'BOOLEAN' | 'TEXT' | 'DATE' | 'FLOAT'
   options?: RegistryOption[]
+  /** Верхняя/нижняя граница для числовых полей (используется в to-zod). */
+  min?: number
+  max?: number
   /** Для шкал 98, 99 — поле доступно только для текущего/выходного статуса */
   is_current_only?: boolean
   /**
-   * Вычисляемое поле. Принимает произвольные аргументы:
-   * - большинство полей: `(data: Record<string, any>) => any`;
-   * - поля фаз: `(index: number, total: number) => any`.
+   * Вычисляемое поле. Единый контракт: вызывается с объектом строки
+   * `(row: Record<string, unknown>) => any`. Контекст-зависимые поля
+   * (номера фаз по индексу списка) не исполняются здесь — они являются
+   * строковыми спеками (не функциями) и реализуются в UI-слое (матрица).
    */
-  calculate?: (...args: any[]) => any
+  calculate?: (row: Record<string, unknown>) => any
   /** Принадлежность к секции регистра. */
   scope?: 'patient' | 'phase'
 }

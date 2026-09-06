@@ -102,10 +102,7 @@ const DATA_COLUMNS: Array<keyof PhaseRow> = [
  * Назначение следующего phase_order_id для пациента.
  * Если фаз нет — 1, иначе max+1.
  */
-async function nextOrderId(
-  db: D1Database,
-  patientId: number
-): Promise<number> {
+async function nextOrderId(db: D1Database, patientId: number): Promise<number> {
   const row = await db
     .prepare('SELECT MAX(phase_order_id) AS m FROM phases WHERE patient_id = ?')
     .bind(patientId)
@@ -149,10 +146,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
     },
 
     async update(id, patch) {
-      const allowed = new Set<string>([
-        'phase_order_id',
-        ...DATA_COLUMNS,
-      ])
+      const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
       const keys = Object.keys(patch).filter((k) => allowed.has(k))
       if (keys.length === 0) return
       const setSql = keys.map((k) => `${k} = ?`).join(', ')

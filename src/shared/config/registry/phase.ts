@@ -11,11 +11,9 @@ export const PHASE_CONTROL_REGISTRY = {
     id: 'phase_relative_id',
     label: { ru: 'Тип точки', en: 'Point Type' },
     ui: 'badge-readonly', // Отображается как метка (Анамнез/98/99)
-    calculate: (index: number, total: number) => {
-      if (index === total - 1) return 99
-      if (index === total - 2) return 98
-      return 1 // Анамнестическая
-    },
+    // Контекст списка фаз: 99 — выход, 98 — текущий статус, 1 — анамнез.
+    // Не исполняется в applyComputed (зависит от индекса/количества фаз) —
+    // вычисляется в UI-слое матрицы.
     scope: 'phase',
   },
 
@@ -25,7 +23,6 @@ export const PHASE_CONTROL_REGISTRY = {
     label: { ru: 'Дата начала фазы', en: 'Phase Start Date' },
     ui: 'date-picker',
     db_type: 'DATE',
-    zod: 'z.date()',
     scope: 'phase',
     // Помогаем врачу: для 98/99 можно предлагать текущую дату
   },
@@ -36,7 +33,7 @@ export const PHASE_CONTROL_REGISTRY = {
     label: { ru: 'Длительность фазы (мес)', en: 'Phase Duration (mo)' },
     ui: 'number-input',
     db_type: 'FLOAT',
-    zod: 'z.number().nonnegative()',
+    min: 0,
     scope: 'phase',
   },
   intermission_duration: {
@@ -44,7 +41,7 @@ export const PHASE_CONTROL_REGISTRY = {
     label: { ru: 'Длительность интермиссии (мес)', en: 'Intermission Duration (mo)' },
     ui: 'number-input',
     db_type: 'FLOAT',
-    zod: 'z.number().nonnegative().nullable()',
+    min: 0,
     scope: 'phase',
   },
   episode_age: {

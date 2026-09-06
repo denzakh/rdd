@@ -93,10 +93,7 @@ const createTable = (table: TableId, columns: TableColumn[]): string => {
   const extra = EXTRA[table]
 
   const sysRows = meta.sys.map((c) => `"${c.name}" ${extra[c.name]}`)
-  const rows: string[] = [
-    ...sysRows,
-    ...domain.map((c) => `"${c.name}" ${c.sqlType} NULL`),
-  ]
+  const rows: string[] = [...sysRows, ...domain.map((c) => `"${c.name}" ${c.sqlType} NULL`)]
 
   return [
     `CREATE TABLE ${table} (`,
@@ -212,12 +209,8 @@ export const computeDelta = (
     }
 
     // 4) Иначе — складируем для глобальной классификации
-    removed.forEach((c) =>
-      leftoverRemoved.push({ table: tableId, col: c, consumed: false })
-    )
-    added.forEach((c) =>
-      leftoverAdded.push({ table: tableId, col: c, consumed: false })
-    )
+    removed.forEach((c) => leftoverRemoved.push({ table: tableId, col: c, consumed: false }))
+    added.forEach((c) => leftoverAdded.push({ table: tableId, col: c, consumed: false }))
   })
 
   // 5) Экзотика: перенос колонки между таблицами

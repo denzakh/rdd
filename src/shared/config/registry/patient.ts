@@ -7,7 +7,6 @@ export const PATIENT_REGISTRY = {
     label: { ru: 'Дата включения в исследование', en: 'Date of Inclusion' },
     ui: 'date-picker',
     db_type: 'DATE',
-    zod: 'z.date()',
     defaultValue: 'current_date',
     scope: 'patient',
   },
@@ -16,7 +15,7 @@ export const PATIENT_REGISTRY = {
     label: { ru: 'Год рождения', en: 'Year of Birth' },
     ui: 'number-input',
     db_type: 'INTEGER',
-    zod: 'z.number().min(1900).max(new Date().getFullYear())',
+    min: 1900,
     scope: 'patient',
   },
 
@@ -57,7 +56,8 @@ export const PATIENT_REGISTRY = {
       { value: 1, label: 'Мужской' },
       { value: 2, label: 'Женский' },
     ],
-    zod: 'z.enum([1, 2])',
+    min: 1,
+    max: 2,
     scope: 'patient',
   },
   education_level: {
@@ -70,7 +70,8 @@ export const PATIENT_REGISTRY = {
       { value: 2, label: 'Среднее' },
       { value: 3, label: 'Высшее' },
     ],
-    zod: 'z.number().min(1).max(3)',
+    min: 1,
+    max: 3,
     scope: 'patient',
   },
   career_level: {
@@ -83,7 +84,8 @@ export const PATIENT_REGISTRY = {
       { value: 2, label: 'Квалифицированная' },
       { value: 3, label: 'Высококвалифицированная' },
     ],
-    zod: 'z.number().min(1).max(3)',
+    min: 1,
+    max: 3,
     scope: 'patient',
   },
   living_status: {
@@ -97,7 +99,8 @@ export const PATIENT_REGISTRY = {
       { value: 3, label: 'С супругом и/или семьей' },
       { value: 4, label: 'Прочее' },
     ],
-    zod: 'z.number().min(1).max(4)',
+    min: 1,
+    max: 4,
     scope: 'patient',
   },
   disability_status: {
@@ -111,7 +114,8 @@ export const PATIENT_REGISTRY = {
       { value: 2, label: '2 группа' },
       { value: 3, label: '3 группа' },
     ],
-    zod: 'z.number().min(0).max(3)',
+    min: 0,
+    max: 3,
     scope: 'patient',
   },
   family_history: {
@@ -119,7 +123,6 @@ export const PATIENT_REGISTRY = {
     label: { ru: 'Наследственная отягощенность', en: 'Family History' },
     ui: 'toggle-binary', // 0/1
     db_type: 'BOOLEAN',
-    zod: 'z.boolean()',
     scope: 'patient',
   },
   personality_type: {
@@ -139,7 +142,8 @@ export const PATIENT_REGISTRY = {
       { value: 9, label: 'Зависимый' },
       { value: 10, label: 'Другой' },
     ],
-    zod: 'z.number().min(1).max(10)',
+    min: 1,
+    max: 10,
     scope: 'patient',
   },
 }

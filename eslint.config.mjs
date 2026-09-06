@@ -1,25 +1,30 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
-
 import eslintConfigPrettier from 'eslint-config-prettier'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+import nextVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
-  ...compat.config({
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/.open-next/**',
+      '**/.wrangler/**',
+      '**/migrations/**',
+      '.eslintrc.cjs',
+      'cloudflare-env.d.ts',
+      'schema-reference.sql',
+      'scripts/**',
+    ],
+  },
+  ...nextVitals,
+  ...nextTypescript,
+  {
     rules: {
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unsafe-function-type': 'warn',
     },
-  }),
+  },
   eslintConfigPrettier,
 ]
 

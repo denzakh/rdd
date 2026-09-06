@@ -57,7 +57,10 @@ async function main() {
   assert(updated?.education_level === 2, 'update works')
 
   const list = await patients.list()
-  assert(list.some((p) => p.id === patientId), 'list contains patient')
+  assert(
+    list.some((p) => p.id === patientId),
+    'list contains patient'
+  )
 
   console.log('— CRUD фаз —')
   const phaseInput: PhaseInput = {

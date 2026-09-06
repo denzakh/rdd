@@ -1,3 +1,15 @@
 node_modules
 build
 dist
+.next
+.open-next
+.wrangler
+package-lock.json
+cloudflare-env.d.ts
+schema-reference.sql
+migrations
+.vscode
+.env
+.env.*
+tsconfig.tsbuildinfo
+next-env.d.ts
