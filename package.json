@@ -24,7 +24,8 @@
     "db:list": "wrangler d1 list",
     "user:create": "tsx scripts/create-user.ts",
     "user:create:remote": "tsx scripts/create-user.ts --remote",
-    "test:db": "tsx scripts/ensure-local-db.ts && tsx scripts/test-db.ts"
+    "test:db": "tsx scripts/ensure-local-db.ts && tsx scripts/test-db.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",

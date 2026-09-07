@@ -1,5 +1,9 @@
-import type { PhaseRow } from './rows'
-import { createAuditRepository, type AuditEntry } from './audit-repo'
+import type { PhaseRow } from '@/shared/api'
+import { createAuditRepository, type AuditEntry } from '@/shared/api'
+
+/**
+ * Репозиторий фаз (перенос из shared/api, docs/spec-stage-2.md §3).
+ */
 
 /**
  * Входные данные для создания фазы. Все клинические колонки опциональны —
@@ -33,7 +37,8 @@ export interface PhaseRepository {
 /**
  * Колонки фаз, кроме системных (id, patient_id, phase_order_id).
  * Генерируется из текущей схемы; при изменениях синхронизируйте с rows.ts.
- * Экспортируется как whitelist для Server Actions (docs/spec-stage-1.md §2.2).
+ * Экспортируется как whitelist для Server Actions (docs/spec-stage-1.md §2.2)
+ * и для валидации fieldId в агрегатах (docs/spec-stage-2.md §3).
  */
 export const DATA_COLUMNS: Array<keyof PhaseRow> = [
   'phase_start_date',

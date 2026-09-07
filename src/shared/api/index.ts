@@ -1,7 +1,7 @@
 export { getDb } from './db'
+export { getCurrentUser, requireUser } from './session-server'
 export type { PatientRow, PhaseRow } from './rows'
-export { createPatientRepository, type PatientRepository, type PatientInput } from './patient-repo'
-export { createPhaseRepository, type PhaseRepository, type PhaseInput } from './phase-repo'
+export { applyComputed } from './with-computed'
 export { createAuditRepository, type AuditRepository, type AuditEntry } from './audit-repo'
 export {
   createSession,

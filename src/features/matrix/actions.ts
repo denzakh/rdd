@@ -7,13 +7,9 @@
  * Конкурентность: CAS через phase-repo.updateWithVersion, аудит — в том же db.batch.
  */
 import { revalidatePath } from 'next/cache'
-import { requireUser } from '@/features/auth/session'
-import { canWrite } from '@/shared/api/session-repo'
-import { getDb } from '@/shared/api/db'
-import { createAuditRepository } from '@/shared/api/audit-repo'
-import { createPatientRepository } from '@/shared/api/patient-repo'
-import { DATA_COLUMNS, createPhaseRepository } from '@/shared/api/phase-repo'
-import type { PhaseRow } from '@/shared/api/rows'
+import { requireUser, canWrite, getDb, createAuditRepository, type PhaseRow } from '@/shared/api'
+import { createPatientRepository } from '@/entities/patient'
+import { createPhaseRepository, DATA_COLUMNS } from '@/entities/phase'
 import { phaseSchema } from '@/shared/lib/registry/to-zod'
 import type { FieldValue } from '@/widgets/matrix'
 
@@ -95,7 +91,7 @@ export async function createPhase(
     fieldId: 'phase',
     action: 'phase_created',
   })
-  revalidatePath('/matrix')
+  revalidatePath('/patients')
   return { ok: true, phaseId }
 }
 
@@ -123,6 +119,6 @@ export async function deletePhase(
     action: 'phase_deleted',
     oldValue: existing,
   })
-  revalidatePath('/matrix')
+  revalidatePath('/patients')
   return { ok: true }
 }

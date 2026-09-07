@@ -54,7 +54,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     maxAge: SESSION_TTL_HOURS * 3600,
   })
 
-  redirect('/matrix')
+  redirect('/patients')
 }
 
 export async function logoutAction(): Promise<void> {

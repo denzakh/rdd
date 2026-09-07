@@ -10,12 +10,8 @@
  * поэтому база создаётся сама — отдельный `db:restart` не обязателен.
  */
 import { getPlatformProxy } from 'wrangler'
-import {
-  createPatientRepository,
-  createPhaseRepository,
-  type PatientInput,
-  type PhaseInput,
-} from '../src/shared/api'
+import { createPatientRepository, type PatientInput } from '../src/entities/patient'
+import { createPhaseRepository, type PhaseInput } from '../src/entities/phase'
 import { applyComputed } from '../src/shared/api/with-computed'
 
 const assert = (cond: unknown, msg: string) => {

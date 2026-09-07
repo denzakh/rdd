@@ -1,11 +1,12 @@
 /**
- * Серверная сессия приложения: чтение cookie → валидация в D1.
- * Используется из server components и server actions (next/headers).
+ * Серверная сессия приложения (слой shared, docs/spec-stage-2.md):
+ * чтение cookie → валидация в D1. Используется из server components
+ * и server actions; features импортируют отсюда (без кросс-импортов).
  */
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getDb } from '@/shared/api/db'
-import { findSessionUser, SESSION_COOKIE, type SessionUser } from '@/shared/api/session-repo'
+import { getDb } from './db'
+import { findSessionUser, SESSION_COOKIE, type SessionUser } from './session-repo'
 
 /** Текущий пользователь или null (без редиректа). */
 export async function getCurrentUser(): Promise<SessionUser | null> {

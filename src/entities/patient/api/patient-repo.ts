@@ -1,4 +1,9 @@
-import type { PatientRow } from './rows'
+import type { PatientRow } from '@/shared/api'
+
+/**
+ * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).
+ * Доменная сущность слоя entities; shared/api остаётся только инфраструктурой.
+ */
 
 /** Входные данные для создания пациента (хранимые поля, nullable). */
 export type PatientInput = Omit<PatientRow, 'id'>
@@ -7,6 +12,9 @@ export interface PatientRepository {
   create(input: PatientInput): Promise<number>
   findById(id: number): Promise<PatientRow | null>
   list(): Promise<PatientRow[]>
+  /** Постраничный список с поиском по id (для /patients). */
+  listPage(params: { q?: string; limit: number; offset: number }): Promise<PatientRow[]>
+  count(q?: string): Promise<number>
   update(id: number, patch: Partial<PatientInput>): Promise<void>
   remove(id: number): Promise<void>
 }
@@ -49,6 +57,28 @@ export function createPatientRepository(db: D1Database): PatientRepository {
     async list() {
       const { results } = await selectAll.all<PatientRow>()
       return results
+    },
+
+    async listPage({ q, limit, offset }) {
+      // q — только цифры (id пациента); биндинги, без конкатенации значений.
+      const id = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : null
+      const where = id === null ? '' : 'WHERE id = ?'
+      const binds = id === null ? [limit, offset] : [id, limit, offset]
+      const { results } = await db
+        .prepare(`SELECT * FROM patients ${where} ORDER BY id LIMIT ? OFFSET ?`)
+        .bind(...binds)
+        .all<PatientRow>()
+      return results
+    },
+
+    async count(q) {
+      const id = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : null
+      const where = id === null ? '' : 'WHERE id = ?'
+      const row = await db
+        .prepare(`SELECT COUNT(*) AS c FROM patients ${where}`)
+        .bind(...(id === null ? [] : [id]))
+        .first<{ c: number }>()
+      return row?.c ?? 0
     },
 
     async update(id, patch) {

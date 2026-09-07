@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
 
   if (hasSession && pathname === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = '/matrix'
+    url.pathname = '/patients'
     return NextResponse.redirect(url)
   }
 
