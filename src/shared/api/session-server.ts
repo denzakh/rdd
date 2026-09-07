@@ -3,10 +3,19 @@
  * чтение cookie → валидация в D1. Используется из server components
  * и server actions; features импортируют отсюда (без кросс-импортов).
  */
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getDb } from './db'
 import { findSessionUser, SESSION_COOKIE, type SessionUser } from './session-repo'
+
+/** Маршруты, доступные при must_change_password=1 (кроме /login, он и так открыт). */
+const CHANGE_PASSWORD_PATH = '/change-password'
+
+/** Текущий путь запроса (x-pathname ставит middleware). */
+async function currentPath(): Promise<string> {
+  const h = await headers()
+  return h.get('x-pathname') ?? ''
+}
 
 /** Текущий пользователь или null (без редиректа). */
 export async function getCurrentUser(): Promise<SessionUser | null> {
@@ -23,5 +32,12 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
+  // Принудительная смена пароля (docs/spec-stage-3.md §4)
+  if (user.mustChangePassword) {
+    const path = await currentPath()
+    if (path !== CHANGE_PASSWORD_PATH && !path.startsWith('/invite/')) {
+      redirect(CHANGE_PASSWORD_PATH)
+    }
+  }
   return user
 }

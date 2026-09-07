@@ -1,4 +1,5 @@
 export { LoginForm } from './ui/login-form'
+export { ChangePasswordForm } from './ui/change-password-form'
 export { UserMenu } from './ui/user-menu'
 /**
  * Публичное API фичи auth: серверная сессия живёт в shared/api/session-server

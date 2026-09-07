@@ -45,7 +45,12 @@ interface UserRow {
   display_name: string
   role: SessionUser['role']
   must_change_password: number
+  failed_attempts: number
+  locked_until: string | null
 }
+
+const USER_COLUMNS =
+  'id, email, display_name, role, must_change_password, failed_attempts, locked_until'
 
 const toSessionUser = (row: UserRow): SessionUser => ({
   id: row.id,
@@ -53,6 +58,18 @@ const toSessionUser = (row: UserRow): SessionUser => ({
   displayName: row.display_name,
   role: row.role,
   mustChangePassword: row.must_change_password === 1,
+})
+
+export interface UserWithSecurity extends SessionUser {
+  passwordHash?: string
+  failedAttempts: number
+  lockedUntil: string | null
+}
+
+const toUserWithSecurity = (row: UserRow): UserWithSecurity => ({
+  ...toSessionUser(row),
+  failedAttempts: row.failed_attempts,
+  lockedUntil: row.locked_until,
 })
 
 /** Создаёт сессию, возвращает токен для cookie. */
@@ -120,20 +137,57 @@ export async function purgeExpiredSessions(db: D1Database): Promise<void> {
   await db.prepare('DELETE FROM sessions WHERE expires_at <= ?').bind(nowIso()).run()
 }
 
-/** Поиск пользователя по email (login). */
+/** Поиск пользователя по email (login). Включает поля rate-limit. */
 export async function findUserByEmail(
   db: D1Database,
   email: string
-): Promise<(SessionUser & { passwordHash: string }) | null> {
+): Promise<UserWithSecurity | null> {
   const row = await db
-    .prepare(
-      'SELECT id, email, display_name, role, must_change_password, password_hash FROM users WHERE email = ?'
-    )
+    .prepare(`SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = ?`)
     .bind(email.toLowerCase())
     .first<UserRow & { password_hash: string }>()
   if (!row) return null
-  return { ...toSessionUser(row), passwordHash: row.password_hash }
+  return { ...toUserWithSecurity(row), passwordHash: row.password_hash }
 }
+
+// --- rate-limit входа (docs/spec-stage-3.md §3) ---
+
+export const MAX_FAILED_ATTEMPTS = 5
+export const LOCK_MINUTES = 15
+
+/** Неудачная попытка: +1; при достижении порога — блокировка на LOCK_MINUTES. */
+export async function registerFailedLogin(db: D1Database, userId: string): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE users SET
+         failed_attempts = failed_attempts + 1,
+         locked_until = CASE
+           WHEN failed_attempts + 1 >= ? THEN ? ELSE locked_until END,
+         updated_at = ?
+       WHERE id = ?`
+    )
+    .bind(
+      MAX_FAILED_ATTEMPTS,
+      new Date(Date.now() + LOCK_MINUTES * 60_000).toISOString(),
+      nowIso(),
+      userId
+    )
+    .run()
+}
+
+/** Успешный вход сбрасывает счётчик и блокировку. */
+export async function resetLoginFailures(db: D1Database, userId: string): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE users SET failed_attempts = 0, locked_until = NULL, updated_at = ? WHERE id = ?`
+    )
+    .bind(nowIso(), userId)
+    .run()
+}
+
+/** Учётка заблокирована по rate-limit? */
+export const isLocked = (user: { lockedUntil: string | null }): boolean =>
+  user.lockedUntil !== null && new Date(user.lockedUntil) > new Date()
 
 /** Право изменять данные (для будущих API/Server Actions). */
 export const canWrite = (user: SessionUser): boolean => user.role !== 'readonly'

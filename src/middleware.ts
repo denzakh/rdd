@@ -12,7 +12,10 @@ export function middleware(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE)
   const { pathname } = request.nextUrl
 
-  if (!hasSession && pathname !== '/login') {
+  // Инвайт-ссылки доступны без сессии (регистрация нового пользователя)
+  const isInvite = pathname.startsWith('/invite/')
+
+  if (!hasSession && pathname !== '/login' && !isInvite) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -24,7 +27,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+  // Путь нужен requireUser() для сценария принудительной смены пароля
+  response.headers.set('x-pathname', pathname)
+  return response
 }
 
 export const config = {

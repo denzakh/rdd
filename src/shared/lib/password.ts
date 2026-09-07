@@ -45,6 +45,18 @@ async function deriveBits(
   )
 }
 
+export const MIN_PASSWORD_LENGTH = 10
+
+/** Генерация пароля: 12 случайных байт base64url (16 символов), показывается один раз. */
+export const generatePassword = (): string => {
+  const bytes = new Uint8Array(12)
+  crypto.getRandomValues(bytes)
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
 /** Хэширует пароль в самодостаточную строку для колонки users.password_hash. */
 export async function hashPassword(
   password: string,

@@ -33,7 +33,7 @@ const manualDir = join(projectRoot, '.wrangler', 'tmp-manual-migrations')
  *  - 0002_audit.sql — audit_log (docs/matrix.md §6.6);
  *  - 0003_auth.sql  — users/sessions (аутентификация).
  */
-const MANUAL_MIGRATIONS = ['0002_audit.sql', '0003_auth.sql']
+const MANUAL_MIGRATIONS = ['0002_audit.sql', '0003_auth.sql', '0004_auth_v15.sql']
 
 const run = (cmd: string): void => {
   console.log(`> ${cmd}`)
