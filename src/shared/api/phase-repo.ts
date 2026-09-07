@@ -33,8 +33,9 @@ export interface PhaseRepository {
 /**
  * Колонки фаз, кроме системных (id, patient_id, phase_order_id).
  * Генерируется из текущей схемы; при изменениях синхронизируйте с rows.ts.
+ * Экспортируется как whitelist для Server Actions (docs/spec-stage-1.md §2.2).
  */
-const DATA_COLUMNS: Array<keyof PhaseRow> = [
+export const DATA_COLUMNS: Array<keyof PhaseRow> = [
   'phase_start_date',
   'phase_duration_months',
   'intermission_duration',

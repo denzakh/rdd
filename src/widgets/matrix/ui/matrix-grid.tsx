@@ -27,6 +27,12 @@ export interface MatrixGridProps {
   isReadOnly?: boolean
   /** Персист батча dirty-ячеек (вызывается вне React, с дебаунсом 300ms). */
   onPersist?: (batch: DirtyCommit[]) => void
+  /**
+   * Перехват разрешения конфликта (docs/spec-stage-1.md §4): по умолчанию —
+   * локальный resolveConflict стора; клиент может дополнительно переотправить
+   * «своё» значение с токеном версии сервера.
+   */
+  onResolveConflict?: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
   /** Секции реестра; по умолчанию — все, кроме patient. */
   scopes?: readonly MatrixScope[]
 }
@@ -116,6 +122,7 @@ export function MatrixGrid({
   data,
   isReadOnly = false,
   onPersist,
+  onResolveConflict: onResolveConflictProp,
   scopes,
 }: MatrixGridProps) {
   // --- стор: инициализация данных (по сериализованному ключу) ---
@@ -229,13 +236,14 @@ export function MatrixGrid({
 
   const [cellErrors, setCellErrors] = useState<Record<string, string | undefined>>({})
 
-  // стабильный обработчик разрешения конфликта (§6.5)
+  // стабильный обработчик разрешения конфликта (§6.5); перехват клиентом
   const resolveConflict = useCallback(
     (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => {
       useMatrixStore.getState().resolveConflict(phaseId, fieldId, resolution)
     },
     []
   )
+  const resolveConflictHandler = onResolveConflictProp ?? resolveConflict
 
   const gridWidth = LABEL_W + columns.length * COL_W
 
@@ -323,7 +331,7 @@ export function MatrixGrid({
                         }
                         error={cellErrors[`${col.id}:${row.field.id}`]}
                         onChange={commit}
-                        onResolveConflict={resolveConflict}
+                        onResolveConflict={resolveConflictHandler}
                         tabIndex={
                           activeRef.current[0] === vRow.index && activeRef.current[1] === colIdx
                             ? 0
