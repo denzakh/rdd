@@ -237,6 +237,9 @@ export const phaseSchema = generateSchema()
 
 ## 6. Слой доступа к данным (`src/shared/api/`)
 
+> Аутентификация и управление пользователями вынесены в отдельную спеку:
+> **`docs/auth.md`** (миграция `0003_auth.sql`, `src/features/auth`, сессии на D1).
+
 - `db.ts`: доступ к binding'у `env.DB` через `getCloudflareContext()` (только server-окружение).
 - `rows.ts`: явные типы строк `PatientRow` / `PhaseRow`, синхронизированные со схемой; содержит типобезопасные проверки соответствия реестру.
 - `patient-repo.ts` / `phase-repo.ts`: CRUD-репозитории (пациенты и фазы; автоинкремент `phase_order_id`).
