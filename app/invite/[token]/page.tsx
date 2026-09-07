@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getDb } from '@/shared/api/db'
-import { findValidInvite } from '@/features/users/model/invite-repo'
-import { InviteAcceptForm } from '@/features/users'
+import { findValidInvite, InviteAcceptForm } from '@/features/users'
 
 /** Приём инвайта (docs/spec-stage-3.md §6): доступен без сессии. */
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {

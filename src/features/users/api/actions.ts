@@ -9,9 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getDb } from '@/shared/api/db'
-import { requireUser } from '@/shared/api/session-server'
-import { createSession, SESSION_COOKIE, SESSION_TTL_HOURS } from '@/shared/api/session-repo'
+import { createSession, getDb, requireUser, SESSION_COOKIE, SESSION_TTL_HOURS } from '@/shared/api'
 import { generatePassword, hashPassword, MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 import {
   auditUser,
@@ -25,14 +23,14 @@ import {
   setLock,
   ROLES,
   type AdminUser,
-} from './model/user-repo'
+} from '../model/user-repo'
 import {
   createInvite,
   findValidInvite,
   listActiveInvites,
   markInviteUsedStatement,
   revokeInvite,
-} from './model/invite-repo'
+} from '../model/invite-repo'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

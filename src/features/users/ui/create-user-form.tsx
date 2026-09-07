@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createUserAction, type CreateUserState } from '../actions'
+import { createUserAction, type CreateUserState } from '../api/actions'
 import { ROLES } from '../model/user-repo'
 
 const initialState: CreateUserState = {}

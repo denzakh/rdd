@@ -1,4 +1,4 @@
-import { logoutAction } from '../actions'
+import { logoutAction } from '../api/actions'
 
 /** Меню пользователя (имя, роль, выход). Серверный компонент. */
 export function UserMenu({ displayName, role }: { displayName: string; role: string }) {

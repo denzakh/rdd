@@ -6,4 +6,10 @@ export { UserMenu } from './ui/user-menu'
  * (чтобы другие features не импортировали этот slice напрямую — FSD).
  */
 export { getCurrentUser, requireUser } from '@/shared/api'
-export { loginAction, logoutAction, type LoginState } from './actions'
+export {
+  loginAction,
+  logoutAction,
+  changePasswordAction,
+  type LoginState,
+  type ChangePasswordState,
+} from './api/actions'

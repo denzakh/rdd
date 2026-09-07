@@ -3,7 +3,7 @@
  * В БД — только SHA-256(токен); сам токен живёт в ссылке, выдаётся админу один раз.
  */
 import { randomUUID } from 'node:crypto'
-import { hashToken } from '@/shared/api/session-repo'
+import { hashToken } from '@/shared/api'
 
 export const INVITE_TTL_DAYS = 7
 

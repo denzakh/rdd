@@ -1,6 +1,6 @@
-import { REGISTRY } from '@/shared/config/registry'
-import type { RegistryField } from '@/shared/config/registry/types'
-import type { MatrixRowItem, MatrixScope } from '../types'
+import { REGISTRY } from '@/shared/config'
+import type { RegistryField } from '@/shared/config'
+import type { MatrixRowItem, MatrixScope } from './types'
 
 /**
  * Порядок секций матрицы (§4 спеки): Фармакотерапия, Ремиссия,

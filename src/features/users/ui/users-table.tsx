@@ -1,4 +1,4 @@
-import { changeRoleAction, lockUserAction, unlockUserAction } from '../actions'
+import { changeRoleAction, lockUserAction, unlockUserAction } from '../api/actions'
 import { ROLES, type AdminUser } from '../model/user-repo'
 import { ResetPasswordForm } from './reset-password-form'
 

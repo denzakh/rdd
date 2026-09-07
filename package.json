@@ -24,8 +24,11 @@
     "db:list": "wrangler d1 list",
     "user:create": "tsx scripts/create-user.ts",
     "user:create:remote": "tsx scripts/create-user.ts --remote",
-    "test:db": "tsx scripts/ensure-local-db.ts && tsx scripts/test-db.ts",
-    "seed:demo": "tsx scripts/seed-demo.ts"
+    "test:db": "tsx scripts/ensure-local-db.ts && vitest run -c vitest.integration.config.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db:watch": "tsx scripts/ensure-local-db.ts && vitest -c vitest.integration.config.ts"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
@@ -53,6 +56,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5.7.4",
+    "vitest": "^4.1.11",
     "wrangler": "^4.70.0"
   },
   "lint-staged": {

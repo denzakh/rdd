@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { FieldValue } from '../types'
+import type { FieldValue } from './types'
 
 export type MatrixData = Record<string, Record<string, FieldValue>>
 

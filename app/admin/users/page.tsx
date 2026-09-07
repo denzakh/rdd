@@ -1,7 +1,12 @@
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/shared/api'
-import { getActiveInvites, getUsers } from '@/features/users/actions'
-import { CreateUserForm, InvitesPanel, UsersTable } from '@/features/users'
+import {
+  CreateUserForm,
+  getActiveInvites,
+  getUsers,
+  InvitesPanel,
+  UsersTable,
+} from '@/features/users'
 import { UserMenu } from '@/features/auth'
 
 /**

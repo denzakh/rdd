@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useActionState } from 'react'
-import { changePasswordAction, type ChangePasswordState } from '../actions'
+import { changePasswordAction, type ChangePasswordState } from '../api/actions'
 
 const initialState: ChangePasswordState = {}
 

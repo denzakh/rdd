@@ -1,8 +1,8 @@
 'use client'
 
 import { memo, useCallback, useRef, useState } from 'react'
-import type { RegistryField, RegistryOption } from '@/shared/config/registry/types'
-import type { FieldValue } from '../types'
+import type { RegistryField, RegistryOption } from '@/shared/config'
+import type { FieldValue } from '../model/types'
 import type { CellConflict } from '../model/matrix-store'
 
 export interface MatrixCellProps {

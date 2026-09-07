@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { resetPasswordAction, type ResetPasswordState } from '../actions'
+import { resetPasswordAction, type ResetPasswordState } from '../api/actions'
 
 const initialState: ResetPasswordState = {}
 

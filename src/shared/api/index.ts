@@ -9,8 +9,13 @@ export {
   findSessionUser,
   findUserByEmail,
   purgeExpiredSessions,
+  registerFailedLogin,
+  resetLoginFailures,
+  isLocked,
+  hashToken,
   canWrite,
   SESSION_COOKIE,
   SESSION_TTL_HOURS,
   type SessionUser,
+  type UserWithSecurity,
 } from './session-repo'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { acceptInviteAction, type AcceptInviteState } from '../actions'
+import { acceptInviteAction, type AcceptInviteState } from '../api/actions'
 
 const initialState: AcceptInviteState = {}
 

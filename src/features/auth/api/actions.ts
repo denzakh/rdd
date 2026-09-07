@@ -7,20 +7,20 @@
  */
 import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getDb } from '@/shared/api/db'
-import { requireUser } from '@/shared/api/session-server'
 import {
   createSession,
   destroySession,
   findUserByEmail,
+  getDb,
   hashToken,
   isLocked,
   purgeExpiredSessions,
   registerFailedLogin,
+  requireUser,
   resetLoginFailures,
   SESSION_COOKIE,
   SESSION_TTL_HOURS,
-} from '@/shared/api/session-repo'
+} from '@/shared/api'
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '@/shared/lib/password'
 
 export interface LoginState {

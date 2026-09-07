@@ -10,8 +10,10 @@ import { revalidatePath } from 'next/cache'
 import { requireUser, canWrite, getDb, createAuditRepository, type PhaseRow } from '@/shared/api'
 import { createPatientRepository } from '@/entities/patient'
 import { createPhaseRepository, DATA_COLUMNS } from '@/entities/phase'
-import { phaseSchema } from '@/shared/lib/registry/to-zod'
-import type { FieldValue } from '@/widgets/matrix'
+import { phaseSchema } from '@/shared/lib/registry'
+
+/** Значение ячейки (string | number | boolean | null) — без импорта из widgets. */
+type FieldValue = string | number | boolean | null
 
 export interface CellInput {
   fieldId: string

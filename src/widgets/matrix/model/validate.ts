@@ -1,6 +1,6 @@
-import { phaseSchema } from '@/shared/lib/registry/to-zod'
-import type { RegistryField } from '@/shared/config/registry/types'
-import type { FieldValue } from '../types'
+import { phaseSchema } from '@/shared/lib/registry'
+import type { RegistryField } from '@/shared/config'
+import type { FieldValue } from './types'
 
 /**
  * Валидация значения ячейки по Zod-схеме, сгенерированной из реестра

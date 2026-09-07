@@ -15,4 +15,4 @@ export {
 } from './model/matrix-store'
 export { buildMatrixRows } from './model/matrix-rows'
 export { validateCellValue } from './model/validate'
-export type { MatrixColumn, FieldValue } from './types'
+export type { MatrixColumn, FieldValue } from './model/types'

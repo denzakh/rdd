@@ -8,7 +8,7 @@
 import { useActionState } from 'react'
 import { REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
-import { savePatientAction, type PatientActionState } from '../actions'
+import { savePatientAction, type PatientActionState } from '../api/actions'
 
 const EDITABLE_UI = new Set([
   'date-picker',

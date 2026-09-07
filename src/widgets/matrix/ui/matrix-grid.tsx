@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { RegistryField } from '@/shared/config/registry/types'
+import type { RegistryField } from '@/shared/config'
 import { applyComputed } from '@/shared/api/with-computed'
 import {
   initMatrixData,
@@ -16,7 +16,7 @@ import {
 } from '../model/matrix-store'
 import { buildMatrixRows, fieldLabel, isComputedField } from '../model/matrix-rows'
 import { validateCellValue } from '../model/validate'
-import type { FieldValue, MatrixColumn, MatrixScope } from '../types'
+import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
 import { MatrixCell } from './matrix-cell'
 
 export interface MatrixGridProps {

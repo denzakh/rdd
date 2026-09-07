@@ -2,7 +2,7 @@
 
 **Цель:** Создание высокопроизводительного, виртуализированного компонента таблицы для отображения и ввода большого числа клинических признаков по динамическим временным точкам (фазам) заболевания.
 
-**Стек:** Next.js 16 (App Router), React 19, TypeScript (Strict), Tailwind CSS, `@tanstack/react-virtual`, `zustand` (⚠️ добавить: в `package.json` отсутствуют оба пакета), `zod`.
+**Стек:** Next.js 16 (App Router), React 19, TypeScript (Strict), Tailwind CSS, `@tanstack/react-virtual`, `zustand` (оба пакета установлены в `package.json`), `zod`.
 
 > **Управление состоянием:** `react-hook-form` для грида НЕ используется. Состояние ячеек — `zustand`-стор с гранулярными подписками (см. §2.2).
 
@@ -361,4 +361,4 @@ CREATE INDEX idx_audit_patient ON audit_log (patient_id, ts);
 - Значения — JSON-строки (`JSON.stringify(FieldValue)`); PII в лог не дублируется (только id).
 - **Атомарность:** запись данных + аудит — один `db.batch([...])`; CAS-результат проверяется после batch, при неуспехе — отдельное событие `conflict_received`/без аудита записи.
 - Репозиторий: `src/shared/api/audit-repo.ts` (`insertBatch`, `listByPhase`, `listByPatient`).
-- Зависимость: ~~без аутентификации `actor_id` пуст~~ — **auth реализован** (миграция `0003_auth.sql`): сессии в D1 (`session-repo.ts`), вход через `features/auth`, `actor_id = SessionUser.id` из `requireUser()`/`getCurrentUser()`. До появления реальных Server Actions записи матрицы остаются демо (mock), поэтому аудит пока не пишет `actor_id` — подстановка выполняется на месте будущих мутаций.
+- Зависимость: ~~без аутентификации `actor_id` пуст~~ — **auth реализован** (миграция `0003_auth.sql`): сессии в D1 (`session-repo.ts`), вход через `features/auth`, `actor_id = SessionUser.id` из `requireUser()`/`getCurrentUser()`. ~~Записи матрицы — демо (mock)~~ — **реальные мутации реализованы** (этап 1, `docs/spec-stage-1.md`): Server Actions (`src/features/matrix/actions.ts`) вызывают `phase-repo.updateWithVersion` с `actorId = user.id`, аудит пишется в том же `db.batch`.

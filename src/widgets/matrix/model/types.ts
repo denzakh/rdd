@@ -1,4 +1,4 @@
-import type { RegistryField } from '@/shared/config/registry/types'
+import type { RegistryField } from '@/shared/config'
 
 /** Значение ячейки (решение 6 спеки: union вместо `any`). */
 export type FieldValue = string | number | boolean | null

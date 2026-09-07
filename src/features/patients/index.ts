@@ -1,2 +1,2 @@
-export { savePatientAction, type PatientActionState } from './actions'
+export { savePatientAction, type PatientActionState } from './api/actions'
 export { PatientForm } from './ui/patient-form'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createInviteAction, revokeInviteAction, type CreateInviteState } from '../actions'
+import { createInviteAction, revokeInviteAction, type CreateInviteState } from '../api/actions'
 import { ROLES } from '../model/user-repo'
 import type { Invite } from '../model/invite-repo'
 
