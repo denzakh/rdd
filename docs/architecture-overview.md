@@ -12,6 +12,23 @@
 
 ---
 
+## C4-обзор: System Context и Container (одна картинка)
+
+Быстрый уровень для ревьюера: кто взаимодействует с системой и из чего она состоит.
+Текстовая версия с обоснованиями «проблема → варианты → решение» — разделы ниже.
+
+![C4 overview: System Context + Container](./diagrams/c4-overview.svg)
+
+- **L1 System Context:** врач (`clinician`), admin, `readonly` → RDD; пунктиром —
+  Cloudflare Access (опция эскалации, [auth.md §2](./auth.md)) и будущая EHR (не реализована,
+  см. «Границы демо-проекта»).
+- **L2 Container:** браузер → Next.js на Cloudflare Workers (Server Actions, `requireUser()`,
+  PBKDF2, scope-репозитории) → D1; TS-реестр полей как component, порождающий схему/Zod/UI;
+  Admin CLI для `user:create` (публичной регистрации нет).
+- Пунктирные стрелки = опция/будущее; сплошные = реализовано в v1.
+
+---
+
 ## 1. Registry-driven core — одна схема на всё
 
 **Проблема:** медицинский регистр с ~50+ полями: как избежать рассинхрона между схемой БД,

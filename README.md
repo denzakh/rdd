@@ -54,6 +54,7 @@ npm run dev                 # http://localhost:3000
 
 - `docs/architecture-overview.md` — **точка входа**: ключевые архитектурные решения,
   security-сводка, границы демо-проекта
+- `docs/diagrams/c4-overview.svg` — C4-диаграмма (System Context + Container)
 - `docs/rdd-v1.md` — архитектура, реестр полей, схема данных
 - `docs/auth.md` — аутентификация (v1.5 реализована)
 - `docs/matrix.md` — виджет «Матрица»
