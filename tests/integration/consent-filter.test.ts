@@ -2,7 +2,6 @@ import { afterAll, describe, expect, it } from 'vitest'
 import { createPatientRepository } from '@/entities/patient'
 import { countByField, efficacyByMainComponent, phaseDurationsByOrder } from '@/entities/phase'
 import { cleanupPatient, disposeTestDb, getTestDb } from '../helpers/db'
-
 /**
  * Правило согласия (consent lifecycle): фазы пациента, отозвавшего согласие
  * (patients.consent_withdrawn_at IS NOT NULL), не участвуют в агрегатах
@@ -63,6 +62,38 @@ describe('consent: данные с отозванным согласием ис�
     expect(
       (await efficacyByMainComponent(db)).some((r) => r.main_component === 1 && r.ad_efficacy === 2)
     ).toBe(false)
+
+    await cleanupPatient(db, patientId)
+  })
+
+  it('patient-repo: signConsent / withdrawConsent (идемпотентность, восстановление)', async () => {
+    const db = await getTestDb()
+    const patients = createPatientRepository(db)
+    const patientId = await patients.create(patientInput)
+
+    // подписание: версия/дата фиксируются
+    expect(await patients.signConsent(patientId, { version: 'v1', date: '2024-02-01' })).toBe(true)
+    const signed = await patients.findById(patientId)
+    expect(signed?.consent_version).toBe('v1')
+    expect(signed?.consent_date).toBe('2024-02-01')
+    expect(signed?.consent_withdrawn_at).toBeNull()
+
+    // отзыв: время фиксируется, повторный отзыв — no-op
+    expect(await patients.withdrawConsent(patientId)).toBe(true)
+    const firstWithdrawnAt = (await patients.findById(patientId))?.consent_withdrawn_at
+    expect(firstWithdrawnAt).toBeTruthy()
+    expect(await patients.withdrawConsent(patientId)).toBe(false)
+    expect((await patients.findById(patientId))?.consent_withdrawn_at).toBe(firstWithdrawnAt)
+
+    // повторное подписание снимает отзыв (данные снова в отчётах)
+    expect(await patients.signConsent(patientId)).toBe(true)
+    const restored = await patients.findById(patientId)
+    expect(restored?.consent_withdrawn_at).toBeNull()
+    expect(restored?.consent_version).toBe('v1')
+
+    // несуществующий пациент
+    expect(await patients.signConsent(999999)).toBe(false)
+    expect(await patients.withdrawConsent(999999)).toBe(false)
 
     await cleanupPatient(db, patientId)
   })

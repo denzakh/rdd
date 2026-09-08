@@ -33,6 +33,34 @@ const STORED_COLUMNS = Object.freeze([
 ] as const)
 type StoredColumn = (typeof STORED_COLUMNS)[number]
 
+/**
+ * Текущая версия формы информированного согласия (consent lifecycle).
+ * При изменении текста согласия увеличьте версию — старые подписи
+ * останутся со своей версией в consent_version.
+ */
+export const CONSENT_CURRENT_VERSION = 'v1'
+
+export interface ConsentInput {
+  version?: string
+  /** Дата подписания (ISO-8601), по умолчанию — сегодня. */
+  date?: string
+}
+
+export interface PatientRepository {
+  create(input: PatientInput): Promise<number>
+  findById(id: number): Promise<PatientRow | null>
+  list(): Promise<PatientRow[]>
+  /** Постраничный список с поиском по id (для /patients). */
+  listPage(params: { q?: string; limit: number; offset: number }): Promise<PatientRow[]>
+  count(q?: string): Promise<number>
+  update(id: number, patch: Partial<PatientInput>): Promise<void>
+  remove(id: number): Promise<void>
+  /** Подписание (или повторное подписание) согласия: снимает отзыв. */
+  signConsent(id: number, consent?: ConsentInput): Promise<boolean>
+  /** Отзыв согласия (идемпотентно): первый отзыв фиксирует время, данные не удаляются. */
+  withdrawConsent(id: number): Promise<boolean>
+}
+
 export function createPatientRepository(db: D1Database): PatientRepository {
   const insert = db.prepare(
     `INSERT INTO patients (${STORED_COLUMNS.join(', ')})
@@ -93,6 +121,35 @@ export function createPatientRepository(db: D1Database): PatientRepository {
 
     async remove(id) {
       await del.bind(id).run()
+    },
+
+    async signConsent(id, consent) {
+      const res = await db
+        .prepare(
+          `UPDATE patients
+           SET consent_version = ?, consent_date = ?, consent_withdrawn_at = NULL
+           WHERE id = ?`
+        )
+        .bind(
+          consent?.version ?? CONSENT_CURRENT_VERSION,
+          consent?.date ?? new Date().toISOString().slice(0, 10),
+          id
+        )
+        .run()
+      return res.meta.changes > 0
+    },
+
+    async withdrawConsent(id) {
+      // Идемпотентность: время первого отзыва не перезаписывается
+      const res = await db
+        .prepare(
+          `UPDATE patients
+           SET consent_withdrawn_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+           WHERE id = ? AND consent_withdrawn_at IS NULL`
+        )
+        .bind(id)
+        .run()
+      return res.meta.changes > 0
     },
   }
 }

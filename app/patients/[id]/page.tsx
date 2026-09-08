@@ -4,6 +4,7 @@ import { requireUser, UserMenu } from '@/features/auth'
 import { getDb } from '@/shared/api/db'
 import { createPatientRepository, PatientCard } from '@/entities/patient'
 import { createPhaseRepository } from '@/entities/phase'
+import { ConsentPanel } from '@/features/patients'
 import { canWrite } from '@/shared/api/session-repo'
 
 /** Карточка пациента: паспортная часть + список фаз. */
@@ -35,6 +36,16 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
         </div>
 
         <PatientCard patient={patient} />
+
+        <ConsentPanel
+          patientId={patient.id}
+          consent={{
+            version: patient.consent_version ?? null,
+            date: patient.consent_date ?? null,
+            withdrawnAt: patient.consent_withdrawn_at ?? null,
+          }}
+          canWrite={canWrite(user)}
+        />
 
         <section className="space-y-2">
           <div className="flex items-center justify-between">

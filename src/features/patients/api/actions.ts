@@ -109,3 +109,66 @@ export async function savePatientAction(
   revalidatePath(`/patients/${id}`)
   return {}
 }
+
+// --- Жизненный цикл согласия (consent lifecycle) ---
+// Правило: пациент с consent_withdrawn_at != null исключается из отчётов/экспорта
+// (см. src/entities/phase/api/queries.ts), данные физически не удаляются.
+
+export async function signConsentAction(
+  _prev: PatientActionState,
+  formData: FormData
+): Promise<PatientActionState> {
+  const user = await requireUser()
+  if (!canWrite(user)) return { error: 'Доступ только для чтения' }
+
+  const id = Number(formData.get('id'))
+  if (!Number.isInteger(id)) return { error: 'Некорректный id пациента' }
+
+  const db = await getDb()
+  const repo = createPatientRepository(db)
+  const existing = await repo.findById(id)
+  if (!existing) return { error: 'Пациент не найден' }
+
+  await repo.signConsent(id)
+  await createAuditRepository(db).insert({
+    actorId: user.id,
+    patientId: id,
+    fieldId: 'consent',
+    action: 'update',
+    oldValue: { consent_withdrawn_at: existing.consent_withdrawn_at ?? null },
+    newValue: { consent_withdrawn_at: null },
+  })
+  revalidatePath('/patients')
+  revalidatePath(`/patients/${id}`)
+  return {}
+}
+
+export async function withdrawConsentAction(
+  _prev: PatientActionState,
+  formData: FormData
+): Promise<PatientActionState> {
+  const user = await requireUser()
+  if (!canWrite(user)) return { error: 'Доступ только для чтения' }
+
+  const id = Number(formData.get('id'))
+  if (!Number.isInteger(id)) return { error: 'Некорректный id пациента' }
+
+  const db = await getDb()
+  const repo = createPatientRepository(db)
+  const existing = await repo.findById(id)
+  if (!existing) return { error: 'Пациент не найден' }
+  if (existing.consent_withdrawn_at) return {} // уже отозвано — идемпотентность
+
+  await repo.withdrawConsent(id)
+  await createAuditRepository(db).insert({
+    actorId: user.id,
+    patientId: id,
+    fieldId: 'consent',
+    action: 'update',
+    oldValue: { consent_withdrawn_at: null },
+    newValue: { consent_withdrawn_at: new Date().toISOString() },
+  })
+  revalidatePath('/patients')
+  revalidatePath(`/patients/${id}`)
+  return {}
+}
