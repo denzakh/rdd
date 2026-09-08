@@ -20,6 +20,14 @@ export type PatientRow = {
   disability_status: number | null
   family_history: number | null
   personality_type: number | null
+  /**
+   * Жизненный цикл согласия (системные колонки, не реестр):
+   * consent_withdrawn_at != null → данные пациента исключаются
+   * из отчётов/экспорта (queries.ts), физически не удаляются.
+   */
+  consent_version?: string | null
+  consent_date?: string | null
+  consent_withdrawn_at?: string | null
 }
 
 export type PhaseRow = {

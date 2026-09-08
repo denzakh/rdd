@@ -38,6 +38,17 @@ describe('d1-schema: buildDesiredTables', () => {
     expect(names.has('current_age')).toBe(false)
     expect(names.has('age_group')).toBe(false)
   })
+
+  it('колонки согласия — системные метаданные patients (TEXT)', () => {
+    const tables = buildDesiredTables()
+    const byName = Object.fromEntries(tables.patients.map((c) => [c.name, c.sqlType]))
+    expect(byName['consent_version']).toBe('TEXT')
+    expect(byName['consent_date']).toBe('TEXT')
+    expect(byName['consent_withdrawn_at']).toBe('TEXT')
+    // согласие — только в patients, не в phases
+    const phaseNames = new Set(tables.phases.map((c) => c.name))
+    expect(phaseNames.has('consent_version')).toBe(false)
+  })
 })
 
 describe('d1-schema: generateD1Schema (DDL)', () => {
@@ -61,6 +72,12 @@ describe('d1-schema: generateD1Schema (DDL)', () => {
 
   it('доменные колонки — nullable', () => {
     expect(ddl).toMatch(/"hamd_total" INTEGER NULL/)
+  })
+
+  it('колонки согласия попадают в DDL patients как nullable TEXT', () => {
+    expect(ddl).toContain('"consent_version" TEXT NULL')
+    expect(ddl).toContain('"consent_date" TEXT NULL')
+    expect(ddl).toContain('"consent_withdrawn_at" TEXT NULL')
   })
 })
 

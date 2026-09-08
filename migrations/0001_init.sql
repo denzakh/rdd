@@ -12,6 +12,9 @@ CREATE TABLE patients (
     "disability_status" INTEGER NULL,
     "family_history" INTEGER NULL,
     "personality_type" INTEGER NULL,
+    "consent_version" TEXT NULL,
+    "consent_date" TEXT NULL,
+    "consent_withdrawn_at" TEXT NULL,
     CHECK ("birth_year" >= 1900)
 );
 

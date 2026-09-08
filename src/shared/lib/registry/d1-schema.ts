@@ -33,6 +33,21 @@ export const DB_TYPE_TO_SQL: Record<DbType, string> = {
 
 /** Системные колонки (стабильны, в diff не порождают операций). */
 const PATIENT_SYSTEM_COLUMNS: TableColumn[] = [{ name: 'id', sqlType: 'INTEGER' }]
+
+/**
+ * Колонки жизненного цикла согласия пациента (не доменные поля реестра —
+ * в формы матрицы и data-dictionary не попадают, управляются системой):
+ *  - consent_version — версия формы согласия (текст, напр. 'v1');
+ *  - consent_date — дата подписания согласия (ISO-8601);
+ *  - consent_withdrawn_at — дата отзыва согласия. НЕ null: данные пациента
+ *    исключаются из отчётов/экспорта (но не удаляются физически — retention
+ *    вне рамок текущего этапа).
+ */
+export const PATIENT_CONSENT_COLUMNS: TableColumn[] = [
+  { name: 'consent_version', sqlType: 'TEXT' },
+  { name: 'consent_date', sqlType: 'TEXT' },
+  { name: 'consent_withdrawn_at', sqlType: 'TEXT' },
+]
 const PHASE_SYSTEM_COLUMNS: TableColumn[] = [
   { name: 'id', sqlType: 'INTEGER' },
   { name: 'patient_id', sqlType: 'INTEGER' },
@@ -66,6 +81,9 @@ const toColumns = (table: TableId): TableColumn[] => {
 
     columns.push({ name: field.id, sqlType: DB_TYPE_TO_SQL[field.db_type] })
   })
+
+  // Колонки согласия — системные метаданные пациентов, вне реестра
+  if (onlyPatient) columns.push(...PATIENT_CONSENT_COLUMNS)
 
   return columns
 }

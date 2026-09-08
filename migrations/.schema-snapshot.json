@@ -41,6 +41,18 @@
       {
         "name": "personality_type",
         "sqlType": "INTEGER"
+      },
+      {
+        "name": "consent_version",
+        "sqlType": "TEXT"
+      },
+      {
+        "name": "consent_date",
+        "sqlType": "TEXT"
+      },
+      {
+        "name": "consent_withdrawn_at",
+        "sqlType": "TEXT"
       }
     ],
     "phases": [
