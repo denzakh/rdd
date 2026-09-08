@@ -59,6 +59,7 @@ npm run dev                 # http://localhost:3000
 - `docs/auth.md` — аутентификация (v1.5 реализована)
 - `docs/matrix.md` — виджет «Матрица»
 - `docs/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
+- `docs/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
 - `docs/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
 
 ## Разработка
