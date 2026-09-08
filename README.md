@@ -60,6 +60,7 @@ npm run dev                 # http://localhost:3000
 - `docs/matrix.md` — виджет «Матрица»
 - `docs/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
 - `docs/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
+- `docs/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
 - `docs/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
 
 ## Разработка
