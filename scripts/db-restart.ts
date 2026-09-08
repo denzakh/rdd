@@ -30,10 +30,17 @@ const manualDir = join(projectRoot, '.wrangler', 'tmp-manual-migrations')
 
 /**
  * Ручные миграции (не генерируются gen:d1, переживают db:restart):
- *  - 0002_audit.sql — audit_log (docs/matrix.md §6.6);
- *  - 0003_auth.sql  — users/sessions (аутентификация).
+ *  - 0002_audit.sql       — audit_log (docs/matrix.md §6.6);
+ *  - 0003_auth.sql        — users/sessions (аутентификация);
+ *  - 0004_auth_v15.sql    — rate-limit, инвайты (docs/spec-stage-3.md);
+ *  - 0005_data_scope.sql  — row-level access (docs/auth.md).
  */
-const MANUAL_MIGRATIONS = ['0002_audit.sql', '0003_auth.sql', '0004_auth_v15.sql']
+const MANUAL_MIGRATIONS = [
+  '0002_audit.sql',
+  '0003_auth.sql',
+  '0004_auth_v15.sql',
+  '0005_data_scope.sql',
+]
 
 const run = (cmd: string): void => {
   console.log(`> ${cmd}`)

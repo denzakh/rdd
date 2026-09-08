@@ -30,7 +30,7 @@ npm run dev                 # http://localhost:3000
 | `npm run dev:cf`       | dev в Cloudflare-рантайме (worker.js)                                 |
 | `npm run build`        | прод-сборка                                                           |
 | `npm run gen:d1`       | генерация миграций D1 из реестра полей (`src/shared/config/registry`) |
-| `npm run db:restart`   | полный ресет локальной БД (baseline + ручные миграции 0002–0004)      |
+| `npm run db:restart`   | полный ресет локальной БД (baseline + ручные миграции 0002–0005)      |
 | `npm run db:migrate:*` | применить миграции (`--local` / `--remote`)                           |
 | `npm run user:create`  | создать пользователя (интерактив/флаги; первый — admin)               |
 | `npm run seed:demo`    | демо-данные                                                           |
@@ -45,6 +45,8 @@ npm run dev                 # http://localhost:3000
 - Собственные сессии на D1 (PBKDF2, токен только в HttpOnly cookie), TTL 12 ч.
 - Роли: `admin` (управление пользователями, `/admin/users`), `clinician`
   (чтение/запись), `readonly` (только чтение).
+- Row-level access: переключатель `data_scope` у пользователя — «видит всех» /
+  «свой центр» / «только назначенных ему пациентов» (см. `docs/auth.md`).
 - Смена пароля `/change-password`; rate-limit: 5 неверных паролей → блокировка 15 мин.
 - Инвайты: admin выдаёт одноразовую ссылку `/invite/<token>` (7 дней).
 

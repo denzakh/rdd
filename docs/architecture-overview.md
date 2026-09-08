@@ -86,7 +86,26 @@ cookie, в БД — SHA-256(токен): утечка базы не угоняе
 
 → Подробно: [matrix.md §6.6](./matrix.md), [auth.md §11](./auth.md)
 
-## 6. Матрица: sticky + виртуализация без scroll-синхронизации
+## 6. Row-level access: аутентификация ≠ авторизация на уровне данных
+
+**Проблема:** роль `clinician` по умолчанию видит всех пациентов. В реальном
+многоцентровом исследовании врач видит только пациентов своего центра/своих
+назначенных — причём фильтр по прямой ссылке на карту должен работать так же,
+как по списку (иначе IDOR).
+
+**Рассмотренные варианты:** фильтр, зашитый в роль (жёстко); только site-level
+(просто, но теряется «назначенный врач»); many-to-many `patient_access`
+(максимальная гибкость, избыточно для демо).
+
+**Решение:** декларативный `data_scope` на пользователе (`all` / `site` /
+`assigned`) + `site_id`/`assigned_clinician_id` на пациенте. Репозиторий
+создаётся уже ограниченным: `createPatientRepository(db, patientScopeFor(user))` —
+все выборки, включая `findById`, уважают scope. Fail closed: `site` без
+привязки к центру не видит ничего. Переключатель — у admin в `/admin/users`.
+
+→ Подробно: [auth.md — Row-level access](./auth.md)
+
+## 7. Матрица: sticky + виртуализация без scroll-синхронизации
 
 **Проблема:** фиксированная левая колонка + фиксированная шапка + виртуализация сотен строк.
 
@@ -106,6 +125,7 @@ cookie, в БД — SHA-256(токен): утечка базы не угоняе
 | Слабый хэш пароля                         | PBKDF2-SHA256, 200k итераций, constant-time сравнение, параметры в строке хэша                  | [auth.md §4](./auth.md)                                 |
 | Перехват cookie                           | `Secure; HttpOnly; SameSite=Lax`, TTL 12 ч, sliding renewal                                     | [auth.md §5](./auth.md)                                 |
 | Мутация мимо UI (readonly-роль)           | Двойная проверка: UI `isReadOnly` + `canWrite()` в каждом Server Action                         | [spec-stage-1.md §1, §3](./spec-stage-1.md)             |
+| Clinician видит чужих пациентов (IDOR)    | `data_scope` на пользователе; scope-репозиторий фильтрует `list/listPage/count/findById`        | [auth.md — Row-level access](./auth.md)                 |
 | Инъекция полей клиентом                   | Whitelist `DATA_COLUMNS`, Zod `phaseSchema.partial()`, системные поля не принимаются от клиента | [spec-stage-1.md §2](./spec-stage-1.md)                 |
 | Потеря авторства изменений                | `actor_id` из `requireUser()` в каждой мутации, аудит в одном `db.batch` с записью              | [auth.md §11](./auth.md), [matrix.md §6.6](./matrix.md) |
 | Утечка PII через логи                     | В `audit_log` только id и JSON значений, без дублирования персональных данных                   | [matrix.md §6.6](./matrix.md)                           |
