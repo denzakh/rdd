@@ -1,21 +1,19 @@
-import { FLAT_REGISTRY } from '@/shared/config'
-import type { RegistryField } from '@/shared/config'
 import { DATA_COLUMNS } from './phase-repo'
 
 /**
  * Агрегаты по фазам (docs/spec-stage-2.md §3).
- * Имя колонки (fieldId) валидируется по whitelist DATA_COLUMNS и по реестру —
- * защита от SQL-инъекции через имя колонки; значения — только биндинги.
+ * Имя колонки (fieldId) валидируется по whitelist DATA_COLUMNS — защита от
+ * SQL-инъекции через имя колонки; значения — только биндинги.
+ *
+ * DATA_COLUMNS — перечень всех доменных (не системных) колонок таблицы phases
+ * (см. phase-repo.ts). Это корректный whitelist «полей фазы»: в него входят и
+ * поля из блоков status/therapy без явного `scope`, которые также хранятся в phases.
  */
 
-const PHASE_FIELD_IDS = new Set<string>(
-  Object.values(FLAT_REGISTRY)
-    .filter((f) => (f as RegistryField).scope === 'phase')
-    .map((f) => (f as RegistryField).id)
-)
+const PHASE_FIELD_IDS = new Set<string>(DATA_COLUMNS)
 
 export function assertPhaseField(fieldId: string): keyof (typeof DATA_COLUMNS)[number] {
-  if (!PHASE_FIELD_IDS.has(fieldId) || !DATA_COLUMNS.includes(fieldId as never)) {
+  if (!PHASE_FIELD_IDS.has(fieldId)) {
     throw new Error(`Недопустимое поле фазы: ${fieldId}`)
   }
   return fieldId as keyof (typeof DATA_COLUMNS)[number]
