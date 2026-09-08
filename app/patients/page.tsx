@@ -33,6 +33,9 @@ export default async function PatientsPage({
             <Link href="/reports" className="text-xs text-blue-700 hover:underline">
               Отчёты
             </Link>
+            <Link href="/data-dictionary" className="text-xs text-blue-700 hover:underline">
+              Словарь данных
+            </Link>
             <form className="flex items-center gap-1">
               <input
                 type="search"

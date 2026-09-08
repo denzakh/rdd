@@ -23,7 +23,7 @@ export interface SchemaSnapshot {
  * Маппинг доменных типов реестра в типы целевой БД.
  * BOOLEAN -> 0/1 INTEGER, DATE -> TEXT (ISO-8601) — стандарт SQLite/D1.
  */
-const DB_TYPE_TO_SQL: Record<DbType, string> = {
+export const DB_TYPE_TO_SQL: Record<DbType, string> = {
   INTEGER: 'INTEGER',
   FLOAT: 'REAL',
   BOOLEAN: 'INTEGER',

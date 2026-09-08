@@ -14,3 +14,8 @@ export {
   type TargetDb,
 } from './d1-schema'
 export { generateSchema, phaseSchema } from './to-zod'
+export {
+  buildDataDictionary,
+  type DictionaryEntry,
+  type DictionarySection,
+} from './data-dictionary'

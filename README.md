@@ -55,6 +55,7 @@ npm run dev                 # http://localhost:3000
 - `docs/rdd-v1.md` — архитектура, реестр полей, схема данных
 - `docs/auth.md` — аутентификация (v1.5 реализована)
 - `docs/matrix.md` — виджет «Матрица»
+- `docs/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
 - `docs/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
 
 ## Разработка
