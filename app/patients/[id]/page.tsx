@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireUser, UserMenu } from '@/features/auth'
 import { getDb } from '@/shared/api/db'
-import { createPatientRepository, PatientCard } from '@/entities/patient'
+import { createPatientRepository, patientScopeFor, PatientCard } from '@/entities/patient'
 import { createPhaseRepository } from '@/entities/phase'
 import { ConsentPanel } from '@/features/patients'
 import { canWrite } from '@/shared/api/session-repo'
@@ -15,7 +15,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
   if (!Number.isInteger(patientId)) notFound()
 
   const db = await getDb()
-  const patient = await createPatientRepository(db).findById(patientId)
+  const patient = await createPatientRepository(db, patientScopeFor(user)).findById(patientId)
   if (!patient) notFound()
   const phases = await createPhaseRepository(db).listByPatient(patientId)
 

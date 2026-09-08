@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { createUserAction, type CreateUserState } from '../api/actions'
-import { ROLES } from '../model/user-repo'
+import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-repo'
 
 const initialState: CreateUserState = {}
 
@@ -37,6 +37,22 @@ export function CreateUserForm() {
             </option>
           ))}
         </select>
+        <select
+          name="data_scope"
+          defaultValue="all"
+          className="rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+        >
+          {DATA_SCOPES.map((s) => (
+            <option key={s} value={s}>
+              видит: {DATA_SCOPE_LABELS[s]}
+            </option>
+          ))}
+        </select>
+        <input
+          name="site_id"
+          placeholder="Центр (site), для 'свой центр'"
+          className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+        />
         <button
           type="submit"
           disabled={isPending}

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { requireUser, UserMenu } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
-import { createPatientRepository, PatientsTable } from '@/entities/patient'
+import { createPatientRepository, patientScopeFor, PatientsTable } from '@/entities/patient'
 
 const PAGE_SIZE = 20
 
@@ -14,7 +14,7 @@ export default async function PatientsPage({
   const user = await requireUser()
   const sp = await searchParams
   const db = await getDb()
-  const repo = createPatientRepository(db)
+  const repo = createPatientRepository(db, patientScopeFor(user))
 
   const page = Math.max(1, Number(sp.page ?? 1) || 1)
   const [patients, total] = await Promise.all([

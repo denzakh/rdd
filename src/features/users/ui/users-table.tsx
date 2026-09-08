@@ -1,5 +1,10 @@
-import { changeRoleAction, lockUserAction, unlockUserAction } from '../api/actions'
-import { ROLES, type AdminUser } from '../model/user-repo'
+import {
+  changeDataScopeAction,
+  changeRoleAction,
+  lockUserAction,
+  unlockUserAction,
+} from '../api/actions'
+import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS, type AdminUser } from '../model/user-repo'
 import { ResetPasswordForm } from './reset-password-form'
 
 const fmt = (iso: string | null): string => (iso ? new Date(iso).toLocaleString('ru-RU') : '—')
@@ -16,6 +21,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
           <th className="py-2">Email</th>
           <th>Имя</th>
           <th>Роль</th>
+          <th>Видимость пациентов</th>
           <th>Блокировка</th>
           <th>Создан</th>
           <th>Действия</th>
@@ -40,6 +46,31 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                     </option>
                   ))}
                 </select>
+                <button type="submit" className="text-xs underline hover:text-neutral-700">
+                  ОК
+                </button>
+              </form>
+            </td>
+            <td className="pr-2">
+              <form action={changeDataScopeAction} className="inline-flex items-center gap-1">
+                <input type="hidden" name="id" value={u.id} />
+                <select
+                  name="data_scope"
+                  defaultValue={u.dataScope}
+                  className="rounded border border-neutral-300 px-1 py-0.5 text-xs"
+                >
+                  {DATA_SCOPES.map((s) => (
+                    <option key={s} value={s}>
+                      {DATA_SCOPE_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="site_id"
+                  defaultValue={u.siteId ?? ''}
+                  placeholder="центр"
+                  className="w-16 rounded border border-neutral-300 px-1 py-0.5 text-xs"
+                />
                 <button type="submit" className="text-xs underline hover:text-neutral-700">
                   ОК
                 </button>

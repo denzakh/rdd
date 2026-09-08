@@ -28,6 +28,13 @@ export type PatientRow = {
   consent_version?: string | null
   consent_date?: string | null
   consent_withdrawn_at?: string | null
+  /**
+   * Row-level access (migrations/0005_data_scope.sql, системные колонки):
+   * принадлежность карты центру/назначенному врачу. Видимость списка
+   * регулируется data_scope пользователя (см. patient-repo.ts).
+   */
+  site_id?: string | null
+  assigned_clinician_id?: string | null
 }
 
 export type PhaseRow = {

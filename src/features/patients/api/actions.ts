@@ -13,7 +13,7 @@ import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import { z } from 'zod'
 import { createAuditRepository } from '@/shared/api'
-import { createPatientRepository, type PatientInput } from '@/entities/patient'
+import { createPatientRepository, patientScopeFor, type PatientInput } from '@/entities/patient'
 
 /** Zod-схема паспортной части, сгенерированная по полям реестра. */
 const patientShape: Record<string, z.ZodTypeAny> = {}
@@ -81,8 +81,15 @@ export async function savePatientAction(
   const input = parsed.data as unknown as PatientInput
 
   const db = await getDb()
-  const repo = createPatientRepository(db)
+  const repo = createPatientRepository(db, patientScopeFor(user))
   if (id === null) {
+    // Привязка "чья карта" (row-level access): карта наследует центр создателя
+    // и назначается на него (admin со scope 'all' остаётся без привязки).
+    const input = {
+      ...(parsed.data as unknown as PatientInput),
+      site_id: user.siteId,
+      assigned_clinician_id: user.dataScope === 'all' ? null : user.id,
+    }
     const newId = await repo.create(input)
     await createAuditRepository(db).insert({
       actorId: user.id,

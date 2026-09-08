@@ -13,6 +13,7 @@ import { createSession, getDb, requireUser, SESSION_COOKIE, SESSION_TTL_HOURS } 
 import { generatePassword, hashPassword, MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 import {
   auditUser,
+  changeDataScope,
   changeRole,
   countAdmins,
   createUser,
@@ -22,6 +23,7 @@ import {
   resetPassword,
   setLock,
   ROLES,
+  DATA_SCOPES,
   type AdminUser,
 } from '../model/user-repo'
 import {
@@ -73,10 +75,18 @@ export async function createUserAction(
     .toLowerCase()
   const displayName = String(formData.get('name') ?? '').trim()
   const role = String(formData.get('role') ?? 'clinician')
+  const dataScope = String(formData.get('data_scope') ?? 'all')
+  const siteId = String(formData.get('site_id') ?? '').trim()
 
   if (!EMAIL_RE.test(email)) return { error: 'Некорректный email' }
   if (!displayName) return { error: 'Укажите имя' }
   if (!ROLES.includes(role as (typeof ROLES)[number])) return { error: 'Неизвестная роль' }
+  if (!DATA_SCOPES.includes(dataScope as (typeof DATA_SCOPES)[number])) {
+    return { error: 'Неизвестный вид доступа' }
+  }
+  if (dataScope === 'site' && !siteId) {
+    return { error: 'Для доступа "свой центр" укажите код центра' }
+  }
 
   const db = await getDb()
   if (await isEmailTaken(db, email)) return { error: 'Пользователь с таким email уже есть' }
@@ -86,10 +96,12 @@ export async function createUserAction(
     email,
     displayName,
     role: role as AdminUser['role'],
+    dataScope: dataScope as AdminUser['dataScope'],
+    siteId: dataScope === 'site' ? siteId : null,
     passwordHash: await hashPassword(password),
     mustChangePassword: true,
   })
-  await auditUser(db, admin.id, 'user_created', id, { email, role }).run()
+  await auditUser(db, admin.id, 'user_created', id, { email, role, dataScope }).run()
 
   revalidateUsers()
   return { password, email }
@@ -126,6 +138,28 @@ export async function changeRoleAction(formData: FormData): Promise<void> {
 
   await changeRole(db, id, role as AdminUser['role'])
   await auditUser(db, admin.id, 'role_changed', id, { from: target.role, to: role }).run()
+  revalidateUsers()
+}
+
+/** Переключатель видимости: "видит всех / свой центр / только назначенных". */
+export async function changeDataScopeAction(formData: FormData): Promise<void> {
+  const admin = await requireAdmin()
+  const id = String(formData.get('id') ?? '')
+  const dataScope = String(formData.get('data_scope') ?? 'all')
+  const siteId = String(formData.get('site_id') ?? '').trim()
+  if (!DATA_SCOPES.includes(dataScope as (typeof DATA_SCOPES)[number])) return
+  if (dataScope === 'site' && !siteId) return // без центра фильтр "свой центр" пуст
+
+  const db = await getDb()
+  const target = await findUserById(db, id)
+  if (!target) return
+
+  await changeDataScope(db, id, dataScope as AdminUser['dataScope'], siteId || null)
+  await auditUser(db, admin.id, 'data_scope_changed', id, {
+    from: target.dataScope,
+    to: dataScope,
+    siteId: siteId || null,
+  }).run()
   revalidateUsers()
 }
 

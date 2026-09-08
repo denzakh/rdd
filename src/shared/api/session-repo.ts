@@ -14,11 +14,17 @@ export const SESSION_COOKIE = 'rdd_session'
 export const SESSION_TTL_HOURS = 12
 const RENEW_THRESHOLD_HOURS = 6
 
+export type DataScope = 'all' | 'site' | 'assigned'
+
 export interface SessionUser {
   id: string
   email: string
   displayName: string
   role: 'admin' | 'clinician' | 'readonly'
+  /** Ширина видимости пациентов (row-level access): all / свой центр / назначенные. */
+  dataScope: DataScope
+  /** Код центра пользователя (для dataScope = 'site'). */
+  siteId: string | null
   mustChangePassword: boolean
 }
 
@@ -44,19 +50,23 @@ interface UserRow {
   email: string
   display_name: string
   role: SessionUser['role']
+  data_scope: SessionUser['dataScope']
+  site_id: string | null
   must_change_password: number
   failed_attempts: number
   locked_until: string | null
 }
 
 const USER_COLUMNS =
-  'id, email, display_name, role, must_change_password, failed_attempts, locked_until'
+  'id, email, display_name, role, data_scope, site_id, must_change_password, failed_attempts, locked_until'
 
 const toSessionUser = (row: UserRow): SessionUser => ({
   id: row.id,
   email: row.email,
   displayName: row.display_name,
   role: row.role,
+  dataScope: row.data_scope ?? 'all',
+  siteId: row.site_id,
   mustChangePassword: row.must_change_password === 1,
 })
 
@@ -99,7 +109,8 @@ export async function findSessionUser(db: D1Database, token: string): Promise<Se
   }
   const row = await db
     .prepare(
-      `SELECT u.id, u.email, u.display_name, u.role, u.must_change_password, s.expires_at
+      `SELECT u.id, u.email, u.display_name, u.role, u.data_scope, u.site_id,
+              u.must_change_password, s.expires_at
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ?`
     )

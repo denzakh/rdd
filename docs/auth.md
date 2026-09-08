@@ -86,6 +86,25 @@
 - `readonly` — только чтение; проверка `canWrite(user)` (session-repo) —
   обязательна в будущих Server Actions/API мутаций.
 
+## Row-level access: привязка «чья карта» (migrations/0005_data_scope.sql)
+
+Аутентификация (роль: кто ты) и авторизация на уровне данных (scope: что ты
+видишь) — разные вещи. Ширина видимости пациентов задаётся колонкой
+`users.data_scope` (переключатель admin в `/admin/users`):
+
+- `all` (по умолчанию) — видит всех пациентов;
+- `site` — только пациенты своего центра (`patients.site_id = users.site_id`;
+  без привязки к центру — не видно ничего, fail closed);
+- `assigned` — только пациенты, назначенные этому врачу
+  (`patients.assigned_clinician_id = users.id`).
+
+Механика: `createPatientRepository(db, patientScopeFor(user))` создаёт
+репозиторий УЖЕ ограниченным — `list/listPage/count/findById` автоматически
+фильтруются, включая `findById` (иначе карта открывалась бы по прямой ссылке
+при скрытом списке — IDOR). При создании пациента Server Action проставляет
+`site_id` создателя и `assigned_clinician_id` (если создатель не `all`).
+`reports`/агрегаты остаются обезличенными и не фильтруются.
+
 ## 9. Создание пользователей (scripts/create-user.ts)
 
 Публичной регистрации нет. Два режима:

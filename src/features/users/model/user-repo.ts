@@ -8,11 +8,22 @@ import { randomUUID } from 'node:crypto'
 export type Role = 'admin' | 'clinician' | 'readonly'
 export const ROLES: readonly Role[] = ['admin', 'clinician', 'readonly'] as const
 
+export type DataScope = 'all' | 'site' | 'assigned'
+export const DATA_SCOPES: readonly DataScope[] = ['all', 'site', 'assigned'] as const
+
+export const DATA_SCOPE_LABELS: Record<DataScope, string> = {
+  all: 'все пациенты',
+  site: 'свой центр',
+  assigned: 'только назначенные',
+}
+
 export interface AdminUser {
   id: string
   email: string
   displayName: string
   role: Role
+  dataScope: DataScope
+  siteId: string | null
   lockedUntil: string | null
   failedAttempts: number
   mustChangePassword: boolean
@@ -24,6 +35,8 @@ interface UserRow {
   email: string
   display_name: string
   role: Role
+  data_scope: DataScope
+  site_id: string | null
   locked_until: string | null
   failed_attempts: number
   must_change_password: number
@@ -35,6 +48,8 @@ const toAdminUser = (r: UserRow): AdminUser => ({
   email: r.email,
   displayName: r.display_name,
   role: r.role,
+  dataScope: r.data_scope ?? 'all',
+  siteId: r.site_id,
   lockedUntil: r.locked_until,
   failedAttempts: r.failed_attempts,
   mustChangePassword: r.must_change_password === 1,
@@ -60,7 +75,7 @@ export function auditUser(
 export async function listUsers(db: D1Database): Promise<AdminUser[]> {
   const { results } = await db
     .prepare(
-      `SELECT id, email, display_name, role, locked_until, failed_attempts,
+      `SELECT id, email, display_name, role, data_scope, site_id, locked_until, failed_attempts,
               must_change_password, created_at
        FROM users ORDER BY created_at`
     )
@@ -81,6 +96,8 @@ export interface NewUserData {
   passwordHash: string
   displayName: string
   role: Role
+  dataScope?: DataScope
+  siteId?: string | null
   mustChangePassword?: boolean
 }
 
@@ -89,8 +106,8 @@ export async function createUser(db: D1Database, data: NewUserData): Promise<str
   const id = randomUUID()
   await db
     .prepare(
-      `INSERT INTO users (id, email, password_hash, display_name, role, must_change_password)
-       VALUES (?, ?, ?, ?, ?, ?)`
+      `INSERT INTO users (id, email, password_hash, display_name, role, data_scope, site_id, must_change_password)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       id,
@@ -98,6 +115,8 @@ export async function createUser(db: D1Database, data: NewUserData): Promise<str
       data.passwordHash,
       data.displayName,
       data.role,
+      data.dataScope ?? 'all',
+      data.siteId ?? null,
       data.mustChangePassword ? 1 : 0
     )
     .run()
@@ -107,7 +126,7 @@ export async function createUser(db: D1Database, data: NewUserData): Promise<str
 export async function findUserById(db: D1Database, id: string): Promise<AdminUser | null> {
   const row = await db
     .prepare(
-      `SELECT id, email, display_name, role, locked_until, failed_attempts,
+      `SELECT id, email, display_name, role, data_scope, site_id, locked_until, failed_attempts,
               must_change_password, created_at
        FROM users WHERE id = ?`
     )
@@ -122,6 +141,22 @@ export async function changeRole(db: D1Database, id: string, role: Role): Promis
       `UPDATE users SET role = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
     )
     .bind(role, id)
+    .run()
+}
+
+/** Изменение data_scope и site_id (переключатель "видит всех / своих"). */
+export async function changeDataScope(
+  db: D1Database,
+  id: string,
+  dataScope: DataScope,
+  siteId: string | null
+): Promise<void> {
+  await db
+    .prepare(
+      `UPDATE users SET data_scope = ?, site_id = ?,
+       updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`
+    )
+    .bind(dataScope, dataScope === 'site' ? siteId : null, id)
     .run()
 }
 

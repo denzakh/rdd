@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireUser, UserMenu } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
-import { createPatientRepository } from '@/entities/patient'
+import { createPatientRepository, patientScopeFor } from '@/entities/patient'
 import { createPhaseRepository } from '@/entities/phase'
 import type { MatrixColumn, MatrixData, FieldValue } from '@/widgets/matrix'
 import MatrixClient from './matrix-client'
@@ -20,7 +20,7 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
   if (!Number.isInteger(patientId)) redirect('/patients')
 
   const db = await getDb()
-  const patient = await createPatientRepository(db).findById(patientId)
+  const patient = await createPatientRepository(db, patientScopeFor(user)).findById(patientId)
   if (!patient) redirect('/patients')
   const phases = await createPhaseRepository(db).listByPatient(patientId)
 

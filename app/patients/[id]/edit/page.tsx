@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireUser, UserMenu } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
-import { createPatientRepository } from '@/entities/patient'
+import { createPatientRepository, patientScopeFor } from '@/entities/patient'
 import { PatientForm } from '@/features/patients'
 
 /** Редактирование паспортной части пациента. */
@@ -21,7 +21,9 @@ export default async function EditPatientPage({ params }: { params: Promise<{ id
   const { id } = await params
   const patientId = Number(id)
   if (!Number.isInteger(patientId)) notFound()
-  const patient = await createPatientRepository(await getDb()).findById(patientId)
+  const patient = await createPatientRepository(await getDb(), patientScopeFor(user)).findById(
+    patientId
+  )
   if (!patient) notFound()
 
   return (

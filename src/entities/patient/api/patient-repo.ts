@@ -1,4 +1,5 @@
 import type { PatientRow } from '@/shared/api'
+import type { SessionUser } from '@/shared/api/session-repo'
 
 /**
  * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).
@@ -7,6 +8,46 @@ import type { PatientRow } from '@/shared/api'
 
 /** Входные данные для создания пациента (хранимые поля, nullable). */
 export type PatientInput = Omit<PatientRow, 'id'>
+
+/**
+ * Row-level access: ширина видимости пациентов для экземпляра репозитория.
+ * Репозиторий создаётся УЖЕ ограниченным (createPatientRepository(db, scope)) —
+ * все выборки (list/listPage/count/findById) автоматически уважают ограничение,
+ * включая findById: иначе список скрыт, а карта открывается по прямой ссылке.
+ */
+export type PatientScope =
+  | { mode: 'all' }
+  | { mode: 'site'; siteId: string | null }
+  | { mode: 'assigned'; clinicianId: string }
+
+/** Scope по умолчанию — без ограничений (admin, скрипты). */
+export const PATIENT_SCOPE_ALL: PatientScope = { mode: 'all' }
+
+/**
+ * Отображение пользователя → scope видимости (migrations/0005_data_scope.sql):
+ * data_scope='all' → все пациенты; 'site' → пациенты своего центра;
+ * 'assigned' → только пациенты, назначенные этому врачу.
+ */
+export function patientScopeFor(user: SessionUser): PatientScope {
+  if (user.dataScope === 'site') return { mode: 'site', siteId: user.siteId }
+  if (user.dataScope === 'assigned') return { mode: 'assigned', clinicianId: user.id }
+  return PATIENT_SCOPE_ALL
+}
+
+/** WHERE-фрагмент и биндинги по scope (условия склеиваются с 'AND' снаружи). */
+function scopeWhere(scope: PatientScope): { sql: string; binds: unknown[] } {
+  switch (scope.mode) {
+    case 'site':
+      // Без центра у пользователя — не видно ничего (fail closed).
+      return scope.siteId
+        ? { sql: 'site_id = ?', binds: [scope.siteId] }
+        : { sql: '0 = 1', binds: [] }
+    case 'assigned':
+      return { sql: 'assigned_clinician_id = ?', binds: [scope.clinicianId] }
+    default:
+      return { sql: '', binds: [] }
+  }
+}
 
 export interface PatientRepository {
   create(input: PatientInput): Promise<number>
@@ -61,37 +102,67 @@ export interface PatientRepository {
   withdrawConsent(id: number): Promise<boolean>
 }
 
-export function createPatientRepository(db: D1Database): PatientRepository {
-  const insert = db.prepare(
-    `INSERT INTO patients (${STORED_COLUMNS.join(', ')})
-     VALUES (${STORED_COLUMNS.map(() => '?').join(', ')})`
-  )
-  const selectById = db.prepare('SELECT * FROM patients WHERE id = ?')
-  const selectAll = db.prepare('SELECT * FROM patients ORDER BY id')
+export function createPatientRepository(
+  db: D1Database,
+  scope: PatientScope = PATIENT_SCOPE_ALL
+): PatientRepository {
+  // Колонки создания: хранимые поля реестра + системные site_id/assigned_clinician_id.
+  const ASSIGN_COLUMNS = ['site_id', 'assigned_clinician_id'] as const
+  const insertColumns = (): string[] => {
+    const base: string[] = [...STORED_COLUMNS]
+    for (const c of ASSIGN_COLUMNS) base.push(c)
+    return base
+  }
+
   const del = db.prepare('DELETE FROM patients WHERE id = ?')
 
   return {
     async create(input) {
-      const res = await insert
-        .bind(...STORED_COLUMNS.map((c) => (input as Record<string, unknown>)[c] ?? null))
+      // Присваиваем site/врача только если они заданы во входе (иначе NULL).
+      const record = input as Record<string, unknown>
+      const columns: string[] = []
+      const values: unknown[] = []
+      for (const c of insertColumns()) {
+        const v = (record as Record<string, unknown>)[c] ?? null
+        if (v === null && !(ASSIGN_COLUMNS as readonly string[]).includes(c)) continue
+        columns.push(c)
+        values.push(v)
+      }
+      const res = await db
+        .prepare(
+          `INSERT INTO patients (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`
+        )
+        .bind(...values)
         .run()
       return Number(res.meta.last_row_id)
     },
 
     async findById(id) {
-      return (await selectById.bind(id).first<PatientRow>()) ?? null
+      const w = scopeWhere(scope)
+      return (
+        (await db
+          .prepare(`SELECT * FROM patients WHERE id = ? ${w.sql ? `AND ${w.sql}` : ''}`)
+          .bind(id, ...w.binds)
+          .first<PatientRow>()) ?? null
+      )
     },
 
     async list() {
-      const { results } = await selectAll.all<PatientRow>()
+      const w = scopeWhere(scope)
+      const { results } = await db
+        .prepare(`SELECT * FROM patients ${w.sql ? `WHERE ${w.sql}` : ''} ORDER BY id`)
+        .bind(...w.binds)
+        .all<PatientRow>()
       return results
     },
 
     async listPage({ q, limit, offset }) {
       // q — только цифры (id пациента); биндинги, без конкатенации значений.
       const id = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : null
-      const where = id === null ? '' : 'WHERE id = ?'
-      const binds = id === null ? [limit, offset] : [id, limit, offset]
+      const w = scopeWhere(scope)
+      const conditions = [w.sql, id === null ? '' : 'id = ?'].filter(Boolean)
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+      const binds = [...w.binds, ...(id === null ? [] : [id]), limit, offset]
       const { results } = await db
         .prepare(`SELECT * FROM patients ${where} ORDER BY id LIMIT ? OFFSET ?`)
         .bind(...binds)
@@ -101,10 +172,13 @@ export function createPatientRepository(db: D1Database): PatientRepository {
 
     async count(q) {
       const id = q && /^\d+$/.test(q.trim()) ? Number(q.trim()) : null
-      const where = id === null ? '' : 'WHERE id = ?'
+      const w = scopeWhere(scope)
+      const conditions = [w.sql, id === null ? '' : 'id = ?'].filter(Boolean)
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+      const binds = [...w.binds, ...(id === null ? [] : [id])]
       const row = await db
         .prepare(`SELECT COUNT(*) AS c FROM patients ${where}`)
-        .bind(...(id === null ? [] : [id]))
+        .bind(...binds)
         .first<{ c: number }>()
       return row?.c ?? 0
     },
