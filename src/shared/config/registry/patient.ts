@@ -9,6 +9,9 @@ export const PATIENT_REGISTRY = {
     db_type: 'DATE',
     defaultValue: 'current_date',
     scope: 'patient',
+    // PII: абсолютная дата — в экспорт не попадает, заменяется
+    // относительными интервалами diffMonths (см. docs/export.md).
+    pii: true,
   },
   birth_year: {
     id: 'birth_year',
@@ -17,6 +20,8 @@ export const PATIENT_REGISTRY = {
     db_type: 'INTEGER',
     min: 1900,
     scope: 'patient',
+    // PII: точный год — в экспорт не попадает, остаётся только age_group.
+    pii: true,
   },
 
   // --- Автоматически вычисляемые поля ---

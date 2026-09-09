@@ -1,4 +1,5 @@
 import { requireUser, UserMenu } from '@/features/auth'
+import { ExportPanel } from '@/features/reports'
 import { getDb } from '@/shared/api/db'
 import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
@@ -39,6 +40,8 @@ export default async function ReportsPage() {
       <UserMenu displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-8 p-6">
         <h1 className="text-xl font-semibold">Отчёты</h1>
+
+        <ExportPanel />
 
         <section className="grid grid-cols-2 gap-6">
           {distributions.map(({ fieldId, rows }) => (

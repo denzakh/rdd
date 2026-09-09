@@ -1,0 +1,49 @@
+/**
+ * Нейтральные типы де-идентифицированного датасета (docs/export.md).
+ * Живут в shared, чтобы слой сериализации (shared/lib/export) не импортировал
+ * entities (FSD: shared не может зависеть от верхних слоёв). Слой агрегации
+ * (entities/phase/api/queries.ts) импортирует их отсюда и наполняет.
+ */
+
+/** Одна строка де-идентифицированного датасета (нейтральный TS-объект). */
+export interface DeidentifiedRow {
+  /** Sequence-номер исследования (1..N), заменяет patients.id. */
+  seq_id: number
+  /** Возрастная группа 1..5 (единственное, что осталось от birth_year). */
+  age_group: number | null
+  gender: number | null
+  education_level: number | null
+  career_level: number | null
+  living_status: number | null
+  disability_status: number | null
+  family_history: number | null
+  personality_type: number | null
+  phase_order_id: number
+  /** Полные месяцы от даты включения до начала фазы (абсолютных дат нет). */
+  phase_start_diff_months: number | null
+  phase_duration_months: number | null
+  intermission_duration: number | null
+  prophylaxis_type: number | null
+  onset_trigger: number | null
+  main_component: number | null
+  ad_efficacy: number | null
+  hamd_total: number | null
+  beck_total: number | null
+  mmse_total: number | null
+  /** Остальные клинические колонки фаз (DATA_COLUMNS минус pii), NULL-able. */
+  [key: string]: number | null
+}
+
+export interface DeidentifiedDataset {
+  rows: DeidentifiedRow[]
+  /** Имена колонок в стабильном порядке (для сериализаторов csv/xlsx). */
+  columns: string[]
+  meta: {
+    exportedAt: string
+    k: number
+    patients: number
+    rowsTotal: number
+    rowsExported: number
+    suppressedRows: number
+  }
+}
