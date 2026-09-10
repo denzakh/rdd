@@ -14,7 +14,17 @@ import {
   type DirtyCommit,
   type MatrixData,
 } from '../model/matrix-store'
-import { buildMatrixRows, fieldLabel, isComputedField } from '../model/matrix-rows'
+import {
+  buildMatrixRows,
+  deprecatedTooltip,
+  fieldLabel,
+  isComputedField,
+  isFieldRowHiddenForVersions,
+} from '../model/matrix-rows'
+import {
+  isDeprecatedForRecord,
+  isFieldWithdrawnForRecord,
+} from '@/shared/lib/registry/evolution-guard'
 import { validateCellValue } from '../model/validate'
 import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
 import { MatrixCell } from './matrix-cell'
@@ -55,6 +65,7 @@ function CellConnector({
   phaseId,
   field,
   col,
+  recordVersion,
   isReadOnly,
   isComputed,
   computedValue,
@@ -69,6 +80,8 @@ function CellConnector({
   phaseId: string
   field: RegistryField
   col: MatrixColumn
+  /** registry_version записи (фазы) — ось deprecation (§6.1). */
+  recordVersion?: number
   isReadOnly: boolean
   isComputed: boolean
   computedValue: FieldValue
@@ -83,16 +96,36 @@ function CellConnector({
   const storeValue = useCell(phaseId, field.id)
   const conflict: CellConflict | undefined = useCellConflict(phaseId, field.id)
   const value: FieldValue = isComputed ? computedValue : storeValue
-  const disabled = isReadOnly || isComputed || disabledFor(field, col)
+  // deprecated-поле для новой записи (v >= deprecated_since): колонка не рендерится.
+  const withdrawn = isFieldWithdrawnForRecord(field, recordVersion)
+  // deprecated-поле для старой записи (v < deprecated_since): read-only + пометка.
+  const deprecated = isDeprecatedForRecord(field, recordVersion)
+  const disabled = isReadOnly || isComputed || disabledFor(field, col) || deprecated
+  const tooltip = deprecated ? deprecatedTooltip(field) : undefined
+
+  if (withdrawn) {
+    // Колонка скрыта для записей, собранных уже под версией без этого поля
+    // (§6.1): рендерим пустую ячейку, чтобы сохранить сетку грида.
+    return (
+      <div
+        ref={registerCellRef(row, colIdx)}
+        tabIndex={-1}
+        data-matrix-cell={`${row}:${colIdx}`}
+        className="flex-1 border-r border-b border-neutral-200 bg-neutral-50 outline-none"
+        style={{ minWidth: COL_W, height: ROW_H }}
+      />
+    )
+  }
 
   return (
     <div
       ref={registerCellRef(row, colIdx)}
       tabIndex={tabIndex}
       data-matrix-cell={`${row}:${colIdx}`}
+      title={tooltip}
       className={`focus-within:bg-accent/30 flex-1 border-b border-neutral-200 outline-none ${
         col.isCurrentStatus ? 'border-l-2 border-l-amber-500' : 'border-r border-neutral-200'
-      }`}
+      }${deprecated ? 'opacity-60' : ''}`}
       style={{ minWidth: COL_W, height: ROW_H }}
     >
       <MatrixCell
@@ -145,6 +178,32 @@ export function MatrixGrid({
     return m
   }, [registryFields])
 
+  // registry_version каждой фазы — ось deprecation (§6.1). Версия неизменяема
+  // (docs/schema-evolution.md §4), поэтому достаточно read-only карты из data.
+  const versionByPhase = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const col of columns) {
+      const v = (data as Record<string, Record<string, unknown>>)[col.id]?.['registry_version']
+      if (typeof v === 'number') m.set(col.id, v)
+    }
+    return m
+  }, [data, columns])
+
+  /**
+   * Скрытие колонки deprecated-поля (§6.1): если ВСЕ фазы текущего грида уже
+   * под версией без этого поля (registry_version >= deprecated_since), строка
+   * исключается целиком. Если хотя бы одна фаза старше — строка остаётся
+   * (доступ к старым данным), а withdrawn-ячейки скрываются поштучно.
+   */
+  const visibleRows = useMemo(() => {
+    if (versionByPhase.size < columns.length) return rows // не все фазы имеют версию — не фильтруем
+    const versions = columns.map((col) => versionByPhase.get(col.id) as number)
+    return rows.filter((r) => {
+      if (r.kind === 'section') return true
+      return !isFieldRowHiddenForVersions(r.field, versions)
+    })
+  }, [rows, columns, versionByPhase])
+
   // вычисляемые поля: значение на колонку (§3 спеки, badge-readonly)
   const computedByPhase = useMemo(() => {
     const store = useMatrixStore.getState().data
@@ -159,7 +218,7 @@ export function MatrixGrid({
   // --- виртуализация строк (§2.1) ---
   const scrollRef = useRef<HTMLDivElement>(null)
   const rowVirtualizer = useVirtualizer({
-    count: rows.length,
+    count: visibleRows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_H,
     overscan: 5,
@@ -180,7 +239,7 @@ export function MatrixGrid({
 
   const moveFocus = useCallback(
     (row: number, col: number) => {
-      const r = Math.max(0, Math.min(rows.length - 1, row))
+      const r = Math.max(0, Math.min(visibleRows.length - 1, row))
       const c = Math.max(0, Math.min(columns.length - 1, col))
       activeRef.current = [r, c]
       rowVirtualizer.scrollToIndex(r, { align: 'auto' })
@@ -189,7 +248,7 @@ export function MatrixGrid({
       })
       forceRender((n) => n + 1) // обновить roving tabindex
     },
-    [rows.length, columns.length, rowVirtualizer]
+    [visibleRows.length, columns.length, rowVirtualizer]
   )
 
   const handleRowKeyDown = useCallback(
@@ -281,7 +340,7 @@ export function MatrixGrid({
 
           {/* --- Виртуализированные строки (§2.1: translateY, sticky внутри ряда) --- */}
           {rowVirtualizer.getVirtualItems().map((vRow) => {
-            const row = rows[vRow.index]
+            const row = visibleRows[vRow.index]
             const isSection = row.kind === 'section'
             return (
               <div
@@ -324,6 +383,7 @@ export function MatrixGrid({
                         phaseId={col.id}
                         field={row.field}
                         col={col}
+                        recordVersion={versionByPhase.get(col.id)}
                         isReadOnly={isReadOnly}
                         isComputed={isComputedField(row.field)}
                         computedValue={

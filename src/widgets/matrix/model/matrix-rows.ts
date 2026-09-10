@@ -1,4 +1,4 @@
-import { REGISTRY } from '@/shared/config'
+import { REGISTRY, FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import type { MatrixRowItem, MatrixScope } from './types'
 
@@ -34,9 +34,39 @@ export function fieldLabel(field: RegistryField): string {
 }
 
 /**
- * Плоский список строк грида: заголовки секций вперемешку с полями.
- * Строится один раз на изменение реестра (useMemo в MatrixGrid).
+ * Текст тултипа для deprecated-поля старой записи (docs/schema-evolution.md
+ * §6.1): «Устарело с версии N» + подсказка «См. вместо: <label replacedBy>».
+ * Версия задаётся сверху (читается `field.deprecated_since`), label поля-замены
+ * резолвится по реестру, при отсутствии — падает на id. Не-deprecated — undefined.
  */
+export function deprecatedTooltip(field: RegistryField): string | undefined {
+  if (field.deprecated_since === undefined) return undefined
+  let text = `Устарело с версии ${field.deprecated_since}`
+  if (field.replacedBy !== undefined) {
+    const replacement = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[
+      field.replacedBy
+    ]
+    const label = replacement ? fieldLabel(replacement) : field.replacedBy
+    text += ` · См. вместо: ${label}`
+  }
+  return text
+}
+
+/**
+ * Скрыть ли колонку deprecated-поля целиком (docs/schema-evolution.md §6.1):
+ * если ВСЕ версии записей текущего грида уже >= deprecated_since (поле не
+ * входит в протокол для всех фаз) — строка не рендерится. Если хотя бы одна
+ * запись старше — строка остаётся (доступ к старым данным), а withdrawn-ячейки
+ * скрываются поштучно. Пустой список (нет фаз / нет версий) — не скрывать.
+ */
+export function isFieldRowHiddenForVersions(
+  field: RegistryField,
+  versions: readonly number[]
+): boolean {
+  const ds = field.deprecated_since
+  if (ds === undefined || versions.length === 0) return false
+  return versions.every((v) => v >= ds)
+}
 export function buildMatrixRows(scopes?: readonly MatrixScope[]): MatrixRowItem[] {
   const rows: MatrixRowItem[] = []
   let fieldIndex = 0

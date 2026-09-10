@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildMatrixRows, fieldLabel, isComputedField } from '@/widgets/matrix/model/matrix-rows'
+import {
+  buildMatrixRows,
+  deprecatedTooltip,
+  fieldLabel,
+  isComputedField,
+  isFieldRowHiddenForVersions,
+} from '@/widgets/matrix/model/matrix-rows'
 import { REGISTRY, FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 
@@ -62,5 +68,39 @@ describe('matrix-rows: утилиты поля', () => {
     expect(labeled).toBeDefined()
     expect(fieldLabel(labeled!)).toBe((labeled!.label as { ru: string }).ru)
     expect(fieldLabel({ ...labeled!, label: 'Просто строка' })).toBe('Просто строка')
+  })
+
+  it('deprecatedTooltip: «Устарело с версии N» + «См. вместо: label replacedBy»', () => {
+    // replacedBy резолвится по реестру — берём реальное существующее поле
+    const replacementId = Object.keys(FLAT_REGISTRY)[0] as string
+    const replField = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[replacementId]
+    const dep = { ...replField, deprecated_since: 2, replacedBy: replacementId } as RegistryField
+    expect(deprecatedTooltip(dep)).toBe(
+      `Устарело с версии 2 · См. вместо: ${fieldLabel(replField)}`
+    )
+
+    // replacedBy без записи в реестре — падает на id
+    const depUnknown = {
+      ...replField,
+      deprecated_since: 3,
+      replacedBy: 'no_such_field',
+    } as RegistryField
+    expect(deprecatedTooltip(depUnknown)).toBe('Устарело с версии 3 · См. вместо: no_such_field')
+
+    // не-deprecated — undefined
+    expect(deprecatedTooltip({ ...replField } as RegistryField)).toBeUndefined()
+  })
+
+  it('isFieldRowHiddenForVersions: скрывает deprecated-поле, если ВСЕ версии >= deprecated_since', () => {
+    const dep: RegistryField = { id: 'dep', label: 'Dep', ui: 'select', deprecated_since: 2 }
+    const plain: RegistryField = { id: 'x', label: 'X', ui: 'select' }
+    // все фазы нового протокола → строка скрывается
+    expect(isFieldRowHiddenForVersions(dep, [2, 3, 5])).toBe(true)
+    // хотя бы одна фаза старше → строка остаётся (доступ к старым данным)
+    expect(isFieldRowHiddenForVersions(dep, [1, 2, 3])).toBe(false)
+    // пустой список / нет фаз → не скрываем
+    expect(isFieldRowHiddenForVersions(dep, [])).toBe(false)
+    // не-deprecated поле не скрывается вовсе
+    expect(isFieldRowHiddenForVersions(plain, [2, 3])).toBe(false)
   })
 })

@@ -1,5 +1,6 @@
 import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
+import { canWrite, type SessionUser } from '@/shared/api/session-repo'
 import { REGISTRY_CURRENT_VERSION } from './d1-schema'
 
 /**
@@ -69,10 +70,14 @@ export const snapshotFromRegistry = (): RegistryEvolutionSnapshot => {
  * количества — сколько нашли).
  *
  * - (а) опция, бывшая в baseline, исчезла из текущих options;
- * - (б) диапазон сузился: min поднят или max опущен у НЕ пустого диапазона.
+ * - (б) диапазон сузился: min поднят или max опущен у НЕ пустого диапазона;
+ * - (в) граница появилась там, где её раньше не было: `min`/`max` был
+ *   `undefined` (открытая сторона, `[x, +∞)`), а стал конкретным числом
+ *   (закрытая, `[x, N]`) — это тоже сужение, только с открытой стороны
+ *   (docs/schema-evolution.md §3.1). Для min и max по отдельности.
  *
- * Новые опции и расширение диапазона — forward-compatible (§3) и не
- * классифицируются как breaking.
+ * Новые опции, расширение диапазона и снятие границы (число → undefined) —
+ * forward-compatible (§3) и не классифицируются как breaking.
  */
 export function breakingChanges(
   current: FieldEvolutionSnapshot,
@@ -85,9 +90,13 @@ export function breakingChanges(
     if (baseline.options.some((v) => !present.has(v))) kinds.push('option-removed')
   }
 
+  // (в) появляется граница там, где её не было (undefined → число).
+  const minAppeared = baseline.min === null && current.min !== null
+  const maxAppeared = baseline.max === null && current.max !== null
+  // (б) сужение существующего диапазона (число → более узкое число).
   const minNarrow = baseline.min !== null && current.min !== null && current.min > baseline.min
   const maxNarrow = baseline.max !== null && current.max !== null && current.max < baseline.max
-  if (minNarrow || maxNarrow) kinds.push('range-narrowed')
+  if (minAppeared || maxAppeared || minNarrow || maxNarrow) kinds.push('range-narrowed')
 
   return kinds
 }
@@ -123,3 +132,48 @@ export function findUntrackedBreakingChanges(
   }
   return violations
 }
+
+/**
+ * Поле выведено из употребления для записи с данной версией протокола
+ * (docs/schema-evolution.md §6.1). Record «новый» относительно deprecation:
+ * `registry_version ≥ deprecated_since` — поле уже не в протоколе, в гриде
+ * ячейка/колонка для такой записи не рендерится.
+ *
+ * `undefined`/`null` версия (нет метки в данных) трактуется как «не withdrawn» —
+ * версии в приложении всегда проставлены, но defensive-фолбэк безопаснее, чем
+ * случайное скрытие колонки при отсутствии метки.
+ */
+export const isFieldWithdrawnForRecord = (
+  field: RegistryField,
+  recordVersion: number | null | undefined
+): boolean =>
+  field.deprecated_since !== undefined &&
+  recordVersion !== undefined &&
+  recordVersion !== null &&
+  recordVersion >= field.deprecated_since
+
+/**
+ * Поле deprecated для СТАРОЙ записи (`registry_version < deprecated_since`):
+ * значение было собрано, пока поле было активным, и его нельзя менять задним
+ * числом из грида — только просмотр (read-only) + пометка (§6.1).
+ */
+export const isDeprecatedForRecord = (
+  field: RegistryField,
+  recordVersion: number | null | undefined
+): boolean =>
+  field.deprecated_since !== undefined &&
+  recordVersion !== undefined &&
+  recordVersion !== null &&
+  recordVersion < field.deprecated_since
+
+/**
+ * Редактируемость ячейки: вторая независимая ось поверх ролевой проверки
+ * `canWrite` (docs/schema-evolution.md §6.1, auth.md §8), не замена ей.
+ * Readonly-роль видит все ячейки read-only; deprecated-поле — read-only даже
+ * у admin. Обе причины приводят к `false` независимо друг от друга.
+ */
+export const isEditable = (
+  user: SessionUser,
+  field: RegistryField,
+  recordVersion: number | null | undefined
+): boolean => canWrite(user) && !isDeprecatedForRecord(field, recordVersion)
