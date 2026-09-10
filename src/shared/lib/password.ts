@@ -10,7 +10,7 @@
  * старые хэши продолжат верифицироваться.
  */
 
-export const PBKDF2_ITERATIONS = 200_000
+export const PBKDF2_ITERATIONS = 600_000
 const SHA256_BYTES = 32 // 256 бит
 const SALT_BYTES = 16
 
