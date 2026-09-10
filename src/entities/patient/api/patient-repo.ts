@@ -1,6 +1,5 @@
-import type { PatientRow } from '@/shared/api'
-import type { SessionUser } from '@/shared/api/session-repo'
-import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry/d1-schema'
+import type { PatientRow, SessionUser } from '@/shared/api'
+import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 
 /**
  * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).

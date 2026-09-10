@@ -1,6 +1,6 @@
 import type { PhaseRow } from '@/shared/api'
 import { createAuditRepository, type AuditEntry } from '@/shared/api'
-import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry/d1-schema'
+import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 
 /**
  * Репозиторий фаз (перенос из shared/api, docs/spec-stage-2.md §3).
