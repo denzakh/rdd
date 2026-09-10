@@ -45,6 +45,8 @@ export interface DictionaryEntry {
   storage: 'patients' | 'phases' | null
   isComputed: boolean
   isCurrentOnly: boolean
+  /** Версия протокола, с которой поле deprecated (docs/schema-evolution.md §6). */
+  deprecatedSince: number | null
 }
 
 export interface DictionarySection {
@@ -73,6 +75,7 @@ export const buildDataDictionary = (): DictionarySection[] =>
         storage: field.calculate ? null : field.scope === 'patient' ? 'patients' : 'phases',
         isComputed: Boolean(field.calculate),
         isCurrentOnly: Boolean(field.is_current_only),
+        deprecatedSince: field.deprecated_since ?? null,
       })),
     })
   )

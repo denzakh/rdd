@@ -152,6 +152,7 @@ interface DeidentifiedRawRow {
   birth_year: number | null
   phase_order_id: number
   phase_start_date: string | null
+  registry_version: number | null
   [key: string]: unknown
 }
 
@@ -164,7 +165,7 @@ export async function getDeidentifiedDataset(
   const w = deidentifiedScopeWhere(scope)
   const selectCols = ['p.id AS patient_id', 'p.study_entry_date', 'p.birth_year']
   for (const c of PATIENT_EXPORT_COLUMNS) selectCols.push(`p."${c}"`)
-  selectCols.push('ph.phase_order_id', 'ph.phase_start_date')
+  selectCols.push('ph.phase_order_id', 'ph.phase_start_date', 'ph.registry_version')
   for (const c of EXPORT_PHASE_COLUMNS) selectCols.push(`ph."${c}"`)
   const conditions = ['p.consent_withdrawn_at IS NULL']
   if (w.sql) conditions.push(w.sql)
@@ -192,6 +193,8 @@ export async function getDeidentifiedDataset(
         : null
     const row = { seq_id: seqId } as unknown as Record<string, number | null>
     row.age_group = age === null || Number.isNaN(age) ? null : getAgeGroup(age)
+    // Метка версии протокола на строке (docs/schema-evolution.md §6): NOT NULL в схеме.
+    row.registry_version = (r.registry_version as number | null) ?? 1
     for (const c of PATIENT_EXPORT_COLUMNS) row[c] = (r[c] as number | null) ?? null
     row.phase_order_id = r.phase_order_id
     row.phase_start_diff_months =
@@ -213,6 +216,7 @@ export async function getDeidentifiedDataset(
 
   const columns = [
     'seq_id',
+    'registry_version',
     'age_group',
     ...PATIENT_EXPORT_COLUMNS,
     'phase_order_id',
@@ -230,6 +234,7 @@ export async function getDeidentifiedDataset(
       rowsTotal: mapped.length,
       rowsExported: rows.length,
       suppressedRows: mapped.length - rows.length,
+      registryVersions: [...new Set(mapped.map((r) => r.registry_version))].sort((a, b) => a - b),
     },
   }
 }

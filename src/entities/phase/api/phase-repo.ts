@@ -1,5 +1,6 @@
 import type { PhaseRow } from '@/shared/api'
 import { createAuditRepository, type AuditEntry } from '@/shared/api'
+import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry/d1-schema'
 
 /**
  * Репозиторий фаз (перенос из shared/api, docs/spec-stage-2.md §3).
@@ -139,16 +140,20 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
   return {
     async create(input) {
       const orderId = await nextOrderId(db, input.patient_id)
+      // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4).
+      const registryVersion =
+        (input as Record<string, unknown>).registry_version ?? REGISTRY_CURRENT_VERSION
       const values = [
         input.patient_id,
         orderId,
+        registryVersion,
         ...DATA_COLUMNS.map((c) => (input as Record<string, unknown>)[c] ?? null),
       ]
       const placeholders = DATA_COLUMNS.map(() => '?').join(', ')
       const res = await db
         .prepare(
-          `INSERT INTO phases (patient_id, phase_order_id, ${DATA_COLUMNS.join(', ')})
-           VALUES (?, ?, ${placeholders})`
+          `INSERT INTO phases (patient_id, phase_order_id, registry_version, ${DATA_COLUMNS.join(', ')})
+           VALUES (?, ?, ?, ${placeholders})`
         )
         .bind(...values)
         .run()
@@ -165,19 +170,23 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
     },
 
     async update(id, patch) {
+      // registry_version immutable (docs/schema-evolution.md §4).
+      const { registry_version: _rv, ...rest } = patch as Record<string, unknown>
       const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
-      const keys = Object.keys(patch).filter((k) => allowed.has(k))
+      const keys = Object.keys(rest).filter((k) => allowed.has(k))
       if (keys.length === 0) return
       const setSql = keys.map((k) => `${k} = ?`).join(', ')
       await db
         .prepare(`UPDATE phases SET ${setSql} WHERE id = ?`)
-        .bind(...keys.map((k) => (patch as Record<string, unknown>)[k] ?? null), id)
+        .bind(...keys.map((k) => (rest as Record<string, unknown>)[k] ?? null), id)
         .run()
     },
 
     async updateWithVersion(id, patch, baseVersion, actorId) {
+      // registry_version immutable (docs/schema-evolution.md §4).
+      const { registry_version: _rv2, ...restPatch } = patch as Record<string, unknown>
       const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
-      const keys = Object.keys(patch).filter((k) => allowed.has(k))
+      const keys = Object.keys(restPatch).filter((k) => allowed.has(k))
       if (keys.length === 0) return { applied: false, row: await this.findById(id) }
 
       const existing = await this.findById(id)
@@ -189,7 +198,11 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
       ].join(', ')
       const stmt = db
         .prepare(`UPDATE phases SET ${setSql} WHERE id = ? AND updated_at = ?`)
-        .bind(...keys.map((k) => (patch as Record<string, unknown>)[k] ?? null), id, baseVersion)
+        .bind(
+          ...keys.map((k) => (restPatch as Record<string, unknown>)[k] ?? null),
+          id,
+          baseVersion
+        )
 
       // Данные + аудит — один db.batch (атомарно, §6.6)
       const auditEntries: AuditEntry[] = keys.map((k) => ({
@@ -199,7 +212,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
         fieldId: k,
         action: 'update',
         oldValue: (existing as Record<string, unknown>)[k] ?? null,
-        newValue: (patch as Record<string, unknown>)[k] ?? null,
+        newValue: (restPatch as Record<string, unknown>)[k] ?? null,
         baseVersion,
       }))
 

@@ -9,6 +9,12 @@
 export interface DeidentifiedRow {
   /** Sequence-номер исследования (1..N), заменяет patients.id. */
   seq_id: number
+  /**
+   * Версия протокола CRF на момент сбора фазы (docs/schema-evolution.md §4, §6).
+   * Обязательное поле для биостатистика: без метки смешение кодов разных
+   * версий одной шкалы в одной колонке даёт незаметный стат. артефакт.
+   */
+  registry_version: number
   /** Возрастная группа 1..5 (единственное, что осталось от birth_year). */
   age_group: number | null
   gender: number | null
@@ -45,5 +51,7 @@ export interface DeidentifiedDataset {
     rowsTotal: number
     rowsExported: number
     suppressedRows: number
+    /** Версии протокола, представленные в выгрузке (docs/schema-evolution.md §6). */
+    registryVersions: number[]
   }
 }

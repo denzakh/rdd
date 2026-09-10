@@ -55,6 +55,11 @@ export default async function DataDictionaryPage() {
                         {e.isComputed && (
                           <span className="ml-1 text-xs text-blue-700">(вычисляемое)</span>
                         )}
+                        {e.deprecatedSince !== null && (
+                          <span className="ml-1 text-xs text-neutral-500">
+                            (deprecated с v{e.deprecatedSince})
+                          </span>
+                        )}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 font-mono text-xs">
                         {e.dbType}

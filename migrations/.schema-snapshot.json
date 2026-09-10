@@ -53,6 +53,10 @@
       {
         "name": "consent_withdrawn_at",
         "sqlType": "TEXT"
+      },
+      {
+        "name": "registry_version",
+        "sqlType": "INTEGER"
       }
     ],
     "phases": [
@@ -358,6 +362,10 @@
       },
       {
         "name": "mmse_total",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "registry_version",
         "sqlType": "INTEGER"
       }
     ]

@@ -10,6 +10,7 @@ import { toCsv, toJson, toXlsx } from '@/shared/lib/export'
 const row = (overrides: Record<string, number | null>): DeidentifiedRow =>
   ({
     seq_id: 0,
+    registry_version: 1,
     age_group: null,
     gender: null,
     education_level: null,
@@ -33,10 +34,23 @@ const row = (overrides: Record<string, number | null>): DeidentifiedRow =>
   }) as DeidentifiedRow
 
 const dataset = (): DeidentifiedDataset => ({
-  columns: ['seq_id', 'age_group', 'gender', 'phase_order_id', 'phase_start_diff_months'],
+  columns: [
+    'seq_id',
+    'registry_version',
+    'age_group',
+    'gender',
+    'phase_order_id',
+    'phase_start_diff_months',
+  ],
   rows: [
     row({ seq_id: 1, age_group: 2, gender: 1, phase_order_id: 1, phase_start_diff_months: 3 }),
-    row({ seq_id: 2, age_group: 3, gender: 2, phase_order_id: 1, phase_start_diff_months: null }),
+    row({
+      seq_id: 2,
+      age_group: 3,
+      gender: 2,
+      phase_order_id: 1,
+      phase_start_diff_months: null,
+    }),
   ],
   meta: {
     exportedAt: '2026-01-01T00:00:00.000Z',
@@ -45,6 +59,7 @@ const dataset = (): DeidentifiedDataset => ({
     rowsTotal: 2,
     rowsExported: 2,
     suppressedRows: 0,
+    registryVersions: [1],
   },
 })
 
@@ -57,9 +72,11 @@ describe('export serializers: csv/json/xlsx поверх нейтральног�
   it('csv: шапка = columns, NULL — пусто, запретных ключей нет', () => {
     const csv = toCsv(dataset())
     const lines = csv.split('\r\n').filter(Boolean)
-    expect(lines[0]).toBe('seq_id,age_group,gender,phase_order_id,phase_start_diff_months')
-    expect(lines[1]).toBe('1,2,1,1,3')
-    expect(lines[2]).toBe('2,3,2,1,')
+    expect(lines[0]).toBe(
+      'seq_id,registry_version,age_group,gender,phase_order_id,phase_start_diff_months'
+    )
+    expect(lines[1]).toBe('1,1,2,1,1,3')
+    expect(lines[2]).toBe('2,1,3,2,1,')
     const tokens = tokensOf(csv)
     for (const key of FORBIDDEN) expect(tokens, key).not.toContain(key)
     for (const key of FORBIDDEN) expect(lines[0].split(','), key).not.toContain(key)

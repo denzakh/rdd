@@ -52,6 +52,11 @@ UI: панель на `/reports` (`src/features/reports/ui/export-panel.tsx`).
   счётчик — `meta.suppressedRows`;
 - согласие: `consent_withdrawn_at IS NOT NULL` — исключены из выборки
   (данные не удаляются); scope пользователя уважается.
+- **версионность протокола** (docs/schema-evolution.md §6): каждая строка несёт
+  `registry_version` (метка CRF на момент сбора фазы), `columns` включают
+  `registry_version` сразу после `seq_id`, а `meta.registryVersions` — список
+  версий, представленных в выгрузке. Без метки смешение кодов разных версий
+  одной шкалы даёт незаметный статистический артефакт.
 
 ## 4. Добавление нового формата
 

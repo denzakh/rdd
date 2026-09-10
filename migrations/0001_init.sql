@@ -1,5 +1,15 @@
 -- Авто-генерация D1-схемы из src/shared/config/registry (единый источник правды).
 -- Не редактировать вручную: правьте реестр и запустите "npm run gen:d1".
+-- Версионность протокола (docs/schema-evolution.md §4): таблица registry_versions
+-- и колонки patients/phases.registry_version генерируются в baseline.
+-- Отдельной миграции нет — эволюция схемы только через ресет БД (npm run db:restart).
+
+CREATE TABLE registry_versions (
+    "version" INTEGER PRIMARY KEY,
+    "effective_at" TEXT NOT NULL,
+    "note" TEXT NOT NULL,
+    "approved_by" TEXT
+);
 
 CREATE TABLE patients (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,6 +25,7 @@ CREATE TABLE patients (
     "consent_version" TEXT NULL,
     "consent_date" TEXT NULL,
     "consent_withdrawn_at" TEXT NULL,
+    "registry_version" INTEGER NOT NULL DEFAULT 1 REFERENCES registry_versions(version),
     CHECK ("birth_year" >= 1900)
 );
 
@@ -95,5 +106,8 @@ CREATE TABLE phases (
     "beck_total" INTEGER NULL,
     "clock_drawing_test" INTEGER NULL,
     "mmse_total" INTEGER NULL,
+    "registry_version" INTEGER NOT NULL DEFAULT 1 REFERENCES registry_versions(version),
     UNIQUE ("patient_id", "phase_order_id")
 );
+
+INSERT INTO registry_versions (version, effective_at, note) VALUES (1, date('now'), 'Baseline v1: исходный набор CRF');

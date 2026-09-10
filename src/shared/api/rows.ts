@@ -21,6 +21,12 @@ export type PatientRow = {
   family_history: number | null
   personality_type: number | null
   /**
+   * Версия протокола CRF на момент сбора записи (docs/schema-evolution.md §4).
+   * Проставляется один раз при создании, задним числом не меняется.
+   * Генерируется в baseline 0001 (ресет БД), отдельной миграции нет.
+   */
+  registry_version: number
+  /**
    * Жизненный цикл согласия (системные колонки, не реестр):
    * consent_withdrawn_at != null → данные пациента исключаются
    * из отчётов/экспорта (queries.ts), физически не удаляются.
@@ -41,6 +47,8 @@ export type PhaseRow = {
   id: number
   patient_id: number
   phase_order_id: number
+  /** Версия протокола CRF на момент сбора фазы (docs/schema-evolution.md §4). */
+  registry_version: number
   phase_start_date: string | null
   phase_duration_months: number | null
   intermission_duration: number | null

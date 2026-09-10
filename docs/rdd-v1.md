@@ -230,6 +230,7 @@ export const phaseSchema = generateSchema()
 - Дифф-движок `computeDelta` сравнивает желаемую схему из реестра со снапшотом `.schema-snapshot.json` и генерирует безопасные операции `ADD COLUMN` / `RENAME COLUMN`.
 - «Экзотические» изменения (смена типа, удаление/перенос колонки) автоматически не применяются — скрипт абортируется с описанием требуемого ручного вмешательства.
 - Артефакты: `migrations/NNNN_*.sql` (последовательные миграции), `schema-reference.sql` (актуальный baseline вне каталога `migrations`, т.к. Wrangler применяет все `*.sql` из `migrations/`), снапшот `.schema-snapshot.json`.
+- Версионность протокола (`registry_versions` + `patients`/`phases`.`registry_version`) — часть генерируемого baseline `0001_init.sql`, отдельной миграции нет: эволюция схемы только через ресет БД (`npm run db:restart`). Подробно — `docs/schema-evolution.md` §4.
 
 Типичный цикл изменения схемы: отредактировать реестр → `npm run gen:d1` → `npm run db:restart` (локально), при необходимости `npm run db:migrate:remote`.
 

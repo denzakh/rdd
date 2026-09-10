@@ -62,6 +62,11 @@ npm run dev                 # http://localhost:3000
 - `docs/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
 - `docs/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
 - `docs/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
+- `docs/schema-evolution.md` — **эволюция схемы без миграций**: версионность протокола
+  (`registry_versions` + `registry_version` на записи) живёт в генерируемом baseline
+  `0001_init.sql`; схема меняется только через ресет БД (`npm run db:restart`).
+  Экспорт несёт `registry_version` на строке + `meta.registryVersions`;
+  `/data-dictionary` помечает `deprecated_since`-поля.
 
 ## Разработка
 

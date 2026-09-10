@@ -25,4 +25,13 @@ describe('buildDataDictionary', () => {
     const hamd = all.find((e) => e.id === 'hamd_total')
     expect(hamd?.allowed).toBe('от 0 до 52')
   })
+
+  it('deprecated_since пробрасывается в deprecatedSince (docs/schema-evolution.md §6)', () => {
+    const all = sections.flatMap((s) => s.entries)
+    // Пока deprecated-полей нет: все записи — null, поле присутствует
+    for (const e of all) {
+      expect('deprecatedSince' in e).toBe(true)
+      expect(e.deprecatedSince).toBeNull()
+    }
+  })
 })

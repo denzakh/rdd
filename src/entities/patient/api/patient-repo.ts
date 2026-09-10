@@ -1,5 +1,6 @@
 import type { PatientRow } from '@/shared/api'
 import type { SessionUser } from '@/shared/api/session-repo'
+import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry/d1-schema'
 
 /**
  * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).
@@ -7,7 +8,10 @@ import type { SessionUser } from '@/shared/api/session-repo'
  */
 
 /** Входные данные для создания пациента (хранимые поля, nullable). */
-export type PatientInput = Omit<PatientRow, 'id'>
+export type PatientInput = Omit<PatientRow, 'id' | 'registry_version'> & {
+  /** Метка протокола на момент сбора; по умолчанию REGISTRY_CURRENT_VERSION. */
+  registry_version?: number
+}
 
 /**
  * Row-level access: ширина видимости пациентов для экземпляра репозитория.
@@ -119,9 +123,13 @@ export function createPatientRepository(
   return {
     async create(input) {
       // Присваиваем site/врача только если они заданы во входе (иначе NULL).
+      // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4):
+      // проставляется один раз при создании, из REGISTRY_CURRENT_VERSION.
       const record = input as Record<string, unknown>
-      const columns: string[] = []
-      const values: unknown[] = []
+      const columns: string[] = ['registry_version']
+      const values: unknown[] = [
+        (record.registry_version as number | null) ?? REGISTRY_CURRENT_VERSION,
+      ]
       for (const c of insertColumns()) {
         const v = (record as Record<string, unknown>)[c] ?? null
         if (v === null && !(ASSIGN_COLUMNS as readonly string[]).includes(c)) continue
@@ -184,12 +192,15 @@ export function createPatientRepository(
     },
 
     async update(id, patch) {
-      const keys = Object.keys(patch) as StoredColumn[]
+      // registry_version immutable: метка сбора не меняется задним числом
+      // (docs/schema-evolution.md §4) — ключ отбрасывается из патча.
+      const { registry_version: _ignored, ...rest } = patch as Record<string, unknown>
+      const keys = Object.keys(rest) as StoredColumn[]
       if (keys.length === 0) return
       const setSql = keys.map((k) => `${k} = ?`).join(', ')
       await db
         .prepare(`UPDATE patients SET ${setSql} WHERE id = ?`)
-        .bind(...keys.map((k) => (patch as Record<string, unknown>)[k] ?? null), id)
+        .bind(...keys.map((k) => (rest as Record<string, unknown>)[k] ?? null), id)
         .run()
     },
 
