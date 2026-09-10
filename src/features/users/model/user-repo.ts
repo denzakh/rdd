@@ -4,6 +4,7 @@
  * Только server-окружение (getDb() → Cloudflare binding).
  */
 import { randomUUID } from 'node:crypto'
+import { createAuditRepository, type AuditEntry } from '@/shared/api/audit-repo'
 
 export type Role = 'admin' | 'clinician' | 'readonly'
 export const ROLES: readonly Role[] = ['admin', 'clinician', 'readonly'] as const
@@ -56,20 +57,35 @@ const toAdminUser = (r: UserRow): AdminUser => ({
   createdAt: r.created_at,
 })
 
-const AUDIT_SQL =
-  'INSERT INTO audit_log (actor_id, patient_id, field_id, action, new_value) VALUES (?, 0, ?, ?, ?)'
+/** Содержимое audit-записи мутации пользователя (patient_id = 0 — не клиническое событие). */
+export function auditUserEntry(
+  actorId: string,
+  action: string,
+  targetUserId: string,
+  details: Record<string, unknown> = {}
+): AuditEntry {
+  return {
+    actorId,
+    patientId: 0,
+    fieldId: `user:${action}`,
+    action: `user:${action}`,
+    newValue: { userId: targetUserId, ...details },
+  }
+}
 
-/** Запись мутации пользователя в audit_log (docs/spec-stage-3.md §5, §7.5). */
-export function auditUser(
+/**
+ * Запись мутации пользователя в audit_log (docs/spec-stage-3.md §5, §7.5).
+ * Пишется через createAuditRepository — с hash-chain целостностью
+ * (migrations/0006_audit_hash_chain.sql, docs/threat-model.md §2 R).
+ */
+export async function auditUser(
   db: D1Database,
   actorId: string,
   action: string,
   targetUserId: string,
   details: Record<string, unknown> = {}
-): D1PreparedStatement {
-  return db
-    .prepare(AUDIT_SQL)
-    .bind(actorId, `user:${action}`, JSON.stringify({ userId: targetUserId, ...details }))
+): Promise<void> {
+  await createAuditRepository(db).insert(auditUserEntry(actorId, action, targetUserId, details))
 }
 
 export async function listUsers(db: D1Database): Promise<AdminUser[]> {

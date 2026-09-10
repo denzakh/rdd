@@ -9,10 +9,18 @@
 import { revalidatePath } from 'next/cache'
 import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { createSession, getDb, requireUser, SESSION_COOKIE, SESSION_TTL_HOURS } from '@/shared/api'
+import {
+  createAuditRepository,
+  createSession,
+  getDb,
+  requireUser,
+  SESSION_COOKIE,
+  SESSION_TTL_HOURS,
+} from '@/shared/api'
 import { generatePassword, hashPassword, MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 import {
   auditUser,
+  auditUserEntry,
   changeDataScope,
   changeRole,
   countAdmins,
@@ -101,7 +109,7 @@ export async function createUserAction(
     passwordHash: await hashPassword(password),
     mustChangePassword: true,
   })
-  await auditUser(db, admin.id, 'user_created', id, { email, role, dataScope }).run()
+  await auditUser(db, admin.id, 'user_created', id, { email, role, dataScope })
 
   revalidateUsers()
   return { password, email }
@@ -137,7 +145,7 @@ export async function changeRoleAction(formData: FormData): Promise<void> {
   if (await guardRoleChange(db, admin.id, target)) return
 
   await changeRole(db, id, role as AdminUser['role'])
-  await auditUser(db, admin.id, 'role_changed', id, { from: target.role, to: role }).run()
+  await auditUser(db, admin.id, 'role_changed', id, { from: target.role, to: role })
   revalidateUsers()
 }
 
@@ -159,7 +167,7 @@ export async function changeDataScopeAction(formData: FormData): Promise<void> {
     from: target.dataScope,
     to: dataScope,
     siteId: siteId || null,
-  }).run()
+  })
   revalidateUsers()
 }
 
@@ -172,7 +180,7 @@ export async function lockUserAction(formData: FormData): Promise<void> {
   if (await guardRoleChange(db, admin.id, target)) return
 
   await setLock(db, id, new Date(Date.now() + 365 * 24 * 3600_000).toISOString())
-  await auditUser(db, admin.id, 'user_locked', id).run()
+  await auditUser(db, admin.id, 'user_locked', id)
   revalidateUsers()
 }
 
@@ -181,7 +189,7 @@ export async function unlockUserAction(formData: FormData): Promise<void> {
   const id = String(formData.get('id') ?? '')
   const db = await getDb()
   await setLock(db, id, null)
-  await auditUser(db, admin.id, 'user_unlocked', id).run()
+  await auditUser(db, admin.id, 'user_unlocked', id)
   revalidateUsers()
 }
 
@@ -207,7 +215,7 @@ export async function resetPasswordAction(
 
   const password = generatePassword()
   await resetPassword(db, id, await hashPassword(password))
-  await auditUser(db, admin.id, 'password_reset', id).run()
+  await auditUser(db, admin.id, 'password_reset', id)
 
   revalidateUsers()
   return { password }
@@ -237,7 +245,7 @@ export async function createInviteAction(
   if (await isEmailTaken(db, email)) return { error: 'Пользователь с таким email уже есть' }
 
   const token = await createInvite(db, email, role as 'clinician', admin.id)
-  await auditUser(db, admin.id, 'invite_created', email, { role }).run()
+  await auditUser(db, admin.id, 'invite_created', email, { role })
 
   revalidateUsers()
   return { link: `/invite/${token}` }
@@ -248,7 +256,7 @@ export async function revokeInviteAction(formData: FormData): Promise<void> {
   const id = String(formData.get('id') ?? '')
   const db = await getDb()
   await revokeInvite(db, id)
-  await auditUser(db, admin.id, 'invite_revoked', id).run()
+  await auditUser(db, admin.id, 'invite_revoked', id)
   revalidateUsers()
 }
 
@@ -287,9 +295,12 @@ export async function acceptInviteAction(
     passwordHash: await hashPassword(password),
   })
   // used_at + аудит — одним батчем с уже созданным пользователем
+  // (hash-chain достраивается через insertStatements, docs/threat-model.md §2 R)
   await db.batch([
     markInviteUsedStatement(db, invite.id),
-    auditUser(db, userId, 'invite_accepted', userId, { email: invite.email, role: invite.role }),
+    ...(await createAuditRepository(db).insertStatements([
+      auditUserEntry(userId, 'invite_accepted', userId, { email: invite.email, role: invite.role }),
+    ])),
   ])
 
   // авто-логин

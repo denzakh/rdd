@@ -216,7 +216,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
         baseVersion,
       }))
 
-      const results = await db.batch([stmt, ...audit.insertStatements(auditEntries)])
+      const results = await db.batch([stmt, ...(await audit.insertStatements(auditEntries))])
       const applied = results[0].meta.changes > 0
 
       if (applied) {

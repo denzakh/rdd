@@ -336,7 +336,15 @@ export const useCellConflict = (phaseId, fieldId) =>
 
 ### 6.6. Аудит (D1)
 
-- Таблица `audit_log` — системная сущность, **вне реестра** (миграция `0002_audit.sql`, не `gen:d1`). Append-only: UPDATE/DELETE запрещены логикой.
+- Таблица `audit_log` — системная сущность, **вне реестра** (миграции `0002_audit.sql` +
+  `0006_audit_hash_chain.sql`, не `gen:d1`). Append-only: UPDATE/DELETE запрещены логикой
+  **и на уровне БД** — триггеры `audit_no_update`/`audit_no_delete` (RAISE ABORT, миграция 0006).
+- **Целостность (hash-chain):** каждая запись хранит `prev_hash` (entry_hash предыдущей
+  записи) и `entry_hash` = SHA-256 от канонического payload (prev_hash + все поля записи).
+  Подмена или удаление записи ломает цепочку; проверка — `createAuditRepository(db).verifyChain()`.
+  UNIQUE-индекс на `prev_hash` (partial) исключает форк цепочки. Ограничение: оператор
+  с полным доступом к БД может пересчитать цепочку целиком — принятый риск,
+  см. [threat-model.md §2 R, §3](./threat-model.md).
 - Схема:
 
 ```sql
@@ -356,6 +364,11 @@ CREATE TABLE audit_log (
 );
 CREATE INDEX idx_audit_phase ON audit_log (phase_id, ts);
 CREATE INDEX idx_audit_patient ON audit_log (patient_id, ts);
+-- миграция 0006_audit_hash_chain.sql:
+ALTER TABLE audit_log ADD COLUMN prev_hash TEXT;   -- entry_hash предыдущей записи
+ALTER TABLE audit_log ADD COLUMN entry_hash TEXT;  -- SHA-256(prev_hash + payload)
+CREATE UNIQUE INDEX idx_audit_prev_hash ON audit_log (prev_hash) WHERE prev_hash IS NOT NULL;
+-- + триггеры audit_no_update / audit_no_delete (RAISE ABORT)
 ```
 
 - Значения — JSON-строки (`JSON.stringify(FieldValue)`); PII в лог не дублируется (только id).
