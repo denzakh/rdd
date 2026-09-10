@@ -35,41 +35,64 @@ export function assertPhaseField(fieldId: string): keyof (typeof DATA_COLUMNS)[n
   return fieldId as keyof (typeof DATA_COLUMNS)[number]
 }
 
-/** Распределение значений признака: [{ value, count }] (NULL не включается). */
+/**
+ * Распределение значений признака: [{ value, count }] (NULL не включается).
+ * count — число РАЗНЫХ пациентов (не фаз): семантика «сколько пациентов
+ * с признаком X» (spec-stage-2.md §3). Агрегаты /reports следуют тому же
+ * инварианту, что и де-идентификация (export.md §3): уважается data_scope
+ * пользователя, а ячейки с числом пациентов < k подавляются (k-anonymity) —
+ * иначе малые группы (count=1..2) деанонимизируются через differencing attack.
+ */
 export async function countByField(
   db: D1Database,
-  fieldId: string
+  fieldId: string,
+  scope: DeidentifiedScope = { mode: 'all' },
+  k: number = K_ANONYMITY_K
 ): Promise<Array<{ value: number; count: number }>> {
   const column = assertPhaseField(fieldId)
+  const s = scopeSqlForPhases(scope)
   // column приходит из статического whitelist — конкатенация безопасна
   const { results } = await db
     .prepare(
-      `SELECT ${String(column)} AS value, COUNT(*) AS count
-       FROM phases WHERE ${String(column)} IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}
-       GROUP BY ${String(column)} ORDER BY count DESC`
+      `SELECT ${String(column)} AS value, COUNT(DISTINCT patient_id) AS count
+       FROM phases
+       WHERE ${String(column)} IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
+       GROUP BY ${String(column)}
+       HAVING COUNT(DISTINCT patient_id) >= ?
+       ORDER BY count DESC, value ASC`
     )
+    .bind(...s.binds, k)
     .all<{ value: number; count: number }>()
   return results
 }
 
-/** Средние длительности фаз/интермиссий по номеру фазы. */
+/**
+ * Средние длительности фаз/интермиссий по номеру фазы. patients — число РАЗНЫХ
+ * пациентов; scope уважается; группы с числом пациентов < k подавляются.
+ */
 export async function phaseDurationsByOrder(
-  db: D1Database
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' },
+  k: number = K_ANONYMITY_K
 ): Promise<
   Array<{ phase_order_id: number; patients: number; avg_phase: number; avg_intermission: number }>
 > {
+  const s = scopeSqlForPhases(scope)
   const { results } = await db
     .prepare(
       `SELECT phase_order_id,
-              COUNT(*) AS patients,
+              COUNT(DISTINCT patient_id) AS patients,
               AVG(phase_duration_months) AS avg_phase,
               AVG(intermission_duration) AS avg_intermission
        FROM phases
        WHERE patient_id IN (
          SELECT id FROM patients WHERE consent_withdrawn_at IS NULL
-       )
-       GROUP BY phase_order_id ORDER BY phase_order_id`
+       )${s.sql}
+       GROUP BY phase_order_id
+       HAVING COUNT(DISTINCT patient_id) >= ?
+       ORDER BY phase_order_id`
     )
+    .bind(...s.binds, k)
     .all<{
       phase_order_id: number
       patients: number
@@ -79,18 +102,26 @@ export async function phaseDurationsByOrder(
   return results
 }
 
-/** Эффективность АД в разрезе основного компонента: [{ main_component, ad_efficacy, count }]. */
+/**
+ * Эффективность АД в разрезе основного компонента. count — число РАЗНЫХ
+ * пациентов; scope уважается; ячейки с числом пациентов < k подавляются.
+ */
 export async function efficacyByMainComponent(
-  db: D1Database
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' },
+  k: number = K_ANONYMITY_K
 ): Promise<Array<{ main_component: number; ad_efficacy: number; count: number }>> {
+  const s = scopeSqlForPhases(scope)
   const { results } = await db
     .prepare(
-      `SELECT main_component, ad_efficacy, COUNT(*) AS count
+      `SELECT main_component, ad_efficacy, COUNT(DISTINCT patient_id) AS count
        FROM phases
-       WHERE main_component IS NOT NULL AND ad_efficacy IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}
+       WHERE main_component IS NOT NULL AND ad_efficacy IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
        GROUP BY main_component, ad_efficacy
+       HAVING COUNT(DISTINCT patient_id) >= ?
        ORDER BY main_component, ad_efficacy`
     )
+    .bind(...s.binds, k)
     .all<{ main_component: number; ad_efficacy: number; count: number }>()
   return results
 }
@@ -116,18 +147,37 @@ export type DeidentifiedScope =
   | { mode: 'site'; siteId: string | null }
   | { mode: 'assigned'; clinicianId: string }
 
-/** WHERE-фрагмент + биндинги по scope (склеиваются с AND снаружи). */
-function deidentifiedScopeWhere(scope: DeidentifiedScope): { sql: string; binds: unknown[] } {
+/**
+ * WHERE-фрагмент + биндинги по scope (склеиваются с AND снаружи).
+ * alias — псевдоним таблицы patients, за которым лежат scope-колонки
+ * site_id / assigned_clinician_id (migrations/0005_data_scope.sql).
+ * Fail closed: 'site' без центра ничего не видит.
+ */
+function scopeWhereOnPatient(
+  scope: DeidentifiedScope,
+  alias: string
+): { sql: string; binds: unknown[] } {
   switch (scope.mode) {
     case 'site':
       return scope.siteId
-        ? { sql: 'p.site_id = ?', binds: [scope.siteId] }
+        ? { sql: `${alias}.site_id = ?`, binds: [scope.siteId] }
         : { sql: '0 = 1', binds: [] }
     case 'assigned':
-      return { sql: 'p.assigned_clinician_id = ?', binds: [scope.clinicianId] }
+      return { sql: `${alias}.assigned_clinician_id = ?`, binds: [scope.clinicianId] }
     default:
       return { sql: '', binds: [] }
   }
+}
+
+/**
+ * Scope-условие для агрегатов, идущих FROM phases: фильтруем по пациенту
+ * вложенным подзапросом p (тот же row-level access, что у списков). Возвращает
+ * фрагмент, вставляемый в WHERE (с ведущим AND), и биндинги.
+ */
+function scopeSqlForPhases(scope: DeidentifiedScope): { sql: string; binds: unknown[] } {
+  const w = scopeWhereOnPatient(scope, 'p')
+  if (!w.sql) return { sql: '', binds: [] }
+  return { sql: ` AND patient_id IN (SELECT p.id FROM patients p WHERE ${w.sql})`, binds: w.binds }
 }
 
 /** Одна строка де-идентифицированного датасета: см. shared/lib/export/types. */
@@ -162,7 +212,7 @@ export async function getDeidentifiedDataset(
   scope: DeidentifiedScope = { mode: 'all' },
   k: number = K_ANONYMITY_K
 ): Promise<DeidentifiedDataset> {
-  const w = deidentifiedScopeWhere(scope)
+  const w = scopeWhereOnPatient(scope, 'p')
   const selectCols = ['p.id AS patient_id', 'p.study_entry_date', 'p.birth_year']
   for (const c of PATIENT_EXPORT_COLUMNS) selectCols.push(`p."${c}"`)
   selectCols.push('ph.phase_order_id', 'ph.phase_start_date', 'ph.registry_version')

@@ -103,7 +103,8 @@
 фильтруются, включая `findById` (иначе карта открывалась бы по прямой ссылке
 при скрытом списке — IDOR). При создании пациента Server Action проставляет
 `site_id` создателя и `assigned_clinician_id` (если создатель не `all`).
-`reports`/агрегаты остаются обезличенными и не фильтруются.
+Агрегаты `/reports` тоже уважают `data_scope` (те же `site_id`/`assigned_clinician_id`,
+см. `queries.ts`), а также подавляют малые ячейки (k-anonymity, `K_ANONYMITY_K = 5`).
 
 ## 9. Создание пользователей (scripts/create-user.ts)
 

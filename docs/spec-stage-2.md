@@ -28,9 +28,10 @@
 
 - Перенос `phase-repo.ts` → `src/entities/phase/api/phase-repo.ts` (контракты этапа 1 не меняются).
 - `queries.ts` — агрегаты, каждый — параметризованный SQL с биндингами, без конкатенации:
-  - `countByField(fieldId, { where })` — «сколько пациентов с признаком X» (колонка существует по построению схемы);
-  - `phaseDurationsByOrder()` — средние длительности фаз/интермиссий;
-  - `efficacyByMainComponent()` — эффективность АД (`ad_efficacy`) в разрезе `main_component`.
+  - `countByField(fieldId, scope?, k?)` — «сколько пациентов с признаком X» (колонка существует по построению схемы; `count` = число РАЗНЫХ пациентов);
+  - `phaseDurationsByOrder(scope?, k?)` — средние длительности фаз/интермиссий;
+  - `efficacyByMainComponent(scope?, k?)` — эффективность АД (`ad_efficacy`) в разрезе `main_component`.
+- Все агрегаты следуют инварианту де-идентификации (docs/export.md §3): уважают `data_scope` пользователя (тот же row-level access, что у списков) и подавляют ячейки с числом пациентов < k (по умолчанию `K_ANONYMITY_K = 5`).
 - Валидатор `fieldId`: разрешены только ключи `FLAT_REGISTRY` со scope фазы (защита от SQL-инъекции через имя колонки).
 
 ## 4. Страницы (`src/app` / корневой `app/`)

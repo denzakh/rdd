@@ -11,7 +11,8 @@
   `src/entities/phase/api/queries.ts`. Возвращает нейтральные TS-объекты
   `{ rows, columns, meta }`. Это единственное место с бизнес-логикой
   и k-anonymity (см. §3). Сюда же входят уже существующие агрегаты
-  `countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`.
+  `countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent` —
+  они разделяют с экспортом тот же инвариант (scope + подавление малых ячеек).
 - **Слой сериализации** — тонкие адаптеры в `src/shared/lib/export/`
   поверх одних и тех же агрегатов: `toCsv`, `toJson` (`serializers.ts`),
   `toXlsx` (`xlsx.ts`, без зависимостей — stored ZIP + inline strings).
@@ -50,6 +51,10 @@ UI: панель на `/reports` (`src/features/reports/ui/export-panel.tsx`).
 - **k-anonymity:** ключ группы — `(age_group, gender, phase_order_id)`;
   строки групп размером < `K_ANONYMITY_K` (5) подавляются,
   счётчик — `meta.suppressedRows`;
+- **агрегаты `/reports`** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`)
+  следуют тому же инварианту: уважают `data_scope` пользователя и подавляют ячейки
+  с числом пациентов < `K_ANONYMITY_K` — иначе малые группы (count=1..2) деанонимизируются
+  через differencing attack;
 - согласие: `consent_withdrawn_at IS NOT NULL` — исключены из выборки
   (данные не удаляются); scope пользователя уважается.
 - **версионность протокола** (docs/schema-evolution.md §6): каждая строка несёт

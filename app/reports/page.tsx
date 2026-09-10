@@ -3,7 +3,13 @@ import { ExportPanel } from '@/features/reports'
 import { getDb } from '@/shared/api/db'
 import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
-import { countByField, phaseDurationsByOrder, efficacyByMainComponent } from '@/entities/phase'
+import { patientScopeFor } from '@/entities/patient'
+import {
+  countByField,
+  phaseDurationsByOrder,
+  efficacyByMainComponent,
+  K_ANONYMITY_K,
+} from '@/entities/phase'
 
 /**
  * Простая аналитика (docs/spec-stage-2.md §4): распределения по признакам,
@@ -30,16 +36,24 @@ export default async function ReportsPage() {
   const db = await getDb()
 
   const distributions = await Promise.all(
-    INTERESTING_FIELDS.map(async (f) => ({ fieldId: f, rows: await countByField(db, f) }))
+    INTERESTING_FIELDS.map(async (f) => ({
+      fieldId: f,
+      rows: await countByField(db, f, patientScopeFor(user)),
+    }))
   )
-  const durations = await phaseDurationsByOrder(db)
-  const efficacy = await efficacyByMainComponent(db)
+  const durations = await phaseDurationsByOrder(db, patientScopeFor(user))
+  const efficacy = await efficacyByMainComponent(db, patientScopeFor(user))
 
   return (
     <div>
       <UserMenu displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-8 p-6">
         <h1 className="text-xl font-semibold">Отчёты</h1>
+
+        <p className="text-xs text-neutral-500">
+          Агрегаты учитывают ваш data_scope; ячейки с числом пациентов меньше {K_ANONYMITY_K} скрыты
+          (k-anonymity, docs/export.md §3).
+        </p>
 
         <ExportPanel />
 
