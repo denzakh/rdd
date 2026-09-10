@@ -4,7 +4,10 @@
  * Схема безопасности:
  * - токен сессии (32 байта, base64url) живёт ТОЛЬКО в HttpOnly cookie;
  * - в БД хранится SHA-256(токен) — утечка базы не даёт угнать сессии;
- * - TTL 12 часов (смена в клинике), sliding renewal при половине срока.
+ * - TTL 12 часов (смена в клинике), sliding renewal при половине срока;
+ * - абсолютный потолок SESSION_ABSOLUTE_TTL_DAYS (7 дней с момента логина):
+ *   containment при краже токена — sliding renewal не может продлить сессию
+ *   за пределы потолка (docs/auth.md).
  *
  * Только server-окружение (getDb() → Cloudflare binding).
  */
@@ -13,6 +16,8 @@ import { createHash } from '../lib/hash'
 export const SESSION_COOKIE = 'rdd_session'
 export const SESSION_TTL_HOURS = 12
 const RENEW_THRESHOLD_HOURS = 6
+/** Абсолютный потолок жизни сессии с момента логина (sliding renewal не продлевает его). */
+export const SESSION_ABSOLUTE_TTL_DAYS = 7
 
 export type DataScope = 'all' | 'site' | 'assigned'
 
@@ -99,18 +104,20 @@ export async function createSession(
 /**
  * Валидирует токен и возвращает пользователя.
  * Удаляет истёкшие/несуществующие сессии молча (token unknown → null).
- * При остатке < RENEW_THRESHOLD_HOURS продлевает сессию (sliding renewal).
+ * При остатке < RENEW_THRESHOLD_HOURS продлевает сессию (sliding renewal),
+ * но не дальше абсолютного потолка created_at + SESSION_ABSOLUTE_TTL_DAYS.
  */
 export async function findSessionUser(db: D1Database, token: string): Promise<SessionUser | null> {
   const tokenHash = await hashToken(token)
 
   interface JoinRow extends UserRow {
     expires_at: string
+    created_at: string
   }
   const row = await db
     .prepare(
       `SELECT u.id, u.email, u.display_name, u.role, u.data_scope, u.site_id,
-              u.must_change_password, s.expires_at
+              u.must_change_password, s.expires_at, s.created_at
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.id = ?`
     )
@@ -119,16 +126,24 @@ export async function findSessionUser(db: D1Database, token: string): Promise<Se
 
   if (!row) return null
 
-  if (new Date(row.expires_at) <= new Date()) {
+  const now = Date.now()
+  const expiresMs = new Date(row.expires_at).getTime()
+  // Абсолютный потолок: 7 дней с момента логина, продлением не сдвигается.
+  const absoluteDeadlineMs =
+    new Date(row.created_at).getTime() + SESSION_ABSOLUTE_TTL_DAYS * 86_400_000
+
+  if (expiresMs <= now || absoluteDeadlineMs <= now) {
     await db.prepare('DELETE FROM sessions WHERE id = ?').bind(tokenHash).run()
     return null
   }
 
-  const remainingMs = new Date(row.expires_at).getTime() - Date.now()
+  const remainingMs = expiresMs - now
   if (remainingMs < RENEW_THRESHOLD_HOURS * 3600_000) {
+    // Продлеваем до полных 12 часов, но не за абсолютный потолок.
+    const renewedMs = Math.min(now + SESSION_TTL_HOURS * 3600_000, absoluteDeadlineMs)
     await db
       .prepare('UPDATE sessions SET expires_at = ? WHERE id = ?')
-      .bind(expiryIso(), tokenHash)
+      .bind(new Date(renewedMs).toISOString(), tokenHash)
       .run()
   }
 

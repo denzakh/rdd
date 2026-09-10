@@ -75,6 +75,63 @@ describe('session-repo (интеграция, локальная D1)', () => {
     }
   })
 
+  it('абсолютный TTL: сессия старше 7 дней инвалидируется даже с живым expires_at', async () => {
+    const db = await getTestDb()
+    const userId = await makeUser(db)
+    try {
+      const token = await createSession(db, userId)
+      const tokenHash = await hashToken(token)
+      // Сдвигаем created_at за пределы абсолютного потолка, expires_at оставляем живым
+      await db
+        .prepare(
+          `UPDATE sessions SET created_at = strftime('%Y-%m-%dT%H:%M:%fZ','now','-8 days')
+           WHERE id = ?`
+        )
+        .bind(tokenHash)
+        .run()
+
+      expect(await findSessionUser(db, token)).toBeNull()
+      const row = await db
+        .prepare('SELECT COUNT(*) AS n FROM sessions WHERE id = ?')
+        .bind(tokenHash)
+        .first<{ n: number }>()
+      expect(row?.n).toBe(0)
+    } finally {
+      await cleanupUser(db, userId)
+    }
+  })
+
+  it('sliding renewal не продлевает сессию за абсолютный потолок', async () => {
+    const db = await getTestDb()
+    const userId = await makeUser(db)
+    try {
+      const token = await createSession(db, userId)
+      const tokenHash = await hashToken(token)
+      // Логин был 6.5 дней назад; expires_at укоротим до 5 часов (продление сработает)
+      await db
+        .prepare(
+          `UPDATE sessions SET
+             created_at = strftime('%Y-%m-%dT%H:%M:%fZ','now','-6.5 days'),
+             expires_at = ? WHERE id = ?`
+        )
+        .bind(new Date(Date.now() + 5 * 3600_000).toISOString(), tokenHash)
+        .run()
+
+      await findSessionUser(db, token)
+
+      const row = await db
+        .prepare('SELECT expires_at FROM sessions WHERE id = ?')
+        .bind(tokenHash)
+        .first<{ expires_at: string }>()
+      const renewedMs = new Date(row!.expires_at).getTime()
+      // Потолок: created_at + 7 дней ≈ +0.5 дня от сейчас; продление до 12 ч обрезано
+      expect(renewedMs).toBeLessThan(Date.now() + 1 * 86_400_000 + 60_000)
+      expect(renewedMs).toBeGreaterThan(Date.now() + 5 * 3600_000)
+    } finally {
+      await cleanupUser(db, userId)
+    }
+  })
+
   it('истёкшая сессия удаляется при валидации; purgeExpiredSessions чистит всё', async () => {
     const db = await getTestDb()
     const userId = await makeUser(db)

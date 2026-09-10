@@ -42,7 +42,8 @@ npm run dev                 # http://localhost:3000
 
 ## Аутентификация и роли
 
-- Собственные сессии на D1 (PBKDF2, токен только в HttpOnly cookie), TTL 12 ч.
+- Собственные сессии на D1 (PBKDF2, токен только в HttpOnly cookie), TTL 12 ч
+  (sliding), абсолютный потолок 7 дней с момента логина.
 - Роли: `admin` (управление пользователями, `/admin/users`), `clinician`
   (чтение/запись), `readonly` (только чтение).
 - Row-level access: переключатель `data_scope` у пользователя — «видит всех» /
