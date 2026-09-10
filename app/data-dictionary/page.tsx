@@ -60,6 +60,11 @@ export default async function DataDictionaryPage() {
                             (deprecated с v{e.deprecatedSince})
                           </span>
                         )}
+                        {e.replacedBy && (
+                          <span className="ml-1 text-xs text-neutral-500">
+                            (замена: {e.replacedBy})
+                          </span>
+                        )}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 font-mono text-xs">
                         {e.dbType}

@@ -47,6 +47,8 @@ export interface DictionaryEntry {
   isCurrentOnly: boolean
   /** Версия протокола, с которой поле deprecated (docs/schema-evolution.md §6). */
   deprecatedSince: number | null
+  /** Поле-замена (id), см. docs/schema-evolution.md §3.1 (`replacedBy`). */
+  replacedBy: string | null
 }
 
 export interface DictionarySection {
@@ -76,6 +78,7 @@ export const buildDataDictionary = (): DictionarySection[] =>
         isComputed: Boolean(field.calculate),
         isCurrentOnly: Boolean(field.is_current_only),
         deprecatedSince: field.deprecated_since ?? null,
+        replacedBy: field.replacedBy ?? null,
       })),
     })
   )

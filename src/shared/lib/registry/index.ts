@@ -23,3 +23,14 @@ export {
   type DictionaryEntry,
   type DictionarySection,
 } from './data-dictionary'
+export {
+  breakingChanges,
+  fieldSnapshot,
+  findUntrackedBreakingChanges,
+  isBreakingTracked,
+  snapshotFromRegistry,
+  type BreakingKind,
+  type FieldEvolutionSnapshot,
+  type RegistryEvolutionSnapshot,
+  type UntrackedFieldChange,
+} from './evolution-guard'

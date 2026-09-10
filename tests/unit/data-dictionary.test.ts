@@ -26,12 +26,14 @@ describe('buildDataDictionary', () => {
     expect(hamd?.allowed).toBe('от 0 до 52')
   })
 
-  it('deprecated_since пробрасывается в deprecatedSince (docs/schema-evolution.md §6)', () => {
+  it('deprecated_since/replacedBy пробрасывается в словарь (docs/schema-evolution.md §6, §3.1)', () => {
     const all = sections.flatMap((s) => s.entries)
-    // Пока deprecated-полей нет: все записи — null, поле присутствует
+    // Пока deprecated-полей нет: все записи — null, поля присутствуют
     for (const e of all) {
       expect('deprecatedSince' in e).toBe(true)
       expect(e.deprecatedSince).toBeNull()
+      expect('replacedBy' in e).toBe(true)
+      expect(e.replacedBy).toBeNull()
     }
   })
 })

@@ -1,0 +1,185 @@
+{
+  "baseline_version": 1,
+  "fields": {
+    "birth_year": {
+      "options": [],
+      "min": 1900,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "gender": {
+      "options": [1, 2],
+      "min": 1,
+      "max": 2,
+      "deprecated_since": 0
+    },
+    "education_level": {
+      "options": [1, 2, 3],
+      "min": 1,
+      "max": 3,
+      "deprecated_since": 0
+    },
+    "career_level": {
+      "options": [1, 2, 3],
+      "min": 1,
+      "max": 3,
+      "deprecated_since": 0
+    },
+    "living_status": {
+      "options": [1, 2, 3, 4],
+      "min": 1,
+      "max": 4,
+      "deprecated_since": 0
+    },
+    "disability_status": {
+      "options": [0, 1, 2, 3],
+      "min": 0,
+      "max": 3,
+      "deprecated_since": 0
+    },
+    "personality_type": {
+      "options": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      "min": 1,
+      "max": 10,
+      "deprecated_since": 0
+    },
+    "phase_duration_months": {
+      "options": [],
+      "min": 0,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "intermission_duration": {
+      "options": [],
+      "min": 0,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "prophylaxis_type": {
+      "options": [0, 1, 2, 3],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "onset_trigger": {
+      "options": [0, 1, 2, 3, 4, 5, 6, 7],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "main_component": {
+      "options": [0, 1, 2, 3, 5, 6],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "orientation": {
+      "options": [0, 1],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "diurnal_rhythm": {
+      "options": [0, 1, 2],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "delusions": {
+      "options": [0, 1, 2, 3, 4, 5],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "insight": {
+      "options": [0, 1],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "ad_dose_level": {
+      "options": [0, 1, 2, 3],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "ad_route": {
+      "options": [0, 1, 2, 3, 4],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "days_to_improvement": {
+      "options": [],
+      "min": 0,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "total_days": {
+      "options": [],
+      "min": 0,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "ad_efficacy": {
+      "options": [1, 2, 3, 4],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "switch_reason": {
+      "options": [0, 1, 2, 3, 4],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "nl_dose_level": {
+      "options": [0, 1, 2, 3],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "trank_dose_level": {
+      "options": [0, 1, 2, 3],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "trank_route": {
+      "options": [0, 1, 2],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "trank_efficacy": {
+      "options": [1, 2, 3, 4],
+      "min": null,
+      "max": null,
+      "deprecated_since": 0
+    },
+    "hamd_total": {
+      "options": [],
+      "min": 0,
+      "max": 52,
+      "deprecated_since": 0
+    },
+    "beck_total": {
+      "options": [],
+      "min": 0,
+      "max": 63,
+      "deprecated_since": 0
+    },
+    "clock_drawing_test": {
+      "options": [],
+      "min": 0,
+      "max": 10,
+      "deprecated_since": 0
+    },
+    "mmse_total": {
+      "options": [],
+      "min": 0,
+      "max": 30,
+      "deprecated_since": 0
+    }
+  }
+}
