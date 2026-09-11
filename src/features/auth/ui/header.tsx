@@ -16,7 +16,7 @@ export async function Header({ displayName, role }: { displayName: string; role:
 
   return (
     <div className="border-b border-neutral-200">
-      <div className="mx-auto flex max-w-[1000px] items-center justify-between px-6 py-2 text-sm">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2 text-sm">
         <TopNavigation locale={locale} />
         <UserInfo displayName={displayName} role={role} locale={locale} />
       </div>

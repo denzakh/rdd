@@ -30,7 +30,7 @@ export function LocaleSwitcher({ locale }: { locale: Locale }) {
           className={`rounded border px-1.5 py-0.5 uppercase ${
             l === locale
               ? 'border-neutral-900 bg-neutral-900 text-white'
-              : 'border-neutral-300 hover:bg-neutral-100'
+              : 'cursor-pointer border-neutral-300 hover:bg-neutral-100'
           }`}
         >
           {l}

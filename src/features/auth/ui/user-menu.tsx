@@ -18,7 +18,7 @@ export function UserInfo({
   locale: Locale
 }) {
   return (
-    <>
+    <div className="flex items-center gap-3">
       <span className="text-neutral-600">
         {displayName} · <span className="text-neutral-400">{role}</span>
       </span>
@@ -26,12 +26,12 @@ export function UserInfo({
       <form action={logoutAction}>
         <button
           type="submit"
-          className="rounded-md border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-100"
+          className="cursor-pointer rounded-md border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-100"
         >
           {locale === 'en' ? 'Log out' : 'Выйти'}
         </button>
       </form>
-    </>
+    </div>
   )
 }
 
