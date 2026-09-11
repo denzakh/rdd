@@ -30,11 +30,7 @@ export function TopNavigation({ locale }: { locale: Locale }) {
           <Link
             key={href}
             href={href}
-            className={
-              active
-                ? 'border-b-2 border-neutral-900 pb-1 font-medium text-neutral-900'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }
+            className={active ? 'font-semibold text-neutral-900' : 'text-blue-700 hover:opacity-80'}
           >
             {common[key]}
           </Link>

@@ -56,9 +56,23 @@ export function PatientsTable({
               </td>
             ))}
             <td className="px-2 py-1.5 text-right">
-              <Link href={`/patients/${p.id}`} className="text-xs text-blue-700 hover:underline">
-                {locale === 'en' ? 'Open →' : 'Открыть →'}
-              </Link>
+              <div className="flex justify-end gap-4">
+                <Link href={`/patients/${p.id}`} className="text-xs text-blue-700 hover:underline">
+                  {locale === 'en' ? 'Open' : 'Открыть'}
+                </Link>
+                <Link
+                  href={`/patients/${p.id}/edit`}
+                  className="text-xs text-blue-700 hover:underline"
+                >
+                  {locale === 'en' ? 'Edit' : 'Редактировать'}
+                </Link>
+                <Link
+                  href={`/patients/${p.id}/matrix`}
+                  className="text-xs text-blue-700 hover:underline"
+                >
+                  {locale === 'en' ? 'Phases' : 'Фазы'}
+                </Link>
+              </div>
             </td>
           </tr>
         ))}

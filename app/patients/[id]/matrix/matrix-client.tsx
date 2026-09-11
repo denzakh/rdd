@@ -176,9 +176,14 @@ export default function MatrixClient({
   return (
     <main className="mx-auto max-w-[1400px] space-y-4 p-6">
       <header className="space-y-2">
-        <h1 className="text-xl font-semibold">Матрица клинических признаков — {patientLabel}</h1>
+        <h1 className="text-xl font-semibold">
+          {locale === 'en' ? 'Clinical Feature Matrix' : 'Матрица клинических признаков'}—{' '}
+          {patientLabel}
+        </h1>
         <p className="text-sm text-neutral-500">
-          Ввод коммитится по blur/дебаунсу и сохраняется на сервере · стрелки — навигация по строкам
+          {locale === 'en'
+            ? 'Input is committed on blur/debounce and saved to the server · arrows — navigate rows'
+            : 'Ввод коммитится по blur/дебаунсу и сохраняется на сервере · стрелки — навигация по строкам'}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {badge && (
@@ -195,9 +200,9 @@ export default function MatrixClient({
               <button
                 type="button"
                 onClick={() => void handleCreatePhase()}
-                className="rounded-md border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-100"
+                className="rounded-md border border-neutral-900 bg-neutral-900 px-3 py-1 text-xs text-white"
               >
-                + Фаза
+                {locale === 'en' ? '+ Phase' : '+ Фаза'}
               </button>
               {columns.length > 0 && (
                 <>
@@ -205,7 +210,7 @@ export default function MatrixClient({
                     value={selectedPhaseId}
                     onChange={(e) => setSelectedPhaseId(e.target.value)}
                     className="h-7 rounded border border-neutral-300 bg-white px-1 text-xs"
-                    aria-label="Фаза для удаления"
+                    aria-label={locale === 'en' ? 'Phase to delete' : 'Фаза для удаления'}
                   >
                     {columns.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -218,7 +223,7 @@ export default function MatrixClient({
                     onClick={() => void handleDeletePhase()}
                     className="rounded-md border border-red-300 px-3 py-1 text-xs text-red-700 hover:bg-red-50"
                   >
-                    Удалить фазу
+                    {locale === 'en' ? 'Delete phase' : 'Удалить фазу'}
                   </button>
                 </>
               )}
