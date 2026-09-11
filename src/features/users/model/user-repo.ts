@@ -4,7 +4,7 @@
  * Только server-окружение (getDb() → Cloudflare binding).
  */
 import { randomUUID } from 'node:crypto'
-import { createAuditRepository, type AuditEntry } from '@/shared/api/audit-repo'
+import { createAuditRepository, type AuditEntry } from '@/shared/api'
 
 export type Role = 'admin' | 'clinician' | 'readonly'
 export const ROLES: readonly Role[] = ['admin', 'clinician', 'readonly'] as const
