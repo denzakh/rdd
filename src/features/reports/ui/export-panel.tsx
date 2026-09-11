@@ -65,7 +65,7 @@ export function ExportPanel({ locale = 'ru' }: { locale?: Locale }) {
             type="button"
             disabled={pending}
             onClick={() => run(f.id)}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100 disabled:opacity-50"
+            className="cursor-pointer rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100 disabled:opacity-50"
             title={f.hint}
           >
             {pending ? '…' : en ? `Download ${f.label}` : `Скачать ${f.label}`}
