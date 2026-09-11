@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useRef, useState } from 'react'
 import type { RegistryField, RegistryOption } from '@/shared/config'
+import { optionLabel, type Locale } from '@/shared/lib/intl'
 import type { FieldValue } from '../model/types'
 import type { CellConflict } from '../model/matrix-store'
 
@@ -14,6 +15,8 @@ export interface MatrixCellProps {
   error?: string
   conflict?: CellConflict
   options?: readonly RegistryOption[]
+  /** Локаль подписей опций (по дефолту ru — фолбэк, docs/en/i18n.md §3). */
+  locale?: Locale
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
   onResolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
 }
@@ -32,6 +35,7 @@ function MatrixCellBase({
   error,
   conflict,
   options,
+  locale = 'ru',
   onChange,
   onResolveConflict,
 }: MatrixCellProps) {
@@ -70,7 +74,7 @@ function MatrixCellBase({
       case 'radio-group':
       case 'select-readonly':
         if (ui === 'select-readonly' || disabled) {
-          return <span className="text-xs">{renderBadge(value, options)}</span>
+          return <span className="text-xs">{renderBadge(value, options, locale)}</span>
         }
         return (
           <select
@@ -83,7 +87,7 @@ function MatrixCellBase({
             <option value="">—</option>
             {options?.map((o) => (
               <option key={String(o.value)} value={String(o.value)}>
-                {o.label}
+                {optionLabel(o, locale)}
               </option>
             ))}
           </select>
@@ -206,11 +210,15 @@ function ConflictBadge({
   )
 }
 
-function renderBadge(value: FieldValue, options?: readonly RegistryOption[]): string {
+function renderBadge(
+  value: FieldValue,
+  options?: readonly RegistryOption[],
+  locale: Locale = 'ru'
+): string {
   if (value === null || value === undefined) return '—'
   if (options) {
     const match = options.find((o) => String(o.value) === String(value))
-    if (match) return match.label
+    if (match) return optionLabel(match, locale)
   }
   if (typeof value === 'boolean') return value ? 'да' : 'нет'
   return String(value)

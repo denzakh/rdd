@@ -8,6 +8,7 @@
 import { useActionState } from 'react'
 import { REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
+import { fieldLabel, optionLabel } from '@/shared/lib/intl'
 import { savePatientAction, type PatientActionState } from '../api/actions'
 
 const EDITABLE_UI = new Set([
@@ -20,7 +21,7 @@ const EDITABLE_UI = new Set([
 ])
 
 function ruLabel(field: RegistryField): string {
-  return typeof field.label === 'string' ? field.label : field.label.ru
+  return fieldLabel(field, 'ru')
 }
 
 export function PatientForm({ patient }: { patient?: Record<string, unknown> | undefined }) {
@@ -104,7 +105,7 @@ function FieldInput({
           <option value="">—</option>
           {field.options?.map((o) => (
             <option key={String(o.value)} value={String(o.value)}>
-              {o.label}
+              {optionLabel(o, 'ru')}
             </option>
           ))}
         </select>
@@ -120,7 +121,7 @@ function FieldInput({
                 value={String(o.value)}
                 defaultChecked={v === String(o.value)}
               />
-              {o.label}
+              {optionLabel(o, 'ru')}
             </label>
           ))}
         </div>

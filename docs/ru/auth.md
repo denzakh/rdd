@@ -1,4 +1,4 @@
-# Спецификация: Аутентификация и управление пользователями (docs/auth.md)
+# Спецификация: Аутентификация и управление пользователями (./auth.md)
 
 **Статус:** реализовано (v1) · **Миграция:** `0003_auth.sql` · **Слой FSD:** `src/features/auth` + `src/shared/api/session-repo.ts`
 
@@ -134,7 +134,7 @@
 возвращаются и применяются ПОСЛЕ baseline (0002_audit содержит индексы по
 tables реестра). Порядок «сначала move, потом delete» критичен.
 
-## 11. Аудит (интеграция с docs/matrix.md §6.6)
+## 11. Аудит (интеграция с ./matrix.md §6.6)
 
 `actor_id` в `audit_log` = `SessionUser.id`, берется из `requireUser()` /
 `getCurrentUser()` в месте мутации и передается в `AuditEntry.actorId`.

@@ -20,7 +20,7 @@
     `phase`) либо «не хранится» для вычисляемых полей (`calculate`).
 - Страница: `app/data-dictionary/page.tsx` (server component, `requireUser()`).
   Ручных описаний нет — словарь всегда синхронен с реестром и генерируемой
-  D1-схемой (`npm run gen:d1`, `docs/matrix.md`, `docs/rdd-v1.md`).
+  D1-схемой (`npm run gen:d1`, `./matrix.md`, `./rdd-v1.md`).
 
 ## Правила чтения таблицы
 
@@ -31,7 +31,7 @@
   (`src/shared/api/with-computed`), например `current_age`, `age_group`,
   `hamd_severity`.
 - «deprecated с vN» — поле выведено из употребления protocol amendment'ом
-  (`deprecated_since` в реестре, docs/schema-evolution.md §3, §6): колонка
+  (`deprecated_since` в реестре, ./schema-evolution.md §3, §6): колонка
   остаётся в схеме и читаема, словарь показывает пометку, молча не удаляется.
 - Кодирование категориальных значений — числовые коды `options` из реестра;
   они же используются при экспорте для биостатистики.
@@ -39,5 +39,5 @@
 ## Ссылки
 
 - Ссылка на страницу — из списка пациентов (`/patients`, «Словарь данных»).
-- Реестр как источник схемы: `docs/architecture-overview.md`,
-  `docs/rdd-v1.md` §3.2.
+- Реестр как источник схемы: `./architecture-overview.md`,
+  `./rdd-v1.md` §3.2.

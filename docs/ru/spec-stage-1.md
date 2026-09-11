@@ -1,4 +1,4 @@
-# Спека этапа 1: Реальные мутации данных матрицы (docs/spec-stage-1.md)
+# Спека этапа 1: Реальные мутации данных матрицы (./spec-stage-1.md)
 
 **Статус:** спека · **Зависимости:** auth (готово), matrix-widget (готово), phase-repo (готово)
 **Слой FSD:** `src/features/matrix` (новый) + доработка `app/matrix/`
@@ -68,7 +68,7 @@ export async function deletePhase(patientId: number, phaseId: number): Promise<A
 - Отказ `canWrite` (роль readonly): грид рендерится с `isReadOnly` сразу по пропу из
   серверной страницы; action дублирует проверку (не доверяем клиенту).
 
-## 4. Сценарий конфликта (реализация §6.4–6.5 docs/matrix.md)
+## 4. Сценарий конфликта (реализация §6.4–6.5 ./matrix.md)
 
 1. `applied: false` → для каждой ячейки батча сравнить `mine` (в сторe) с `theirs` (`row[fieldId]`):
    - `mine !== theirs` → `markConflict(phaseId, fieldId, { mine, theirs, serverUpdatedAt: row.updated_at })`;

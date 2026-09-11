@@ -28,6 +28,8 @@ export interface MatrixClientProps {
   /** Токены версий CAS: { [phaseId]: updated_at }. */
   versions: Record<string, string | null>
   isReadOnly: boolean
+  /** Локаль UI матрицы (RU-фолбэк). */
+  locale?: 'ru' | 'en'
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
@@ -39,6 +41,7 @@ export default function MatrixClient({
   data,
   versions,
   isReadOnly,
+  locale = 'ru',
 }: MatrixClientProps) {
   const router = useRouter()
   const versionsRef = useRef(versions)
@@ -228,6 +231,7 @@ export default function MatrixClient({
         columns={columns}
         data={data}
         isReadOnly={isReadOnly}
+        locale={locale}
         onPersist={(batch) => void handlePersist(batch)}
         onResolveConflict={handleResolveConflict}
       />

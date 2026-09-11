@@ -1,4 +1,4 @@
-# Спецификация: Версионирование протокола и эволюция схемы (docs/schema-evolution.md)
+# Спецификация: Версионирование протокола и эволюция схемы (./schema-evolution.md)
 
 **Статус:** спека · **Зависимости:** registry core (готово), gen:d1 diff-генератор (готово)
 **Слой FSD:** `src/shared/config/registry`, `src/shared/lib/registry/*`, миграция `000N_registry_versions.sql`

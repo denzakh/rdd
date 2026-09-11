@@ -1,5 +1,6 @@
 import { requireUser, UserMenu } from '@/features/auth'
 import { buildDataDictionary } from '@/shared/lib/registry'
+import { getDict, getLocale } from '@/shared/lib/intl'
 
 /**
  * Автогенерируемый Data Dictionary (docs/data-dictionary.md).
@@ -8,7 +9,11 @@ import { buildDataDictionary } from '@/shared/lib/registry'
  */
 export default async function DataDictionaryPage() {
   const user = await requireUser()
-  const sections = buildDataDictionary()
+  const locale = await getLocale()
+  const [dict, sections] = await Promise.all([
+    getDict('dataDictionary'),
+    buildDataDictionary(locale),
+  ])
   const totalFields = sections.reduce((acc, s) => acc + s.entries.length, 0)
 
   return (
@@ -16,12 +21,14 @@ export default async function DataDictionaryPage() {
       <UserMenu displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1100px] space-y-8 p-6">
         <header className="space-y-1">
-          <h1 className="text-xl font-semibold">Словарь данных (Data Dictionary)</h1>
+          <h1 className="text-xl font-semibold">{dict.pageTitle}</h1>
           <p className="text-sm text-neutral-600">
-            Автогенерируется из реестра полей (<code>src/shared/config/registry</code>) — того же,
-            из которого генерируется схема D1 (<code>npm run gen:d1</code>). Всего полей:{' '}
-            <b>{totalFields}</b>. NULL означает, что значение не заполнено; вычисляемые поля не
-            хранятся в БД и рассчитываются на лету.
+            {dict.autoFrom} (<code>src/shared/config/registry</code>) —{' '}
+            {locale === 'en'
+              ? 'the same one the D1 schema is generated from'
+              : 'того же, из которого генерируется схема D1'}{' '}
+            (<code>npm run gen:d1</code>). {dict.totalFields}: <b>{totalFields}</b>.{' '}
+            {dict.nullMeans}
           </p>
         </header>
 
@@ -32,11 +39,11 @@ export default async function DataDictionaryPage() {
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-neutral-100 text-left">
-                    <th className="border-b border-neutral-300 px-3 py-2">Поле (ID)</th>
-                    <th className="border-b border-neutral-300 px-3 py-2">Название</th>
-                    <th className="border-b border-neutral-300 px-3 py-2">Тип (логич./SQL)</th>
-                    <th className="border-b border-neutral-300 px-3 py-2">Допустимые значения</th>
-                    <th className="border-b border-neutral-300 px-3 py-2">Источник в БД</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">{dict.colField}</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">{dict.colName}</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">{dict.colType}</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">{dict.colAllowed}</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">{dict.colStorage}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -48,21 +55,20 @@ export default async function DataDictionaryPage() {
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {e.label}
                         {e.isCurrentOnly && (
-                          <span className="ml-1 text-xs text-amber-700">
-                            (только текущий статус)
-                          </span>
+                          <span className="ml-1 text-xs text-amber-700">({dict.currentOnly})</span>
                         )}
                         {e.isComputed && (
-                          <span className="ml-1 text-xs text-blue-700">(вычисляемое)</span>
+                          <span className="ml-1 text-xs text-blue-700">({dict.computed})</span>
                         )}
                         {e.deprecatedSince !== null && (
                           <span className="ml-1 text-xs text-neutral-500">
-                            (deprecated с v{e.deprecatedSince})
+                            ({locale === 'en' ? 'deprecated since v' : 'deprecated с v'}
+                            {e.deprecatedSince})
                           </span>
                         )}
                         {e.replacedBy && (
                           <span className="ml-1 text-xs text-neutral-500">
-                            (замена: {e.replacedBy})
+                            ({locale === 'en' ? 'replaced by' : 'замена'}: {e.replacedBy})
                           </span>
                         )}
                       </td>
@@ -77,7 +83,7 @@ export default async function DataDictionaryPage() {
                             {e.storage}.{e.id}
                           </span>
                         ) : (
-                          <span className="text-neutral-500">не хранится (расчёт)</span>
+                          <span className="text-neutral-500">{dict.notStored}</span>
                         )}
                       </td>
                     </tr>

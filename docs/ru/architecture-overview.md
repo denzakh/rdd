@@ -20,7 +20,7 @@
 Быстрый уровень для ревьюера: кто взаимодействует с системой и из чего она состоит.
 Текстовая версия с обоснованиями «проблема → варианты → решение» — разделы ниже.
 
-![C4 overview: System Context + Container](./diagrams/c4-overview.svg)
+![C4 overview: System Context + Container](../diagrams/c4-overview.svg)
 
 - **L1 System Context:** врач (`clinician`), admin, `readonly` → RDD; пунктиром —
   Cloudflare Access (опция эскалации, [auth.md §2](./auth.md)) и будущая EHR (не реализована,

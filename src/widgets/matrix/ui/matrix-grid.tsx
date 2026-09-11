@@ -27,6 +27,7 @@ import {
 } from '@/shared/lib/registry/evolution-guard'
 import { validateCellValue } from '../model/validate'
 import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
+import type { Locale } from '@/shared/lib/intl'
 import { MatrixCell } from './matrix-cell'
 
 export interface MatrixGridProps {
@@ -35,6 +36,8 @@ export interface MatrixGridProps {
   /** Начальные данные { [phaseId]: { [fieldId]: value } }. */
   data: MatrixData
   isReadOnly?: boolean
+  /** Локаль UI матрицы (подписи полей/секций, RU-фолбэк, docs/en/i18n.md). */
+  locale?: Locale
   /** Персист батча dirty-ячеек (вызывается вне React, с дебаунсом 300ms). */
   onPersist?: (batch: DirtyCommit[]) => void
   /**
@@ -70,6 +73,7 @@ function CellConnector({
   isComputed,
   computedValue,
   error,
+  locale,
   onChange,
   onResolveConflict,
   tabIndex,
@@ -85,6 +89,8 @@ function CellConnector({
   isReadOnly: boolean
   isComputed: boolean
   computedValue: FieldValue
+  /** Локаль подписей опций и deprecated-тултипа (RU-фолбэк). */
+  locale: Locale
   error?: string
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
   onResolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
@@ -101,7 +107,7 @@ function CellConnector({
   // deprecated-поле для старой записи (v < deprecated_since): read-only + пометка.
   const deprecated = isDeprecatedForRecord(field, recordVersion)
   const disabled = isReadOnly || isComputed || disabledFor(field, col) || deprecated
-  const tooltip = deprecated ? deprecatedTooltip(field) : undefined
+  const tooltip = deprecated ? deprecatedTooltip(field, locale) : undefined
 
   if (withdrawn) {
     // Колонка скрыта для записей, собранных уже под версией без этого поля
@@ -137,6 +143,7 @@ function CellConnector({
         error={error}
         conflict={conflict}
         options={field.options}
+        locale={locale}
         onChange={onChange}
         onResolveConflict={onResolveConflict}
       />
@@ -154,6 +161,7 @@ export function MatrixGrid({
   columns,
   data,
   isReadOnly = false,
+  locale = 'ru',
   onPersist,
   onResolveConflict: onResolveConflictProp,
   scopes,
@@ -171,7 +179,7 @@ export function MatrixGrid({
   }, [onPersist])
 
   // --- строки (секции + поля) ---
-  const rows = useMemo(() => buildMatrixRows(scopes), [scopes])
+  const rows = useMemo(() => buildMatrixRows(scopes, locale), [scopes, locale])
   const fieldById = useMemo(() => {
     const m = new Map<string, RegistryField>()
     for (const f of registryFields) m.set(f.id, f)
@@ -321,7 +329,7 @@ export function MatrixGrid({
               className="bg-background sticky left-0 z-30 flex items-center border-r border-b border-neutral-200 px-3 text-xs font-semibold tracking-wide text-neutral-500 uppercase"
               style={{ width: LABEL_W, minWidth: LABEL_W }}
             >
-              Признак
+              {locale === 'en' ? 'Sign' : 'Признак'}
             </div>
             {columns.map((col) => (
               <div
@@ -370,10 +378,10 @@ export function MatrixGrid({
                       className="bg-background sticky left-0 z-10 flex items-center gap-2 border-r border-b border-neutral-200 px-3"
                       style={{ width: LABEL_W, minWidth: LABEL_W }}
                     >
-                      <span className="truncate text-sm">{fieldLabel(row.field)}</span>
+                      <span className="truncate text-sm">{fieldLabel(row.field, locale)}</span>
                       {isComputedField(row.field) && (
                         <span className="ml-auto shrink-0 rounded bg-neutral-100 px-1 text-[10px] text-neutral-500">
-                          авто
+                          {locale === 'en' ? 'auto' : 'авто'}
                         </span>
                       )}
                     </div>
@@ -390,6 +398,7 @@ export function MatrixGrid({
                           (computedByPhase.get(col.id)?.[row.field.id] as FieldValue) ?? null
                         }
                         error={cellErrors[`${col.id}:${row.field.id}`]}
+                        locale={locale}
                         onChange={commit}
                         onResolveConflict={resolveConflictHandler}
                         tabIndex={

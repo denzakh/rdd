@@ -76,10 +76,10 @@ export const REMISSION_REGISTRY = {
     ui: 'select',
     db_type: 'INTEGER',
     options: [
-      { value: 0, label: 'Нет' },
-      { value: 1, label: 'Антидепрессанты' },
-      { value: 2, label: 'Нормотимики' },
-      { value: 3, label: 'Комбинированная' },
+      { value: 0, label: { ru: 'Нет', en: 'None' } },
+      { value: 1, label: { ru: 'Антидепрессанты', en: 'Antidepressants' } },
+      { value: 2, label: { ru: 'Нормотимики', en: 'Mood stabilizers' } },
+      { value: 3, label: { ru: 'Комбинированная', en: 'Combined' } },
     ],
     scope: 'phase',
     // Условная видимость (treatment_in_remission === true) будет реализована

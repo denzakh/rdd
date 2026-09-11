@@ -1,8 +1,8 @@
-# Спека этапа 3: Auth v1.5 (docs/spec-stage-3.md)
+# Спека этапа 3: Auth v1.5 (./spec-stage-3.md)
 
 **Статус:** спека · **Зависимости:** этап 2 (admin-UI опирается на страницы)
 **Слои FSD:** `src/features/auth`, `src/features/users`, `src/shared/api/session-repo.ts`, `scripts/`
-**Цель:** закрыть TODO из docs/auth.md §12 — смена пароля, rate-limit, admin-UI, инвайты.
+**Цель:** закрыть TODO из ./auth.md §12 — смена пароля, rate-limit, admin-UI, инвайты.
 
 ---
 

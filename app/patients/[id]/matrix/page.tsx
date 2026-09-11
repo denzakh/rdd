@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireUser, UserMenu } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
+import { getLocale } from '@/shared/lib/intl'
 import { createPatientRepository, patientScopeFor } from '@/entities/patient'
 import { createPhaseRepository } from '@/entities/phase'
 import type { MatrixColumn, MatrixData, FieldValue } from '@/widgets/matrix'
@@ -20,13 +21,14 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
   if (!Number.isInteger(patientId)) redirect('/patients')
 
   const db = await getDb()
+  const locale = await getLocale()
   const patient = await createPatientRepository(db, patientScopeFor(user)).findById(patientId)
   if (!patient) redirect('/patients')
   const phases = await createPhaseRepository(db).listByPatient(patientId)
 
   const columns: MatrixColumn[] = phases.map((p, i) => ({
     id: String(p.id),
-    title: `Фаза ${p.phase_order_id}`,
+    title: locale === 'en' ? `Phase ${p.phase_order_id}` : `Фаза ${p.phase_order_id}`,
     order: i,
   }))
 
@@ -46,11 +48,12 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
       <UserMenu displayName={user.displayName} role={user.role} />
       <MatrixClient
         patientId={patient.id}
-        patientLabel={`пациент #${patient.id}`}
+        patientLabel={locale === 'en' ? `patient #${patient.id}` : `пациент #${patient.id}`}
         columns={columns}
         data={data}
         versions={versions}
         isReadOnly={!canWrite(user)}
+        locale={locale}
       />
     </div>
   )

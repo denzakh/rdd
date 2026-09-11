@@ -4,6 +4,7 @@ import { getDb } from '@/shared/api/db'
 import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { patientScopeFor } from '@/entities/patient'
+import { getLocale } from '@/shared/lib/intl'
 import {
   countByField,
   phaseDurationsByOrder,
@@ -17,23 +18,36 @@ import {
  */
 const INTERESTING_FIELDS = ['main_component', 'ad_efficacy', 'switch_reason', 'prophylaxis_type']
 
-function labelOf(fieldId: string, value: number): string {
+function labelOf(fieldId: string, value: number, locale: 'ru' | 'en' = 'ru'): string {
   const field = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[fieldId]
   const opt = field?.options?.find((o) => String(o.value) === String(value))
-  if (opt) return opt.label
-  const base = field ? (typeof field.label === 'string' ? field.label : field.label.ru) : fieldId
+  if (opt)
+    return typeof opt.label === 'string' ? opt.label : locale === 'en' ? opt.label.en : opt.label.ru
+  const base = field
+    ? typeof field.label === 'string'
+      ? field.label
+      : locale === 'en'
+        ? field.label.en
+        : field.label.ru
+    : fieldId
   return `${base}: ${value}`
 }
 
-function fieldTitle(fieldId: string): string {
+function fieldTitle(fieldId: string, locale: 'ru' | 'en' = 'ru'): string {
   const field = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[fieldId]
   if (!field) return fieldId
-  return typeof field.label === 'string' ? field.label : field.label.ru
+  return typeof field.label === 'string'
+    ? field.label
+    : locale === 'en'
+      ? field.label.en
+      : field.label.ru
 }
 
 export default async function ReportsPage() {
   const user = await requireUser()
   const db = await getDb()
+  const locale = await getLocale()
+  const en = locale === 'en'
 
   const distributions = await Promise.all(
     INTERESTING_FIELDS.map(async (f) => ({
@@ -48,11 +62,12 @@ export default async function ReportsPage() {
     <div>
       <UserMenu displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-8 p-6">
-        <h1 className="text-xl font-semibold">Отчёты</h1>
+        <h1 className="text-xl font-semibold">{en ? 'Reports' : 'Отчёты'}</h1>
 
         <p className="text-xs text-neutral-500">
-          Агрегаты учитывают ваш data_scope; ячейки с числом пациентов меньше {K_ANONYMITY_K} скрыты
-          (k-anonymity, docs/export.md §3).
+          {en
+            ? `Aggregates respect your data_scope; cells with fewer than ${K_ANONYMITY_K} patients are hidden (k-anonymity, docs/ru/export.md §3).`
+            : `Агрегаты учитывают ваш data_scope; ячейки с числом пациентов меньше ${K_ANONYMITY_K} скрыты (k-anonymity, docs/ru/export.md §3).`}
         </p>
 
         <ExportPanel />
@@ -60,15 +75,15 @@ export default async function ReportsPage() {
         <section className="grid grid-cols-2 gap-6">
           {distributions.map(({ fieldId, rows }) => (
             <div key={fieldId}>
-              <h2 className="mb-2 text-sm font-semibold">{fieldTitle(fieldId)}</h2>
+              <h2 className="mb-2 text-sm font-semibold">{fieldTitle(fieldId, locale)}</h2>
               {rows.length === 0 ? (
-                <p className="text-xs text-neutral-500">Нет данных</p>
+                <p className="text-xs text-neutral-500">{en ? 'No data' : 'Нет данных'}</p>
               ) : (
                 <table className="w-full border-collapse text-sm">
                   <tbody>
                     {rows.map((r) => (
                       <tr key={r.value} className="border-b border-neutral-100">
-                        <td className="px-2 py-1">{labelOf(fieldId, r.value)}</td>
+                        <td className="px-2 py-1">{labelOf(fieldId, r.value, locale)}</td>
                         <td className="px-2 py-1 text-right font-medium">{r.count}</td>
                       </tr>
                     ))}
@@ -80,14 +95,18 @@ export default async function ReportsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-sm font-semibold">Средние длительности фаз</h2>
+          <h2 className="mb-2 text-sm font-semibold">
+            {en ? 'Average phase durations' : 'Средние длительности фаз'}
+          </h2>
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-left text-xs text-neutral-500">
-                <th className="px-2 py-1.5">№ фазы</th>
-                <th className="px-2 py-1.5">Фаз</th>
-                <th className="px-2 py-1.5">Ср. длительность, мес</th>
-                <th className="px-2 py-1.5">Ср. интермиссия, мес</th>
+                <th className="px-2 py-1.5">{en ? 'Phase #' : '№ фазы'}</th>
+                <th className="px-2 py-1.5">{en ? 'Phases' : 'Фаз'}</th>
+                <th className="px-2 py-1.5">{en ? 'Avg duration, mo' : 'Ср. длительность, мес'}</th>
+                <th className="px-2 py-1.5">
+                  {en ? 'Avg intermission, mo' : 'Ср. интермиссия, мес'}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -106,20 +125,24 @@ export default async function ReportsPage() {
         </section>
 
         <section>
-          <h2 className="mb-2 text-sm font-semibold">Эффективность АД × основной компонент</h2>
+          <h2 className="mb-2 text-sm font-semibold">
+            {en ? 'AD efficacy × main component' : 'Эффективность АД × основной компонент'}
+          </h2>
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-left text-xs text-neutral-500">
-                <th className="px-2 py-1.5">Компонент</th>
-                <th className="px-2 py-1.5">Эффективность</th>
-                <th className="px-2 py-1.5">Фаз</th>
+                <th className="px-2 py-1.5">{en ? 'Component' : 'Компонент'}</th>
+                <th className="px-2 py-1.5">{en ? 'Efficacy' : 'Эффективность'}</th>
+                <th className="px-2 py-1.5">{en ? 'Phases' : 'Фаз'}</th>
               </tr>
             </thead>
             <tbody>
               {efficacy.map((e, i) => (
                 <tr key={i} className="border-b border-neutral-100">
-                  <td className="px-2 py-1.5">{labelOf('main_component', e.main_component)}</td>
-                  <td className="px-2 py-1.5">{labelOf('ad_efficacy', e.ad_efficacy)}</td>
+                  <td className="px-2 py-1.5">
+                    {labelOf('main_component', e.main_component, locale)}
+                  </td>
+                  <td className="px-2 py-1.5">{labelOf('ad_efficacy', e.ad_efficacy, locale)}</td>
                   <td className="px-2 py-1.5">{e.count}</td>
                 </tr>
               ))}

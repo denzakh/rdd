@@ -18,7 +18,8 @@ export type UIComponent =
 
 export interface RegistryOption {
   value: number | string
-  label: string
+  /** Локализованная подпись опции: `{ ru, en }` или простая строка (RU-фолбэк). */
+  label: { ru: string; en: string } | string
 }
 
 export interface RegistryField {

@@ -47,23 +47,23 @@ npm run dev                 # http://localhost:3000
 - Роли: `admin` (управление пользователями, `/admin/users`), `clinician`
   (чтение/запись), `readonly` (только чтение).
 - Row-level access: переключатель `data_scope` у пользователя — «видит всех» /
-  «свой центр» / «только назначенных ему пациентов» (см. `docs/auth.md`).
+  «свой центр» / «только назначенных ему пациентов» (см. `docs/ru/auth.md`).
 - Смена пароля `/change-password`; rate-limit: 5 неверных паролей → блокировка 15 мин.
 - Инвайты: admin выдаёт одноразовую ссылку `/invite/<token>` (7 дней).
 
 ## Документация
 
-- `docs/architecture-overview.md` — **точка входа**: ключевые архитектурные решения,
+- `docs/ru/architecture-overview.md` — **точка входа**: ключевые архитектурные решения,
   security-сводка, границы демо-проекта
 - `docs/diagrams/c4-overview.svg` — C4-диаграмма (System Context + Container)
-- `docs/rdd-v1.md` — архитектура, реестр полей, схема данных
-- `docs/auth.md` — аутентификация (v1.5 реализована)
-- `docs/matrix.md` — виджет «Матрица»
-- `docs/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
-- `docs/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
-- `docs/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
-- `docs/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
-- `docs/schema-evolution.md` — **эволюция схемы без миграций**: версионность протокола
+- `docs/ru/rdd-v1.md` — архитектура, реестр полей, схема данных
+- `docs/ru/auth.md` — аутентификация (v1.5 реализована)
+- `docs/ru/matrix.md` — виджет «Матрица»
+- `docs/ru/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
+- `docs/ru/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
+- `docs/ru/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
+- `docs/ru/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
+- `docs/ru/schema-evolution.md` — **эволюция схемы без миграций**: версионность протокола
   (`registry_versions` + `registry_version` на записи) живёт в генерируемом baseline
   `0001_init.sql`; схема меняется только через ресет БД (`npm run db:restart`).
   Экспорт несёт `registry_version` на строке + `meta.registryVersions`;

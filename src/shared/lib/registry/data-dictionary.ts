@@ -1,25 +1,44 @@
 import { REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { DB_TYPE_TO_SQL } from './d1-schema'
+import { fieldLabel, optionLabel, type Locale } from '../intl'
 
-/** Русские названия разделов реестра. */
-const SECTION_TITLES: Record<keyof typeof REGISTRY, string> = {
-  patient: 'Паспорт пациента',
-  phase: 'Контроль фазы',
-  remission: 'Ремиссия',
-  status: 'Психический статус',
-  therapy: 'Терапия',
-  diagnostic: 'Диагностические шкалы',
+/** Названия разделов реестра (RU/EN, docs/en/i18n.md §3). */
+const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> = {
+  patient: { ru: 'Паспорт пациента', en: 'Patient passport' },
+  phase: { ru: 'Контроль фазы', en: 'Phase control' },
+  remission: { ru: 'Ремиссия', en: 'Remission' },
+  status: { ru: 'Психический статус', en: 'Mental status' },
+  therapy: { ru: 'Терапия', en: 'Therapy' },
+  diagnostic: { ru: 'Диагностические шкалы', en: 'Rating scales' },
 }
 
 /** Строка допустимых значений для колонки «Допустимые значения». */
-const allowedValues = (field: RegistryField): string => {
+const allowedValues = (field: RegistryField, locale: Locale = 'ru'): string => {
   if (field.options && field.options.length > 0) {
-    return field.options.map((o) => `${o.value} — ${o.label}`).join('; ')
+    return field.options.map((o) => `${o.value} — ${optionLabel(o, locale)}`).join('; ')
   }
-  if (field.db_type === 'BOOLEAN') return '0 (нет) / 1 (да); NULL — не заполнено'
+  if (field.db_type === 'BOOLEAN')
+    return locale === 'en'
+      ? '0 (no) / 1 (yes); NULL — not filled'
+      : '0 (нет) / 1 (да); NULL — не заполнено'
   if (field.min !== undefined || field.max !== undefined) {
-    return `от ${field.min ?? '−∞'} до ${field.max ?? '+∞'}`
+    return locale === 'en'
+      ? `from ${field.min ?? '−∞'} to ${field.max ?? '+∞'}`
+      : `от ${field.min ?? '−∞'} до ${field.max ?? '+∞'}`
+  }
+  if (locale === 'en') {
+    switch (field.db_type) {
+      case 'DATE':
+        return 'date in ISO-8601 (YYYY-MM-DD)'
+      case 'TEXT':
+        return 'free text'
+      case 'FLOAT':
+        return 'floating-point number'
+      case 'INTEGER':
+        return 'integer'
+    }
+    return '—'
   }
   switch (field.db_type) {
     case 'DATE':
@@ -61,19 +80,20 @@ export interface DictionarySection {
  * Автогенерируемый Data Dictionary из единственного источника правды —
  * реестра полей `src/shared/config/registry`. Никаких ручных описаний:
  * страница /data-dictionary всегда синхронна с реестром.
+ * Локаль подписей — параметром (RU-фолбэк, docs/en/i18n.md §3).
  */
-export const buildDataDictionary = (): DictionarySection[] =>
+export const buildDataDictionary = (locale: Locale = 'ru'): DictionarySection[] =>
   (Object.entries(REGISTRY) as [keyof typeof REGISTRY, Record<string, RegistryField>][]).map(
     ([key, fields]) => ({
       key,
-      title: SECTION_TITLES[key] ?? key,
+      title: locale === 'en' ? (SECTION_TITLES[key]?.en ?? key) : (SECTION_TITLES[key]?.ru ?? key),
       entries: Object.values(fields).map((field) => ({
         id: field.id,
-        label: typeof field.label === 'string' ? field.label : field.label.ru,
+        label: fieldLabel(field, locale),
         ui: field.ui,
         dbType: field.db_type ?? '— (вычисляемое)',
         sqlType: field.db_type ? DB_TYPE_TO_SQL[field.db_type] : '—',
-        allowed: allowedValues(field),
+        allowed: allowedValues(field, locale),
         storage: field.calculate ? null : field.scope === 'patient' ? 'patients' : 'phases',
         isComputed: Boolean(field.calculate),
         isCurrentOnly: Boolean(field.is_current_only),

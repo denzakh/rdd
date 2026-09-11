@@ -2,7 +2,7 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
   // Шкала Гамильтона
   hamd_total: {
     id: 'hamd_total',
-    label: 'Общий балл шкалы Гамильтона',
+    label: { ru: 'Общий балл шкалы Гамильтона', en: 'HAM-D total score' },
     ui: 'number-input',
     db_type: 'INTEGER',
     is_current_only: true, // Поле доступно только для 98 и 99
@@ -12,7 +12,7 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
   },
   hamd_severity: {
     id: 'hamd_severity',
-    label: 'Выраженность депрессии (HAM-D)',
+    label: { ru: 'Выраженность депрессии (HAM-D)', en: 'Depression severity (HAM-D)' },
     ui: 'badge-readonly',
     db_type: 'INTEGER',
     is_current_only: true,
@@ -27,17 +27,17 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
       return 4 // Тяжелая
     },
     options: [
-      { value: 1, label: 'Отсутствует (0-7)' },
-      { value: 2, label: 'Легкая (8-14)' },
-      { value: 3, label: 'Умеренная (15-27)' },
-      { value: 4, label: 'Тяжелая (>27)' },
+      { value: 1, label: { ru: 'Отсутствует (0-7)', en: 'Absent (0-7)' } },
+      { value: 2, label: { ru: 'Легкая (8-14)', en: 'Mild (8-14)' } },
+      { value: 3, label: { ru: 'Умеренная (15-27)', en: 'Moderate (15-27)' } },
+      { value: 4, label: { ru: 'Тяжелая (>27)', en: 'Severe (>27)' } },
     ],
   },
 
   // Другие шкалы
   beck_total: {
     id: 'beck_total',
-    label: 'Шкала Бека',
+    label: { ru: 'Шкала Бека', en: 'Beck Depression Inventory (BDI)' },
     ui: 'number-input',
     db_type: 'INTEGER',
     is_current_only: true,
@@ -47,7 +47,7 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
   },
   clock_drawing_test: {
     id: 'clock_drawing_test',
-    label: 'Тест рисования часов',
+    label: { ru: 'Тест рисования часов', en: 'Clock-Drawing Test' },
     ui: 'number-input',
     db_type: 'INTEGER',
     is_current_only: true,
@@ -57,7 +57,7 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
   },
   mmse_total: {
     id: 'mmse_total',
-    label: 'Общий балл MMSE',
+    label: { ru: 'Общий балл MMSE', en: 'MMSE total score' },
     ui: 'number-input',
     db_type: 'INTEGER',
     is_current_only: true,

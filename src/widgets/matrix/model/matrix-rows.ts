@@ -1,5 +1,6 @@
 import { REGISTRY, FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
+import { fieldLabel as pickFieldLabel, type Locale } from '@/shared/lib/intl'
 import type { MatrixRowItem, MatrixScope } from './types'
 
 /**
@@ -14,13 +15,19 @@ const SECTION_ORDER: Array<keyof typeof REGISTRY> = [
   'diagnostic',
 ]
 
-const SECTION_TITLES: Record<keyof typeof REGISTRY, string> = {
-  patient: 'Пациент',
-  phase: 'Контроль фазы',
-  therapy: 'Фармакотерапия',
-  remission: 'Ремиссия',
-  status: 'Психический статус',
-  diagnostic: 'Шкалы',
+const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> = {
+  patient: { ru: 'Пациент', en: 'Patient' },
+  phase: { ru: 'Контроль фазы', en: 'Phase control' },
+  therapy: { ru: 'Фармакотерапия', en: 'Pharmacotherapy' },
+  remission: { ru: 'Ремиссия', en: 'Remission' },
+  status: { ru: 'Психический статус', en: 'Mental status' },
+  diagnostic: { ru: 'Шкалы', en: 'Scales' },
+}
+
+/** Заголовок секции под локаль (RU-фолбэк). */
+export function sectionTitle(section: keyof typeof REGISTRY, locale: Locale = 'ru'): string {
+  const t = SECTION_TITLES[section]
+  return locale === 'en' ? (t.en ?? t.ru) : (t.ru ?? t.en)
 }
 
 /** Является ли поле вычисляемым (badge-readonly). */
@@ -28,9 +35,9 @@ export function isComputedField(field: RegistryField): boolean {
   return typeof field.calculate === 'function'
 }
 
-/** Разрешение локализованной подписи. */
-export function fieldLabel(field: RegistryField): string {
-  return typeof field.label === 'string' ? field.label : field.label.ru
+/** Разрешение локализованной подписи (RU-фолбэк, docs/en/i18n.md §3). */
+export function fieldLabel(field: RegistryField, locale: Locale = 'ru'): string {
+  return pickFieldLabel(field, locale)
 }
 
 /**
@@ -39,15 +46,18 @@ export function fieldLabel(field: RegistryField): string {
  * Версия задаётся сверху (читается `field.deprecated_since`), label поля-замены
  * резолвится по реестру, при отсутствии — падает на id. Не-deprecated — undefined.
  */
-export function deprecatedTooltip(field: RegistryField): string | undefined {
+export function deprecatedTooltip(field: RegistryField, locale: Locale = 'ru'): string | undefined {
   if (field.deprecated_since === undefined) return undefined
-  let text = `Устарело с версии ${field.deprecated_since}`
+  let text =
+    locale === 'en'
+      ? `Deprecated since v${field.deprecated_since}`
+      : `Устарело с версии ${field.deprecated_since}`
   if (field.replacedBy !== undefined) {
     const replacement = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[
       field.replacedBy
     ]
-    const label = replacement ? fieldLabel(replacement) : field.replacedBy
-    text += ` · См. вместо: ${label}`
+    const label = replacement ? fieldLabel(replacement, locale) : field.replacedBy
+    text += locale === 'en' ? ` · See instead: ${label}` : ` · См. вместо: ${label}`
   }
   return text
 }
@@ -67,7 +77,10 @@ export function isFieldRowHiddenForVersions(
   if (ds === undefined || versions.length === 0) return false
   return versions.every((v) => v >= ds)
 }
-export function buildMatrixRows(scopes?: readonly MatrixScope[]): MatrixRowItem[] {
+export function buildMatrixRows(
+  scopes?: readonly MatrixScope[],
+  locale: Locale = 'ru'
+): MatrixRowItem[] {
   const rows: MatrixRowItem[] = []
   let fieldIndex = 0
   let totalFields = 0
@@ -82,7 +95,7 @@ export function buildMatrixRows(scopes?: readonly MatrixScope[]): MatrixRowItem[
     rows.push({
       kind: 'section',
       sectionId: section,
-      title: SECTION_TITLES[section],
+      title: sectionTitle(section, locale),
     })
     for (const field of Object.values(REGISTRY[section]) as RegistryField[]) {
       rows.push({ kind: 'field', field, index: fieldIndex, totalFields })
