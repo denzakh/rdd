@@ -4,7 +4,10 @@ Clinical registry web app: patient passport, disease-phase matrix (pharmacothera
 
 > **Domain note:** the field registry this project is built on originates from the author's PhD (candidate of sciences) research on depressive disorders — domain expertise + engineering, a combination medtech teams value well above clean code alone.
 
-**Docs:** English entry point → [`docs/en/architecture-overview.md`](docs/en/architecture-overview.md) · Russian originals → [`docs/ru/`](docs/ru/) · Русская версия этого файла → [`README.ru.md`](README.ru.md)
+**Docs:**
+
+- Еntry point → [`docs/en/architecture-overview.md`](docs/en/architecture-overview.md)
+- Русская версия этого файла → [`README.ru.md`](README.ru.md)
 
 ## Domain Background
 
