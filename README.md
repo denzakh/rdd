@@ -6,6 +6,14 @@ Clinical registry web app: patient passport, disease-phase matrix (pharmacothera
 
 **Docs:** English entry point → [`docs/en/architecture-overview.md`](docs/en/architecture-overview.md) · Russian originals → [`docs/ru/`](docs/ru/) · Русская версия этого файла → [`README.ru.md`](README.ru.md)
 
+## Domain Background
+
+This registry's data model is grounded in real clinical research: the author holds a PhD in Psychiatry (Bekhterev Institute, St. Petersburg, 2015) for a longitudinal study on recurrent depressive disorder in late-life patients.
+
+The phase-based tracking structure, remission-quality calculations, and clinical scale integration (HAM-D, etc.) in this codebase directly reflect the data collection methodology used in that research — this isn't a synthetic domain model, it's informed by actually running a clinical dataset.
+
+[Full thesis abstract](https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md)
+
 ## Stack
 
 - **Next.js 16** (App Router, React 19, Server Actions) + TypeScript (strict)
