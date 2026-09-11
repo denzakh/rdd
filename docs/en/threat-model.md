@@ -34,11 +34,11 @@ No public registration — model assumes "insider attacker" (existing user) and
 
 ### T — Tampering
 
-| Threat                           | Measure                                               | Source              |
-| -------------------------------- | ----------------------------------------------------- | ------------------- |
-| Mutation bypassing UI (readonly) | UI `isReadOnly` + `canWrite()` in every Server Action | spec-stage-1 §1, §3 |
-| Client field injection           | Whitelist `DATA_COLUMNS`, Zod `phaseSchema.partial()` | spec-stage-1 §2     |
-| Parallel write over чужой edits  | CAS on SQLite `updated_at` + 3-level resolution       | matrix.md §6.4      |
+| Threat                            | Measure                                               | Source              |
+| --------------------------------- | ----------------------------------------------------- | ------------------- |
+| Mutation bypassing UI (readonly)  | UI `isReadOnly` + `canWrite()` in every Server Action | spec-stage-1 §1, §3 |
+| Client field injection            | Whitelist `DATA_COLUMNS`, Zod `phaseSchema.partial()` | spec-stage-1 §2     |
+| Parallel write over other's edits | CAS on SQLite `updated_at` + 3-level resolution       | matrix.md §6.4      |
 
 ### R — Repudiation
 
@@ -52,7 +52,7 @@ No public registration — model assumes "insider attacker" (existing user) and
 
 | Threat                                        | Measure                                               | Source                     |
 | --------------------------------------------- | ----------------------------------------------------- | -------------------------- |
-| IDOR: clinician sees чужой patients           | `data_scope`; scope-repository on list/count/findById | auth.md — Row-level access |
+| IDOR: clinician sees other patients           | `data_scope`; scope-repository on list/count/findById | auth.md — Row-level access |
 | Deanonymization via aggregates (differencing) | Scope filter in ALL aggregates + suppression < K=5    | export.md §3; `queries.ts` |
 | PII via logs                                  | `audit_log`: ids + JSON values only                   | matrix.md §6.6             |
 | DB leak → session theft                       | DB: SHA-256(token) only; raw token in HttpOnly cookie | auth.md §5                 |
