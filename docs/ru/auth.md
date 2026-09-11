@@ -36,7 +36,7 @@
 
 ## 4. Пароли (src/shared/lib/password.ts)
 
-- **PBKDF2-SHA256** через `crypto.subtle`: 200 000 итераций (`PBKDF2_ITERATIONS`),
+- **PBKDF2-SHA256** через `crypto.subtle`: 600 000 итераций (`PBKDF2_ITERATIONS`),
   соль 16 байт, длина ключа 256 бит. Работает в Workers и Node >= 18,
   один и тот же код в рантайме и в `scripts/create-user.ts`.
 - Формат хэша: `pbkdf2$<iterations>$<salt-hex>$<hash-hex>` — параметры внутри
@@ -74,20 +74,22 @@
 Двухуровневая модель:
 
 1. **Middleware** — мгновенный redirect только по НАЛИЧИЮ cookie (без БД-запроса):
-   нет cookie и не `/login` → `/login`; есть cookie и `/login` → `/matrix`.
+   нет cookie и не `/login`/`/invite/*` → `/login`; есть cookie и `/login` → `/patients`.
    Полную валидацию токена middleware не делает.
 2. **`requireUser()`** — полная валидация токена против D1 в server pages/actions.
 
-Защищенные страницы — серверные обертки: `app/matrix/page.tsx` вызывает
-`requireUser()` и рендерит клиентский `matrix-demo.tsx` + меню пользователя
-(имя, роль, кнопка «Выйти» через `<form action={logoutAction}>`).
+Защищённые страницы — серверные обёртки: например
+`app/patients/[id]/matrix/page.tsx` вызывает `requireUser()` и рендерит клиентский
+`matrix-client.tsx` + меню пользователя (`UserMenu`: имя, роль, переключатель языка,
+кнопка «Выйти» через `<form action={logoutAction}>`). Старый демо-маршрут `/matrix`
+теперь только редиректит на `/patients` (см. `./spec-stage-2.md` §1 реш.4).
 
 ## 8. Роли
 
-- `admin` — управление пользователями (будущее), доступ ко всему;
+- `admin` — управление пользователями (`/admin/users`, этап 3), доступ ко всему;
 - `clinician` — чтение и запись клинических данных (по умолчанию);
-- `readonly` — только чтение; проверка `canWrite(user)` (session-repo) —
-  обязательна в будущих Server Actions/API мутаций.
+- `readonly` — только чтение; проверка `canWrite(user)` (session-repo) обязательна
+  в каждом Server Action мутаций (`src/features/matrix/actions.ts`, admin-UI).
 
 ## Row-level access: привязка «чья карта» (migrations/0005_data_scope.sql)
 
@@ -128,11 +130,12 @@
 
 ## 10. Ручные миграции и db:restart
 
-`0002_audit.sql` и `0003_auth.sql` — ручные (вне gen:d1). Список зашит в
-`MANUAL_MIGRATIONS` в `scripts/db-restart.ts`: при ресете они временно выносятся
+Ручные (вне gen:d1) — `0002_audit.sql` … `0007_export_throttle.sql` (аудит, auth,
+rate-limit/инвайты, row-level access, hash-chain, троттлинг экспорта). Полный список
+зашит в `MANUAL_MIGRATIONS` в `scripts/db-restart.ts`: при ресете они временно выносятся
 из migrations/, gen:d1 генерирует baseline как `0001_init.sql`, ручные
 возвращаются и применяются ПОСЛЕ baseline (0002_audit содержит индексы по
-tables реестра). Порядок «сначала move, потом delete» критичен.
+таблицам реестра). Порядок «сначала move, потом delete» критичен.
 
 ## 11. Аудит (интеграция с ./matrix.md §6.6)
 
@@ -172,6 +175,6 @@ tables реестра). Порядок «сначала move, потом delete�
 ## 13. Как проверить вручную
 
 1. `npm run dev` (локальный D1 уже с миграциями) или `npm run dev:cf`.
-2. Открыть `/matrix` без cookie → redirect на `/login`.
+2. Открыть `/patients` без cookie → redirect на `/login`.
 3. Войти: `admin@test.local` (локальный тестовый, пароль из вывода `user:create`).
-4. `/matrix` — меню с именем/ролью, «Выйти» → `/login`, cookie удалена.
+4. `/patients` — меню с именем/ролью, «Выйти» → `/login`, cookie удалена.

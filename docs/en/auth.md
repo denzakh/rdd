@@ -36,7 +36,7 @@ only by the admin. Key stack constraints:
 
 ## 4. Passwords (src/shared/lib/password.ts)
 
-- **PBKDF2-SHA256** via `crypto.subtle`: 200 000 iterations (`PBKDF2_ITERATIONS`),
+- **PBKDF2-SHA256** via `crypto.subtle`: 600 000 iterations (`PBKDF2_ITERATIONS`),
   salt 16 bytes, key length 256 bits. Works in Workers and Node >= 18,
   the same code at runtime and in `scripts/create-user.ts`.
 - Hash format: `pbkdf2$<iterations>$<salt-hex>$<hash-hex>` — parameters are inside
@@ -74,20 +74,22 @@ only by the admin. Key stack constraints:
 Two-level model:
 
 1. **Middleware** — instant redirect only by cookie PRESENCE (no DB query):
-   no cookie and not `/login` → `/login`; cookie present and `/login` → `/matrix`.
+   no cookie and not `/login`/`/invite/*` → `/login`; cookie present and `/login` → `/patients`.
    The middleware does not do full token validation.
 2. **`requireUser()`** — full token validation against D1 in server pages/actions.
 
-Protected pages — server wrappers: `app/matrix/page.tsx` calls
-`requireUser()` and renders the client `matrix-demo.tsx` + user menu
-(name, role, "Log out" button via `<form action={logoutAction}>`).
+Protected pages — server wrappers: e.g.
+`app/patients/[id]/matrix/page.tsx` calls `requireUser()` and renders the client
+`matrix-client.tsx` + user menu (`UserMenu`: name, role, locale switcher,
+"Log out" button via `<form action={logoutAction}>`). The old demo route `/matrix`
+now only redirects to `/patients` (see `./spec-stage-2.md` §1 decision 4).
 
 ## 8. Roles
 
-- `admin` — user management (future), access to everything;
+- `admin` — user management (`/admin/users`, stage 3), access to everything;
 - `clinician` — read and write of clinical data (default);
-- `readonly` — read-only; `canWrite(user)` check (session-repo) —
-  mandatory in future Server Actions/mutation APIs.
+- `readonly` — read-only; `canWrite(user)` check (session-repo) is mandatory
+  in every mutation Server Action (`src/features/matrix/actions.ts`, admin-UI).
 
 ## Row-level access: "whose card" binding (migrations/0005_data_scope.sql)
 
@@ -128,11 +130,13 @@ There is no public registration. Two modes:
 
 ## 10. Manual migrations and db:restart
 
-`0002_audit.sql` and `0003_auth.sql` are manual (outside gen:d1). The list is hardcoded in
-`MANUAL_MIGRATIONS` in `scripts/db-restart.ts`: on reset they are temporarily moved
-out of migrations/, gen:d1 generates the baseline as `0001_init.sql`, the manual ones
-are restored and applied AFTER the baseline (0002_audit contains indexes on
-the registry tables). The "move first, then delete" order is critical.
+Manual migrations (outside gen:d1) — `0002_audit.sql` … `0007_export_throttle.sql`
+(audit, auth, rate-limit/invites, row-level access, hash-chain, export throttling).
+The full list is hardcoded in `MANUAL_MIGRATIONS` in `scripts/db-restart.ts`: on reset
+they are temporarily moved out of migrations/, gen:d1 generates the baseline as
+`0001_init.sql`, the manual ones are restored and applied AFTER the baseline
+(0002_audit contains indexes on the registry tables). The "move first, then delete"
+order is critical.
 
 ## 11. Audit (integration with ./matrix.md §6.6)
 
@@ -172,6 +176,6 @@ substitution is done at the site of future real Server Actions.~~ —
 ## 13. How to check manually
 
 1. `npm run dev` (local D1 already with migrations) or `npm run dev:cf`.
-2. Open `/matrix` without a cookie → redirect to `/login`.
+2. Open `/patients` without a cookie → redirect to `/login`.
 3. Log in: `admin@test.local` (local test, password from the `user:create` output).
-4. `/matrix` — menu with name/role, "Log out" → `/login`, cookie deleted.
+4. `/patients` — menu with name/role, "Log out" → `/login`, cookie deleted.

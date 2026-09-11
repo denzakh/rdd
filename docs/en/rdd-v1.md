@@ -22,7 +22,7 @@ The project is a high-performance medical registry and analytics prototype for s
 
 ### 2.1. Tech stack
 
-- **Framework:** Next.js 16 (App Router, Server Actions). The ZSA tool is declared in the stack but not yet connected (see section 6).
+- **Framework:** Next.js 16 (App Router, Server Actions). Mutations are transported by Server Actions; ZSA is not used in the stack (it is absent from `package.json`).
 
 - **Runtime:** Cloudflare Workers / Pages via `@opennextjs/cloudflare` (`nodejs_compat` mode).
 
@@ -95,7 +95,7 @@ export type UIComponent =
 
 export interface RegistryOption {
   value: number | string
-  label: string
+  label: { ru: string; en: string } | string
 }
 
 export interface RegistryField {
@@ -111,6 +111,12 @@ export interface RegistryField {
   min?: number
   max?: number
   is_current_only?: boolean
+  /** Protocol version from which the field is taken out of use (./schema-evolution.md). */
+  deprecated_since?: number
+  /** id of the replacement field for a deprecated field (the "what replaced it" hint). */
+  replacedBy?: string
+  /** PII marker: the field is excluded/masked at the export de-identification step (./export.md). */
+  pii?: boolean
   /**
    * Unified function contract: called with a row object
    * (row: Record<string, unknown>) => any. String specs of context-dependent
@@ -124,7 +130,7 @@ export interface RegistryField {
 export type RegistryBlock = Record<string, RegistryField>
 ```
 
-Differences from version 1.0: `number-readonly`, `select-readonly`, `radio-group` added; `db_type` became optional; `min`/`max` added and the `calculate` contract was clarified.
+Differences from version 1.0: `number-readonly`, `select-readonly`, `radio-group` added; `db_type` became optional; `min`/`max`, `deprecated_since`/`replacedBy` (protocol evolution, `./schema-evolution.md`) and `pii` (export de-identification, `./export.md`) added; the `calculate` contract was clarified; `RegistryOption.label` was widened to `{ ru, en } | string`.
 
 ---
 

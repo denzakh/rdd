@@ -22,7 +22,7 @@
 
 ### 2.1. Технологический стек
 
-- **Framework:** Next.js 16 (App Router, Server Actions). Инструмент ZSA в стеке заявлен, но на текущий момент не подключён (см. раздел 6).
+- **Framework:** Next.js 16 (App Router, Server Actions). Транспорт мутаций — Server Actions; ZSA в стеке не используется (в `package.json` его нет).
 
 - **Runtime:** Cloudflare Workers / Pages via `@opennextjs/cloudflare` (режим `nodejs_compat`).
 
@@ -95,7 +95,7 @@ export type UIComponent =
 
 export interface RegistryOption {
   value: number | string
-  label: string
+  label: { ru: string; en: string } | string
 }
 
 export interface RegistryField {
@@ -111,6 +111,12 @@ export interface RegistryField {
   min?: number
   max?: number
   is_current_only?: boolean
+  /** Версия протокола, с которой поле выведено из употребления (./schema-evolution.md). */
+  deprecated_since?: number
+  /** id поля-замены для deprecated-поля (подсказка «чем заменено»). */
+  replacedBy?: string
+  /** PII-метка: поле исключается/маскируется на шаге де-идентификации экспорта (./export.md). */
+  pii?: boolean
   /**
    * Единый контракт функции: вызывается с объектом строки
    * (row: Record<string, unknown>) => any. Строковые спеки контекст-зависимых
@@ -124,7 +130,7 @@ export interface RegistryField {
 export type RegistryBlock = Record<string, RegistryField>
 ```
 
-Отличия от версии 1.0: добавлены `number-readonly`, `select-readonly`, `radio-group`; `db_type` стал опциональным; добавлены `min`/`max` и уточнён контракт `calculate`.
+Отличия от версии 1.0: добавлены `number-readonly`, `select-readonly`, `radio-group`; `db_type` стал опциональным; добавлены `min`/`max`, `deprecated_since`/`replacedBy` (эволюция протокола, `./schema-evolution.md`) и `pii` (де-идентификация экспорта, `./export.md`); уточнён контракт `calculate`; `RegistryOption.label` расширен до `{ ru, en } | string`.
 
 ---
 

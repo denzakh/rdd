@@ -94,7 +94,7 @@ JSON отклонён намеренно, несмотря на доступно
 Cloudflare Access (завязка на CF-аккаунт), публичная регистрация (запрещена — PII).
 
 **Решение:** собственные сессии на D1 + **PBKDF2-SHA256 через Web Crypto**
-(200k итераций, параметры внутри строки хэша). Токен сессии живёт только в HttpOnly
+(600k итераций, параметры внутри строки хэша). Токен сессии живёт только в HttpOnly
 cookie, в БД — SHA-256(токен): утечка базы не угоняет сессии. Двухуровневая защита
 маршрутов: middleware по наличию cookie (быстро) + `requireUser()` с валидацией в БД
 (строго).
@@ -149,7 +149,7 @@ cookie, в БД — SHA-256(токен): утечка базы не угоняе
 | Подбор паролей (brute force)              | Rate-limit: 5 неверных паролей → блокировка 15 мин                                              | [spec-stage-3](./spec-stage-3.md), README               |
 | Перебор логинов (enumeration)             | Одинаковая задержка ответа 400 мс для существующих/несуществующих email                         | [auth.md §6](./auth.md)                                 |
 | Утечка БД → угон сессий                   | В БД только SHA-256(токен); токен живёт только в HttpOnly cookie                                | [auth.md §5](./auth.md)                                 |
-| Слабый хэш пароля                         | PBKDF2-SHA256, 200k итераций, constant-time сравнение, параметры в строке хэша                  | [auth.md §4](./auth.md)                                 |
+| Слабый хэш пароля                         | PBKDF2-SHA256, 600k итераций, constant-time сравнение, параметры в строке хэша                  | [auth.md §4](./auth.md)                                 |
 | Перехват cookie                           | `Secure; HttpOnly; SameSite=Lax`, TTL 12 ч, sliding renewal                                     | [auth.md §5](./auth.md)                                 |
 | Мутация мимо UI (readonly-роль)           | Двойная проверка: UI `isReadOnly` + `canWrite()` в каждом Server Action                         | [spec-stage-1.md §1, §3](./spec-stage-1.md)             |
 | Clinician видит чужих пациентов (IDOR)    | `data_scope` на пользователе; scope-репозиторий фильтрует `list/listPage/count/findById`        | [auth.md — Row-level access](./auth.md)                 |
