@@ -1,6 +1,7 @@
 import { requireUser, UserMenu } from '@/features/auth'
 import { buildDataDictionary } from '@/shared/lib/registry'
 import { getDict, getLocale } from '@/shared/lib/intl'
+import { TopNavigation } from '@/shared/ui/top-navigation'
 
 /**
  * Автогенерируемый Data Dictionary (docs/data-dictionary.md).
@@ -19,6 +20,7 @@ export default async function DataDictionaryPage() {
   return (
     <div>
       <UserMenu displayName={user.displayName} role={user.role} />
+      <TopNavigation locale={locale} />
       <main className="mx-auto max-w-[1100px] space-y-8 p-6">
         <header className="space-y-1">
           <h1 className="text-xl font-semibold">{dict.pageTitle}</h1>

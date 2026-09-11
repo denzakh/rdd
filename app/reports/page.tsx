@@ -1,6 +1,7 @@
 import { requireUser, UserMenu } from '@/features/auth'
 import { ExportPanel } from '@/features/reports'
 import { getDb } from '@/shared/api/db'
+import { TopNavigation } from '@/shared/ui/top-navigation'
 import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { patientScopeFor } from '@/entities/patient'
@@ -61,6 +62,7 @@ export default async function ReportsPage() {
   return (
     <div>
       <UserMenu displayName={user.displayName} role={user.role} />
+      <TopNavigation locale={locale} />
       <main className="mx-auto max-w-[1000px] space-y-8 p-6">
         <h1 className="text-xl font-semibold">{en ? 'Reports' : 'Отчёты'}</h1>
 

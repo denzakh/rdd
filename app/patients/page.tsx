@@ -4,6 +4,7 @@ import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
 import { createPatientRepository, patientScopeFor, PatientsTable } from '@/entities/patient'
 import { getLocale } from '@/shared/lib/intl'
+import { TopNavigation } from '@/shared/ui/top-navigation'
 
 const PAGE_SIZE = 20
 
@@ -29,18 +30,13 @@ export default async function PatientsPage({
   return (
     <div>
       <UserMenu displayName={user.displayName} role={user.role} />
+      <TopNavigation locale={locale} />
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">
             {en ? 'Patients' : 'Пациенты'} ({total})
           </h1>
           <div className="flex items-center gap-2">
-            <Link href="/reports" className="text-xs text-blue-700 hover:underline">
-              {en ? 'Reports' : 'Отчёты'}
-            </Link>
-            <Link href="/data-dictionary" className="text-xs text-blue-700 hover:underline">
-              {en ? 'Data Dictionary' : 'Словарь данных'}
-            </Link>
             <form className="flex items-center gap-1">
               <input
                 type="search"
