@@ -5,7 +5,7 @@ Not a retelling of specs: each section is the most illustrative
 "problem → options considered → decision" fork with a link to the primary source.
 
 > **How to read the docs.** This file is the entry point. The working layer is the
-> detailed specifications (Russian originals in `docs/ru/`): `rdd-v1.md` (core, registry,
+> detailed specifications in this directory (`docs/en/`): `rdd-v1.md` (core, registry,
 > data schema), `auth.md`, `matrix.md`, `roadmap.md` plus stage specs `spec-stage-1..4.md`.
 > Quantitative characteristics (Availability, RTO/RPO, performance budgets) are in
 > `nfr.md` (EN). The formalized STRIDE threat model is in `threat-model.md` (EN).
@@ -21,7 +21,7 @@ Not a retelling of specs: each section is the most illustrative
 ![C4 overview: System Context + Container](../diagrams/c4-overview.svg)
 
 - **L1 System Context:** physician (`clinician`), admin, `readonly` → RDD; dashed —
-  Cloudflare Access (escalation option, `ru/auth.md` §2) and a future EHR (not implemented).
+  Cloudflare Access (escalation option, `auth.md` §2) and a future EHR (not implemented).
 - **L2 Container:** browser → Next.js on Cloudflare Workers (Server Actions, `requireUser()`,
   PBKDF2, scope-repositories) → D1; TS field registry generating schema/Zod/UI;
   Admin CLI for `user:create` (no public registration).
@@ -39,9 +39,9 @@ D1 schema (via `gen:d1` diff-generator), Zod schemas (`to-zod.ts`), UI rendering
 and computed fields. "Field = column" is the invariant. Schema evolution is reset-only
 (`npm run db:restart`): protocol versioning (`registry_versions` + per-record
 `registry_version`) lives in generated baseline `0001_init.sql`
-(see `ru/schema-evolution.md`).
+(see `schema-evolution.md`).
 
-→ Details: `ru/rdd-v1.md` §3
+→ Details: `rdd-v1.md` §3
 
 ## 2. Storing binary clinical flags
 
