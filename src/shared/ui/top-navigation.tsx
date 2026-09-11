@@ -23,7 +23,7 @@ export function TopNavigation({ locale }: { locale: Locale }) {
   const common = (locale === 'en' ? en : ru).common
 
   return (
-    <nav className="flex items-center gap-6 border-b border-neutral-200 px-6 py-2 text-sm">
+    <nav className="flex items-center gap-6 text-sm">
       {ITEMS.map(({ href, key }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
         return (

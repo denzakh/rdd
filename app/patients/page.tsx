@@ -1,10 +1,9 @@
 import Link from 'next/link'
-import { requireUser, UserMenu } from '@/features/auth'
+import { Header, requireUser } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
 import { createPatientRepository, patientScopeFor, PatientsTable } from '@/entities/patient'
 import { getLocale } from '@/shared/lib/intl'
-import { TopNavigation } from '@/shared/ui/top-navigation'
 
 const PAGE_SIZE = 20
 
@@ -29,8 +28,7 @@ export default async function PatientsPage({
 
   return (
     <div>
-      <UserMenu displayName={user.displayName} role={user.role} />
-      <TopNavigation locale={locale} />
+      <Header displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">

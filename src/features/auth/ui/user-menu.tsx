@@ -1,24 +1,24 @@
 import { logoutAction } from '../api/actions'
 import { getLocale } from '@/shared/lib/intl'
+import type { Locale } from '@/shared/lib/intl'
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher'
 
-/** Меню пользователя (имя, роль, язык, выход). Серверный компонент. */
-export function UserMenu({ displayName, role }: { displayName: string; role: string }) {
-  return <UserMenuInner displayName={displayName} role={role} localePromise={getLocale()} />
-}
-
-async function UserMenuInner({
+/**
+ * Содержимое меню пользователя (имя, роль, язык, выход) без собственной
+ * обёртки. Серверный компонент — используется как внутри `<UserMenu />`,
+ * так и внутри `<Header />` (справа в flex-строке).
+ */
+export function UserInfo({
   displayName,
   role,
-  localePromise,
+  locale,
 }: {
   displayName: string
   role: string
-  localePromise: Promise<'ru' | 'en'>
+  locale: Locale
 }) {
-  const locale = await localePromise
   return (
-    <div className="flex items-center justify-end gap-3 border-b border-neutral-200 px-6 py-2 text-sm">
+    <>
       <span className="text-neutral-600">
         {displayName} · <span className="text-neutral-400">{role}</span>
       </span>
@@ -31,6 +31,19 @@ async function UserMenuInner({
           {locale === 'en' ? 'Log out' : 'Выйти'}
         </button>
       </form>
+    </>
+  )
+}
+
+/**
+ * Меню пользователя (имя, роль, язык, выход) в виде самостоятельной
+ * строки с borderBottom. Серверный компонент.
+ */
+export async function UserMenu({ displayName, role }: { displayName: string; role: string }) {
+  const locale = await getLocale()
+  return (
+    <div className="flex items-center justify-end gap-3 border-b border-neutral-200 px-6 py-2 text-sm">
+      <UserInfo displayName={displayName} role={role} locale={locale} />
     </div>
   )
 }
