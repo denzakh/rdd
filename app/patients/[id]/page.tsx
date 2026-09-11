@@ -33,7 +33,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
           {canWrite(user) && (
             <Link
               href={`/patients/${patient.id}/edit`}
-              className="text-xs text-blue-700 hover:underline"
+              className="text-xs text-cyan-700 hover:opacity-80"
             >
               {en ? 'edit' : 'изменить'}
             </Link>

@@ -58,7 +58,7 @@ export default async function DataDictionaryPage() {
                           <span className="ml-1 text-xs text-amber-700">({dict.currentOnly})</span>
                         )}
                         {e.isComputed && (
-                          <span className="ml-1 text-xs text-blue-700">({dict.computed})</span>
+                          <span className="ml-1 text-xs text-cyan-700">({dict.computed})</span>
                         )}
                         {e.deprecatedSince !== null && (
                           <span className="ml-1 text-xs text-neutral-500">

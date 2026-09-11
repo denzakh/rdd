@@ -21,7 +21,7 @@ export default async function NewPatientPage() {
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Новый пациент</h1>
-          <Link href="/patients" className="text-xs text-blue-700 hover:underline">
+          <Link href="/patients" className="text-xs text-cyan-700 hover:opacity-80">
             ← к списку
           </Link>
         </div>

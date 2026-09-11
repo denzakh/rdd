@@ -32,7 +32,7 @@ export default async function EditPatientPage({ params }: { params: Promise<{ id
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Пациент #{patient.id}</h1>
-          <Link href={`/patients/${patient.id}`} className="text-xs text-blue-700 hover:underline">
+          <Link href={`/patients/${patient.id}`} className="text-xs text-cyan-700 hover:opacity-80">
             ← к карточке
           </Link>
         </div>

@@ -57,18 +57,18 @@ export function PatientsTable({
             ))}
             <td className="px-2 py-1.5 text-right">
               <div className="flex justify-end gap-4">
-                <Link href={`/patients/${p.id}`} className="text-xs text-blue-700 hover:underline">
+                <Link href={`/patients/${p.id}`} className="text-xs text-cyan-700 hover:opacity-80">
                   {locale === 'en' ? 'Open' : 'Открыть'}
                 </Link>
                 <Link
                   href={`/patients/${p.id}/edit`}
-                  className="text-xs text-blue-700 hover:underline"
+                  className="text-xs text-cyan-700 hover:opacity-80"
                 >
                   {locale === 'en' ? 'Edit' : 'Редактировать'}
                 </Link>
                 <Link
                   href={`/patients/${p.id}/matrix`}
-                  className="text-xs text-blue-700 hover:underline"
+                  className="text-xs text-cyan-700 hover:opacity-80"
                 >
                   {locale === 'en' ? 'Phases' : 'Фазы'}
                 </Link>

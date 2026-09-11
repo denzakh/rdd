@@ -70,7 +70,7 @@ export default async function ReportsPage() {
             : `Агрегаты учитывают ваш data_scope; ячейки с числом пациентов меньше ${K_ANONYMITY_K} скрыты (k-anonymity, docs/ru/export.md §3).`}
         </p>
 
-        <ExportPanel />
+        <ExportPanel locale={locale} />
 
         <section className="grid grid-cols-2 gap-6">
           {distributions.map(({ fieldId, rows }) => (
