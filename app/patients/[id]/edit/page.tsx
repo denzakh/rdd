@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { requireUser, UserMenu } from '@/features/auth'
+import { requireUser, Header } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
 import { createPatientRepository, patientScopeFor } from '@/entities/patient'
@@ -12,7 +12,7 @@ export default async function EditPatientPage({ params }: { params: Promise<{ id
   if (!canWrite(user)) {
     return (
       <div>
-        <UserMenu displayName={user.displayName} role={user.role} />
+        <Header displayName={user.displayName} role={user.role} />
         <main className="p-6 text-sm text-red-700">Доступ только для чтения.</main>
       </div>
     )
@@ -28,7 +28,7 @@ export default async function EditPatientPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <UserMenu displayName={user.displayName} role={user.role} />
+      <Header displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Пациент #{patient.id}</h1>

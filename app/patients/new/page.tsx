@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requireUser, UserMenu } from '@/features/auth'
+import { requireUser, Header } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { PatientForm } from '@/features/patients'
 
@@ -9,7 +9,7 @@ export default async function NewPatientPage() {
   if (!canWrite(user)) {
     return (
       <div>
-        <UserMenu displayName={user.displayName} role={user.role} />
+        <Header displayName={user.displayName} role={user.role} />
         <main className="p-6 text-sm text-red-700">Доступ только для чтения.</main>
       </div>
     )
@@ -17,7 +17,7 @@ export default async function NewPatientPage() {
 
   return (
     <div>
-      <UserMenu displayName={user.displayName} role={user.role} />
+      <Header displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">Новый пациент</h1>

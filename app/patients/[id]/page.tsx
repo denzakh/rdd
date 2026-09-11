@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { requireUser, UserMenu } from '@/features/auth'
+import { requireUser, Header } from '@/features/auth'
 import { getDb } from '@/shared/api/db'
 import { getLocale } from '@/shared/lib/intl'
 import { createPatientRepository, patientScopeFor, PatientCard } from '@/entities/patient'
@@ -24,7 +24,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <UserMenu displayName={user.displayName} role={user.role} />
+      <Header displayName={user.displayName} role={user.role} />
       <main className="mx-auto max-w-[1000px] space-y-4 p-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">

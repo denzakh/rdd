@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { requireUser, UserMenu } from '@/features/auth'
+import { requireUser, Header } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
 import { getLocale } from '@/shared/lib/intl'
@@ -45,7 +45,7 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
 
   return (
     <div>
-      <UserMenu displayName={user.displayName} role={user.role} />
+      <Header displayName={user.displayName} role={user.role} />
       <MatrixClient
         patientId={patient.id}
         patientLabel={locale === 'en' ? `patient #${patient.id}` : `пациент #${patient.id}`}
