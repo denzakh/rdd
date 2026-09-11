@@ -3,10 +3,11 @@
 /**
  * Server Action экспорта де-идентифицированного датасета (docs/export.md).
  * Де-идентификация — в getDeidentifiedDataset (queries.ts), один раз,
- * до сериализации. Здесь — только auth/scope + тонкий выбор адаптера.
+ * до сериализации. Здесь — только auth/scope + троттлинг + тонкий выбор адаптера.
  */
 import { requireUser } from '@/shared/api'
 import { getDb } from '@/shared/api'
+import { EXPORT_THROTTLE_SECONDS, tryClaimExportSlot } from '@/shared/api'
 import { patientScopeFor } from '@/entities/patient'
 import { getDeidentifiedDataset, K_ANONYMITY_K } from '@/entities/phase'
 import { toCsv, toJson, toXlsx, exportFileMeta } from '@/shared/lib/export'
@@ -32,6 +33,8 @@ const toBase64 = (bytes: Uint8Array): string => Buffer.from(bytes).toString('bas
 /**
  * Экспорт де-идентифицированного датасета для R/Python (без UI-аналитики).
  * Доступен admin/clinician/readonly (только чтение своих scope-данных).
+ * Троттлинг: 1 экспорт / EXPORT_THROTTLE_SECONDS на пользователя
+ * (docs/export.md §2) — самая дорогая операция, флуд бьёт по D1.
  */
 export async function exportDeidentified(format: ExportFormat): Promise<ExportResult> {
   if (format !== 'csv' && format !== 'json' && format !== 'xlsx') {
@@ -39,6 +42,13 @@ export async function exportDeidentified(format: ExportFormat): Promise<ExportRe
   }
   const user = await requireUser()
   const db = await getDb()
+  const slot = await tryClaimExportSlot(db, user.id)
+  if (!slot.allowed) {
+    throw new Error(
+      `Экспорт временно недоступен: повторите через ${slot.retryAfterSeconds} с ` +
+        `(лимит — 1 экспорт в ${EXPORT_THROTTLE_SECONDS} с на пользователя)`
+    )
+  }
   const scope = patientScopeFor(user)
   const dataset = await getDeidentifiedDataset(db, scope, K_ANONYMITY_K)
 

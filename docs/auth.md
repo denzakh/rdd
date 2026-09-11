@@ -152,6 +152,13 @@ tables реестра). Порядок «сначала move, потом delete�
   5 неверных паролей → блокировка 15 мин (`failed_attempts`/`locked_until` в `users`,
   миграция `0004_auth_v15.sql`); постоянная задержка 400 мс сохранена. Порог
   эскалации на публичном доступе — Cloudflare WAF (вне кода).
+- **Троттлинг экспорта** (вне login rate-limit): `exportDeidentified` — самый
+  дорогой Server Action — ограничен 1 экспортом/60 с на пользователя
+  (`users.last_export_at`, миграция `0007_export_throttle.sql`,
+  `src/shared/api/export-throttle.ts`, [export.md §2](./export.md));
+  `failed_attempts`/`locked_until` сознательно не переиспользованы.
+  Остальной флуд Server Actions — принятый риск демо
+  ([threat-model.md §2 D](./threat-model.md)).
 - ~~`must_change_password` заложен в схему, но сценарий смены пароля на первом
   входе и «забыл пароль» (сброс через create-user / инвайт) — TODO v1.5.~~ —
   **Реализовано** (этап 3, [spec-stage-3.md §4](./spec-stage-3.md)):

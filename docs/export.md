@@ -28,10 +28,27 @@
 `exportDeidentified(format: 'csv' | 'json' | 'xlsx')` —
 `src/features/reports/api/actions.ts`. Только auth (`requireUser()`),
 scope (`patientScopeFor(user)` — тот же row-level access, что у списков),
-выбор адаптера и аудит (`export:deidentified`). Возвращает
+троттлинг (см. ниже), выбор адаптера и аудит (`export:deidentified`). Возвращает
 `{ mime, filename, base64, ...meta }` — Action не может вернуть Response,
 поэтому клиент (`ExportPanel`) скачивает base64 через Blob.
 UI: панель на `/reports` (`src/features/reports/ui/export-panel.tsx`).
+
+### Троттлинг (миграция `0007_export_throttle.sql`)
+
+Экспорт — самый дорогой Server Action (полная выборка `patients`+`phases`,
+де-идентификация + k-anonymity в памяти): флуд им бьёт по D1 сильнее обычного
+CRUD. Минимальная защита: **1 экспорт / 60 с на пользователя**
+(`users.last_export_at`, `EXPORT_THROTTLE_SECONDS` в
+`src/shared/api/export-throttle.ts`, `tryClaimExportSlot`). Превышение —
+ошибка с `retryAfterSeconds`, клиент показывает её текстом.
+
+Слот занимается **атомарно** (условный `UPDATE … WHERE last_export_at IS NULL
+OR last_export_at <= ?`): параллельные запросы не проходят оба. Отклонённый
+запрос окно **не продлевает** (метка пишется только при успехе).
+Сознательно **не** переиспользованы `failed_attempts`/`locked_until` от login
+rate-limit: флуд экспорта не должен блокировать вход, а перебор пароля —
+экспорт. Остальной флуд Server Actions по-прежнему принят как риск демо
+(threat-model.md §2 D, порог эскалации — Cloudflare WAF).
 
 ## 3. Де-идентификация (на шаге агрегации, не сериализации)
 

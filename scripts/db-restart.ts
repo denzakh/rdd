@@ -35,6 +35,7 @@ const manualDir = join(projectRoot, '.wrangler', 'tmp-manual-migrations')
  *  - 0004_auth_v15.sql    — rate-limit, инвайты (docs/spec-stage-3.md);
  *  - 0005_data_scope.sql  — row-level access (docs/auth.md);
  *  - 0006_audit_hash_chain.sql — hash-chain + триггеры audit_log (docs/threat-model.md §2 R).
+ *  - 0007_export_throttle.sql — last_export_at, троттлинг экспорта (docs/export.md §2).
  */
 const MANUAL_MIGRATIONS = [
   '0002_audit.sql',
@@ -42,6 +43,7 @@ const MANUAL_MIGRATIONS = [
   '0004_auth_v15.sql',
   '0005_data_scope.sql',
   '0006_audit_hash_chain.sql',
+  '0007_export_throttle.sql',
 ]
 
 const run = (cmd: string): void => {
