@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ru, en } from '@/shared/lib/intl'
 import type { Locale } from '@/shared/lib/intl'
+import Image from 'next/image'
 
 /** Пункты верхнего меню (все — из неймспейса `common` словарей). */
 const ITEMS = [
@@ -24,6 +25,9 @@ export function TopNavigation({ locale }: { locale: Locale }) {
 
   return (
     <nav className="flex items-center gap-6 text-sm">
+      <div className="opacity-80">
+        <Image src="/favicon.svg" alt="RDD" width={32} height={32} unoptimized />
+      </div>
       {ITEMS.map(({ href, key }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
         return (
