@@ -1,12 +1,22 @@
 /**
- * Демо-данные для локальной разработки (docs/spec-stage-2.md §5).
- * Запуск: npm run seed:demo — ТОЛЬКО локальная БД (getPlatformProxy).
- * На прод запрещён: скрипт не принимает --remote и работает через
- * локальный wrangler-прокси.
+ * Демо-данные (docs/spec-stage-2.md §5).
+ *
+ * Запуск:
+ *   npm run seed:demo          — локальная БД (getPlatformProxy, .wrangler/state)
+ *   npm run seed:demo:remote   — прод-БД (wrangler d1 execute rdd --remote;
+ *                                требует подтверждения «prod» или флага --yes)
+ *
+ * Локально данные пишутся через репозитории сущностей; в remote — SQL-файл
+ * с INSERT'ами через wrangler d1 execute (паттерн scripts/create-user.ts).
  */
+import { execSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { createInterface } from 'node:readline/promises'
 import { getPlatformProxy } from 'wrangler'
 import { createPatientRepository, type PatientInput } from '../src/entities/patient'
-import { createPhaseRepository, type PhaseInput } from '../src/entities/phase'
+import { createPhaseRepository, DATA_COLUMNS, type PhaseInput } from '../src/entities/phase'
 
 const PATIENTS: PatientInput[] = [
   {
@@ -528,7 +538,133 @@ function phasesFor(patientIndex: number): PhaseInput[] {
   ]
 }
 
+// ---------- remote БД (wrangler d1 execute --remote) ----------
+
+const D1_NAME = 'rdd'
+const REGISTRY_VERSION = 1 // REGISTRY_CURRENT_VERSION (src/shared/lib/registry)
+
+const sqlValue = (v: unknown): string => {
+  if (v === null || v === undefined) return 'NULL'
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+  return `'${String(v).replace(/'/g, "''")}'`
+}
+
+/** Вывод `wrangler d1 execute --json`: массив результатов или одиночный объект. */
+function parseWranglerJson(stdout: string): Record<string, unknown>[] {
+  const arrStart = stdout.indexOf('[')
+  const objStart = stdout.indexOf('{')
+  const parsed =
+    arrStart >= 0 && (objStart < 0 || arrStart < objStart)
+      ? (JSON.parse(stdout.slice(arrStart)) as Array<{ results?: Record<string, unknown>[] }>)
+      : (JSON.parse(stdout.slice(objStart)) as { results?: Record<string, unknown>[] })
+  const first = Array.isArray(parsed) ? parsed[0] : parsed
+  return first?.results ?? []
+}
+
+function maxPatientIdRemote(): number {
+  const out = execSync(
+    `npx wrangler d1 execute ${D1_NAME} --remote --json --command "SELECT COALESCE(MAX(id), 0) AS m FROM patients"`,
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }
+  )
+  const rows = parseWranglerJson(out)
+  return Number(rows[0]?.m ?? 0)
+}
+
+function runSqlRemote(sql: string): void {
+  const dir = mkdtempSync(join(tmpdir(), 'rdd-seed-'))
+  const file = join(dir, 'seed.sql')
+  try {
+    writeFileSync(file, sql, 'utf8')
+    console.log(`> wrangler d1 execute ${D1_NAME} --remote --file=${file}`)
+    execSync(`npx wrangler d1 execute ${D1_NAME} --remote --yes --file=${file}`, {
+      stdio: 'inherit',
+    })
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+/** Верификация: считаем пациентов всего и фазы, вставленные этим запуском. */
+function verifyRemote(firstPatientId: number): void {
+  const sql =
+    `SELECT (SELECT COUNT(*) FROM patients) AS patients_total, ` +
+    `(SELECT COUNT(*) FROM phases WHERE patient_id >= ${firstPatientId}) AS new_phases;`
+  const out = execSync(`npx wrangler d1 execute ${D1_NAME} --remote --json --command "${sql}"`, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
+  })
+  const row = parseWranglerJson(out)[0] ?? {}
+  console.log(`   пациентов всего: ${row.patients_total}, фаз создано: ${row.new_phases}`)
+}
+
+/**
+ * SQL для remote: пациенты с явными id (MAX(id)+1 и далее — детерминированно,
+ * без last_insert_rowid), фазы ссылаются на эти id, phase_order_id — 1..n.
+ */
+function buildSeedSql(firstPatientId: number): string {
+  const first = PATIENTS[0]
+  if (!first) throw new Error('Нет демо-данных для вставки')
+  const patientColumns = Object.keys(first)
+
+  const stmts: string[] = []
+  for (const [i, input] of PATIENTS.entries()) {
+    const id = firstPatientId + i
+    const record = input as Record<string, unknown>
+    const patientValues = [REGISTRY_VERSION, ...patientColumns.map((c) => record[c] ?? null)]
+    stmts.push(
+      `INSERT INTO patients (registry_version, ${patientColumns.join(', ')}) ` +
+        `VALUES (${patientValues.map(sqlValue).join(', ')});`
+    )
+    for (const [order, phase] of phasesFor(i).entries()) {
+      const phaseRecord = phase as Record<string, unknown>
+      const phaseValues = [
+        id,
+        order + 1,
+        REGISTRY_VERSION,
+        ...DATA_COLUMNS.map((c) => phaseRecord[c] ?? null),
+      ]
+      stmts.push(
+        `INSERT INTO phases (patient_id, phase_order_id, registry_version, ${DATA_COLUMNS.join(', ')}) ` +
+          `VALUES (${phaseValues.map(sqlValue).join(', ')});`
+      )
+    }
+  }
+  return stmts.join('\n')
+}
+
+async function seedRemote(): Promise<void> {
+  const assumeYes = process.argv.includes('--yes')
+  if (!assumeYes) {
+    const rl = createInterface({ input: process.stdin, output: process.stdout })
+    const answer = (
+      await rl.question(
+        `Записать демо-данные в ${D1_NAME} (remote)? Напечатайте "prod" для подтверждения: `
+      )
+    ).trim()
+    rl.close()
+    if (answer !== 'prod') {
+      console.log('Отменено.')
+      return
+    }
+  }
+
+  const existing = maxPatientIdRemote()
+  if (existing > 0) {
+    console.log(`⚠ В базе уже ${existing} пациент(ов) — добавляю демо-данные поверх.`)
+  }
+  const firstPatientId = existing + 1
+
+  runSqlRemote(buildSeedSql(firstPatientId))
+  verifyRemote(firstPatientId)
+  console.log('✅ Демо-данные созданы в remote D1')
+}
+
 async function main() {
+  if (process.argv.includes('--remote')) {
+    await seedRemote()
+    return
+  }
+
   console.log('Получаю env через getPlatformProxy (локальная БД)…')
   const { env, dispose } = await getPlatformProxy<CloudflareEnv>({ configPath: 'wrangler.jsonc' })
   try {

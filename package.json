@@ -26,6 +26,7 @@
     "user:create:remote": "tsx scripts/create-user.ts --remote",
     "test:db": "tsx scripts/ensure-local-db.ts && vitest run -c vitest.integration.config.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
+    "seed:demo:remote": "tsx scripts/seed-demo.ts --remote",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:db:watch": "tsx scripts/ensure-local-db.ts && vitest -c vitest.integration.config.ts"

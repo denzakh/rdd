@@ -49,7 +49,7 @@ Form actions are Server Actions with `phaseSchema`/patient schema and `canWrite`
 ## 5. Data migrations
 
 - The schema does not change (patients/phases are already in `0001_init.sql`) — no migrations required.
-- Optional: `scripts/seed-demo.ts` — 5–10 test patients with phases for local development (only `--local`, forbidden on prod).
+- Optional: `scripts/seed-demo.ts` — 5–10 test patients with phases for local development (`npm run seed:demo`); for the prod DB — `npm run seed:demo:remote` (wrangler d1 execute --remote, "prod" confirmation or `--yes` flag).
 
 ## 6. Acceptance criteria
 

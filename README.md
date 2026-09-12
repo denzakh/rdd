@@ -48,7 +48,7 @@ unauthenticated users to `/login` (middleware + `requireUser()`).
 | `npm run db:restart`   | full local DB reset (baseline + manual migrations 0002–0007)              |
 | `npm run db:migrate:*` | apply migrations (`--local` / `--remote`)                                 |
 | `npm run user:create`  | create a user (interactive/flags; first one is admin)                     |
-| `npm run seed:demo`    | demo data                                                                 |
+| `npm run seed:demo`    | demo data (local; `seed:demo:remote` — remote D1, confirm with "prod")    |
 | `npm run test`         | unit tests (Vitest)                                                       |
 | `npm run test:db`      | integration tests against local D1                                        |
 | `npm run lint`         | ESLint                                                                    |
