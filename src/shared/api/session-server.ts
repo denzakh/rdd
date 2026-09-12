@@ -1,3 +1,5 @@
+'use server'
+
 /**
  * Серверная сессия приложения (слой shared, docs/spec-stage-2.md):
  * чтение cookie → валидация в D1. Используется из server components
