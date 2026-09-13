@@ -11,7 +11,7 @@ const row = (overrides: Record<string, number | null>): DeidentifiedRow =>
   ({
     seq_id: 0,
     registry_version: 1,
-    age_group: null,
+    age_at_the_beginning_of_the_phase: null,
     gender: null,
     education_level: null,
     career_level: null,
@@ -20,7 +20,6 @@ const row = (overrides: Record<string, number | null>): DeidentifiedRow =>
     family_history: null,
     personality_type: null,
     phase_order_id: 1,
-    phase_start_diff_months: null,
     phase_duration_months: null,
     intermission_duration: null,
     prophylaxis_type: null,
@@ -37,19 +36,17 @@ const dataset = (): DeidentifiedDataset => ({
   columns: [
     'seq_id',
     'registry_version',
-    'age_group',
+    'age_at_the_beginning_of_the_phase',
     'gender',
     'phase_order_id',
-    'phase_start_diff_months',
   ],
   rows: [
-    row({ seq_id: 1, age_group: 2, gender: 1, phase_order_id: 1, phase_start_diff_months: 3 }),
+    row({ seq_id: 1, age_at_the_beginning_of_the_phase: 44, gender: 1, phase_order_id: 1 }),
     row({
       seq_id: 2,
-      age_group: 3,
+      age_at_the_beginning_of_the_phase: 49,
       gender: 2,
       phase_order_id: 1,
-      phase_start_diff_months: null,
     }),
   ],
   meta: {
@@ -70,10 +67,10 @@ describe('export serializers: csv/json/xlsx поверх нейтральног�
     const csv = toCsv(dataset())
     const lines = csv.split('\r\n').filter(Boolean)
     expect(lines[0]).toBe(
-      'seq_id,registry_version,age_group,gender,phase_order_id,phase_start_diff_months'
+      'seq_id,registry_version,age_at_the_beginning_of_the_phase,gender,phase_order_id'
     )
-    expect(lines[1]).toBe('1,1,2,1,1,3')
-    expect(lines[2]).toBe('2,1,3,2,1,')
+    expect(lines[1]).toBe('1,1,44,1,1')
+    expect(lines[2]).toBe('2,1,49,2,1')
     const tokens = tokensOf(csv)
     for (const key of FORBIDDEN) expect(tokens, key).not.toContain(key)
     for (const key of FORBIDDEN) expect(lines[0].split(','), key).not.toContain(key)
@@ -97,10 +94,10 @@ describe('export serializers: csv/json/xlsx поверх нейтральног�
     expect(bytes[1]).toBe(0x4b)
     const text = new TextDecoder('utf-8').decode(bytes)
     expect(text).toContain('seq_id')
-    expect(text).toContain('phase_start_diff_months')
-    expect(text).toContain('<v>3</v>')
+    expect(text).toContain('age_at_the_beginning_of_the_phase')
+    expect(text).toContain('<v>44</v>')
     // Запретные имена — как XML-токены <t>name</t>, не как подстроки
-    // (seq_id содержит 'id', phase_start_diff_months — 'phase_start_date'-префикс нет).
+    // (seq_id содержит 'id', age_at_the_beginning_of_the_phase не содержит дат).
     for (const key of FORBIDDEN) expect(text, key).not.toContain(`<t>${key}</t>`)
   })
 })

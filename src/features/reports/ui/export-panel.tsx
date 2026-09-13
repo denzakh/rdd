@@ -55,8 +55,8 @@ export function ExportPanel({ locale = 'ru' }: { locale?: Locale }) {
       </h2>
       <p className="text-xs text-neutral-600">
         {en
-          ? 'No direct identifiers: instead of id — study number (seq_id), instead of dates — age group and months from inclusion.'
-          : 'Без прямых идентификаторов: вместо id — номер исследования (seq_id), вместо дат — возрастная группа и месяцы от включения.'}
+          ? 'No direct identifiers: instead of id — study number (seq_id), instead of dates — the patient age at the beginning of the phase.'
+          : 'Без прямых идентификаторов: вместо id — номер исследования (seq_id), вместо дат — возраст пациента на момент начала фазы.'}
       </p>
       <div className="flex flex-wrap gap-2">
         {FORMATS.map((f) => (

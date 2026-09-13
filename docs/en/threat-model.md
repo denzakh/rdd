@@ -20,6 +20,12 @@ STRIDE category; "Source" points to where the measure lives in code.
 No public registration — model assumes "insider attacker" (existing user) and
 "outsider without account" (brute force, interception).
 
+**Data access assumption:** only trusted persons access the data — including the
+de-identified statistics dump ([export.md §3.1](./export.md)). Statistical
+anonymization (k-anonymity) was considered and rejected for the current
+conditions: cell suppression distorts statistics and the data is not intended
+for public access.
+
 ## 2. STRIDE analysis
 
 ### S — Spoofing

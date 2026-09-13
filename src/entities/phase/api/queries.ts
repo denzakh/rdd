@@ -1,6 +1,5 @@
 import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
-import { diffMonths, getAgeGroup } from '@/shared/lib/intl'
 import type { DeidentifiedDataset, DeidentifiedRow } from '@/shared/lib/export'
 import { DATA_COLUMNS } from './phase-repo'
 
@@ -124,8 +123,8 @@ export async function efficacyByMainComponent(
 // не фильтруют: новый формат не может забыть маскирование.
 //  - id пациента -> seq_id (1..N по order id);
 //  - pii:true (study_entry_date, birth_year, phase_start_date) исключены;
-//    вместо них age_group (1..5) и phase_start_diff_months (diffMonths
-//    от даты включения, не абсолютные даты);
+//    вместо них age_at_the_beginning_of_the_phase (возраст пациента
+//    на момент начала фазы в полных годах; не абсолютные даты);
 //  - consent_withdrawn_at IS NOT NULL — исключены; scope уважается.
 // ---------------------------------------------------------------------------
 
@@ -186,7 +185,6 @@ const PATIENT_EXPORT_COLUMNS: string[] = Object.values(
 
 interface DeidentifiedRawRow {
   patient_id: number
-  study_entry_date: string | null
   birth_year: number | null
   phase_order_id: number
   phase_start_date: string | null
@@ -200,7 +198,7 @@ export async function getDeidentifiedDataset(
   scope: DeidentifiedScope = { mode: 'all' }
 ): Promise<DeidentifiedDataset> {
   const w = scopeWhereOnPatient(scope, 'p')
-  const selectCols = ['p.id AS patient_id', 'p.study_entry_date', 'p.birth_year']
+  const selectCols = ['p.id AS patient_id', 'p.birth_year']
   for (const c of PATIENT_EXPORT_COLUMNS) selectCols.push(`p."${c}"`)
   selectCols.push('ph.phase_order_id', 'ph.phase_start_date', 'ph.registry_version')
   for (const c of EXPORT_PHASE_COLUMNS) selectCols.push(`ph."${c}"`)
@@ -224,20 +222,21 @@ export async function getDeidentifiedDataset(
       seqId = seq
       seqByPatient.set(r.patient_id, seqId)
     }
-    const age =
-      r.birth_year !== null && r.birth_year !== undefined && r.study_entry_date
-        ? new Date(r.study_entry_date).getFullYear() - r.birth_year
+    // Возраст пациента (полных лет) на момент начала фазы: вместо абсолютной
+    // даты (phase_start_date — pii) в выгрузку попадает только возраст.
+    const ageAtPhaseStart =
+      r.birth_year !== null && r.birth_year !== undefined && r.phase_start_date
+        ? new Date(r.phase_start_date).getFullYear() - r.birth_year
         : null
     const row = { seq_id: seqId } as unknown as Record<string, number | null>
-    row.age_group = age === null || Number.isNaN(age) ? null : getAgeGroup(age)
+    row.age_at_the_beginning_of_the_phase =
+      ageAtPhaseStart === null || Number.isNaN(ageAtPhaseStart)
+        ? null
+        : Math.max(0, ageAtPhaseStart)
     // Метка версии протокола на строке (docs/schema-evolution.md §6): NOT NULL в схеме.
     row.registry_version = (r.registry_version as number | null) ?? 1
     for (const c of PATIENT_EXPORT_COLUMNS) row[c] = (r[c] as number | null) ?? null
     row.phase_order_id = r.phase_order_id
-    row.phase_start_diff_months =
-      r.study_entry_date && r.phase_start_date
-        ? diffMonths(r.study_entry_date, r.phase_start_date)
-        : null
     for (const c of EXPORT_PHASE_COLUMNS) row[c] = (r[c] as number | null) ?? null
     return row as unknown as DeidentifiedRow
   })
@@ -245,10 +244,9 @@ export async function getDeidentifiedDataset(
   const columns = [
     'seq_id',
     'registry_version',
-    'age_group',
+    'age_at_the_beginning_of_the_phase',
     ...PATIENT_EXPORT_COLUMNS,
     'phase_order_id',
-    'phase_start_diff_months',
     ...EXPORT_PHASE_COLUMNS,
   ]
 

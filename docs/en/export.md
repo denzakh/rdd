@@ -59,9 +59,9 @@ to duplicate the masking — a classic hole.
 - `id` → `seq_id` (study sequence-number, 1..N by order id);
 - registry fields with `pii: true` (`study_entry_date`, `birth_year`,
   `phase_start_date` — see `src/shared/config/registry/types.ts`)
-  are automatically excluded from the SELECT; instead only `age_group`
-  (1..5, from `getAgeGroup`) and `phase_start_diff_months` (`diffMonths`
-  from the inclusion date, not absolute dates);
+  are automatically excluded from the SELECT; instead a single computed
+  cell `age_at_the_beginning_of_the_phase` (the patient's age in full
+  years at the beginning of the phase, not absolute dates) is emitted;
 - column lists are built from the registry (`PATIENT_EXPORT_COLUMNS`,
   `EXPORT_PHASE_COLUMNS`), not hardcoded: a new field without `pii`
   will reach the export on its own, a field with `pii: true` — never;
@@ -74,6 +74,26 @@ to duplicate the masking — a classic hole.
   `registry_version` right after `seq_id`, and `meta.registryVersions` — the list of
   versions present in the dump. Without the mark, mixing codes of different versions
   of the same scale gives an imperceptible statistical artifact.
+
+## 3.1 Access assumptions and the k-anonymity decision
+
+De-identification (removing direct identifiers, `seq_id` instead of `id`,
+age instead of absolute dates) is the only anonymization layer in the system.
+Further protection is built on access control rather than statistical
+anonymization:
+
+- it is assumed that access to the data (including the de-identified dump)
+  is limited to **trusted persons only** — authorized users within their
+  `data_scope` (see [auth.md — Row-level access](./auth.md));
+- **k-anonymity** (suppressing small cells at the aggregation step) was
+  considered, but is not applicable in the current conditions:
+  - cell suppression **distorts statistics** — it biases estimates and loses
+    information about subgroups, which is unacceptable for a research dataset;
+  - the data is **not intended for public access** — only authorized users
+    within their `data_scope` receive the dump, so the differencing-attack
+    risk is bounded by the trusted perimeter;
+- if the dump is ever to be opened wider (e.g., a public dataset), the
+  k-anonymity (or a stronger method) decision must be revisited.
 
 ## 4. Adding a new format
 

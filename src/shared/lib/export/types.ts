@@ -15,8 +15,8 @@ export interface DeidentifiedRow {
    * версий одной шкалы в одной колонке даёт незаметный стат. артефакт.
    */
   registry_version: number
-  /** Возрастная группа 1..5 (единственное, что осталось от birth_year). */
-  age_group: number | null
+  /** Возраст пациента (полных лет) на момент начала фазы (абсолютных дат нет). */
+  age_at_the_beginning_of_the_phase: number | null
   gender: number | null
   education_level: number | null
   career_level: number | null
@@ -25,8 +25,6 @@ export interface DeidentifiedRow {
   family_history: number | null
   personality_type: number | null
   phase_order_id: number
-  /** Полные месяцы от даты включения до начала фазы (абсолютных дат нет). */
-  phase_start_diff_months: number | null
   phase_duration_months: number | null
   intermission_duration: number | null
   prophylaxis_type: number | null
