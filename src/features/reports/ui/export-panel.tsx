@@ -55,8 +55,8 @@ export function ExportPanel({ locale = 'ru' }: { locale?: Locale }) {
       </h2>
       <p className="text-xs text-neutral-600">
         {en
-          ? 'No direct identifiers: instead of id — study number (seq_id), instead of dates — age group and months from inclusion. Small groups (k<5) suppressed.'
-          : 'Без прямых идентификаторов: вместо id — номер исследования (seq_id), вместо дат — возрастная группа и месяцы от включения. Малые группы (k<5) подавлены.'}
+          ? 'No direct identifiers: instead of id — study number (seq_id), instead of dates — age group and months from inclusion.'
+          : 'Без прямых идентификаторов: вместо id — номер исследования (seq_id), вместо дат — возрастная группа и месяцы от включения.'}
       </p>
       <div className="flex flex-wrap gap-2">
         {FORMATS.map((f) => (
@@ -76,12 +76,8 @@ export function ExportPanel({ locale = 'ru' }: { locale?: Locale }) {
       {last && (
         <p className="text-xs text-neutral-600">
           {en
-            ? `${last.filename}: patients ${last.patients}, rows ${last.rowsExported} of ${last.rowsTotal}`
-            : `${last.filename}: пациентов ${last.patients}, строк ${last.rowsExported} из ${last.rowsTotal}`}
-          {last.suppressedRows > 0 &&
-            (en
-              ? ` (suppressed ${last.suppressedRows} by k=${last.k})`
-              : ` (подавлено ${last.suppressedRows} по k=${last.k})`)}
+            ? `${last.filename}: patients ${last.patients}, rows ${last.rowsTotal}`
+            : `${last.filename}: пациентов ${last.patients}, строк ${last.rowsTotal}`}
         </p>
       )}
     </section>

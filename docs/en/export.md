@@ -9,10 +9,10 @@ We do not build three exporters from scratch. Layers are separated:
 
 - **Aggregation layer** — `getDeidentifiedDataset()` in
   `src/entities/phase/api/queries.ts`. Returns neutral TS objects
-  `{ rows, columns, meta }`. This is the only place with business logic
-  and k-anonymity (see §3). The already existing aggregates
+  `{ rows, columns, meta }`. This is the only place with the de-identification
+  business logic (see §3). The already existing aggregates
   `countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent` also live here —
-  they share with the export the same invariant (scope + small-cell suppression).
+  they share with the export the same `data_scope` filter (row-level access).
 - **Serialization layer** — thin adapters in `src/shared/lib/export/`
   on top of the same aggregates: `toCsv`, `toJson` (`serializers.ts`),
   `toXlsx` (`xlsx.ts`, zero dependencies — stored ZIP + inline strings).
@@ -36,7 +36,7 @@ UI: a panel on `/reports` (`src/features/reports/ui/export-panel.tsx`).
 ### Throttling (migration `0007_export_throttle.sql`)
 
 Export is the most expensive Server Action (full `patients`+`phases` query,
-de-identification + k-anonymity in memory): flooding it hits D1 harder than usual
+de-identification in memory): flooding it hits D1 harder than usual
 CRUD. Minimal protection: **1 export / 60 s per user**
 (`users.last_export_at`, `EXPORT_THROTTLE_SECONDS` in
 `src/shared/api/export-throttle.ts`, `tryClaimExportSlot`). On exceed — an
@@ -65,13 +65,8 @@ to duplicate the masking — a classic hole.
 - column lists are built from the registry (`PATIENT_EXPORT_COLUMNS`,
   `EXPORT_PHASE_COLUMNS`), not hardcoded: a new field without `pii`
   will reach the export on its own, a field with `pii: true` — never;
-- **k-anonymity:** the group key is `(age_group, gender, phase_order_id)`;
-  rows of groups smaller than `K_ANONYMITY_K` (5) are suppressed,
-  the counter — `meta.suppressedRows`;
 - **`/reports` aggregates** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`)
-  follow the same invariant: they respect the user's `data_scope` and suppress cells
-  with a patient count < `K_ANONYMITY_K` — otherwise small groups (count=1..2) get re-identified
-  via a differencing attack;
+  respect the same `data_scope` as the lists (row-level access);
 - consent: `consent_withdrawn_at IS NOT NULL` — excluded from the query
   (data is not deleted); the user's scope is respected.
 - **protocol versioning** (./schema-evolution.md §6): each row carries

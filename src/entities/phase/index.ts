@@ -9,7 +9,6 @@ export {
   phaseDurationsByOrder,
   efficacyByMainComponent,
   getDeidentifiedDataset,
-  K_ANONYMITY_K,
   type DeidentifiedDataset,
   type DeidentifiedRow,
   type DeidentifiedScope,

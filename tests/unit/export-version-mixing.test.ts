@@ -49,8 +49,7 @@ describe('export: registry_version не смешивается (docs/schema-evol
       },
     ])
 
-    // k=1: порог подавления не отсекает группу из двух строк.
-    const { rows, columns, meta } = await getDeidentifiedDataset(db, { mode: 'all' }, 1)
+    const { rows, columns, meta } = await getDeidentifiedDataset(db, { mode: 'all' })
 
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r.registry_version)).toEqual([1, 2])
@@ -60,7 +59,7 @@ describe('export: registry_version не смешивается (docs/schema-evol
     expect(meta.registryVersions).toEqual([1, 2])
   })
 
-  it('выгрузка неподавленных строк НЕ теряет версию (стабильность против k-anonymity)', async () => {
+  it('выгрузка строк НЕ теряет версию протокола', async () => {
     const db = makeDb([
       {
         patient_id: 1,
@@ -71,7 +70,7 @@ describe('export: registry_version не смешивается (docs/schema-evol
         registry_version: 3,
       },
     ])
-    const { rows, meta } = await getDeidentifiedDataset(db, { mode: 'all' }, 1)
+    const { rows, meta } = await getDeidentifiedDataset(db, { mode: 'all' })
     expect(rows).toHaveLength(1)
     expect(rows[0].registry_version).toBe(3)
     expect(meta.registryVersions).toEqual([3])

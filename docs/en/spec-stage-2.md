@@ -28,10 +28,10 @@
 
 - Move `phase-repo.ts` → `src/entities/phase/api/phase-repo.ts` (stage 1 contracts do not change).
 - `queries.ts` — aggregates, each a parameterized SQL with bindings, no concatenation:
-  - `countByField(fieldId, scope?, k?)` — "how many patients with feature X" (the column exists by schema construction; `count` = number of DISTINCT patients);
-  - `phaseDurationsByOrder(scope?, k?)` — average durations of phases/intermissions;
-  - `efficacyByMainComponent(scope?, k?)` — efficacy of ADs (`ad_efficacy`) in the `main_component` breakdown.
-- All aggregates follow the de-identification invariant (./export.md §3): they respect the user's `data_scope` (the same row-level access as for lists) and suppress cells with a patient count < k (default `K_ANONYMITY_K = 5`).
+  - `countByField(fieldId, scope?)` — "how many patients with feature X" (the column exists by schema construction; `count` = number of DISTINCT patients);
+  - `phaseDurationsByOrder(scope?)` — average durations of phases/intermissions;
+  - `efficacyByMainComponent(scope?)` — efficacy of ADs (`ad_efficacy`) in the `main_component` breakdown.
+- All aggregates respect the user's `data_scope` (the same row-level access as for lists).
 - `fieldId` validator: only `FLAT_REGISTRY` keys with a phase scope are allowed (SQL-injection protection via the column name).
 
 ## 4. Pages (`src/app` / root `app/`)

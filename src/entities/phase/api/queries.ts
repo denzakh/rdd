@@ -38,16 +38,13 @@ export function assertPhaseField(fieldId: string): keyof (typeof DATA_COLUMNS)[n
 /**
  * Распределение значений признака: [{ value, count }] (NULL не включается).
  * count — число РАЗНЫХ пациентов (не фаз): семантика «сколько пациентов
- * с признаком X» (spec-stage-2.md §3). Агрегаты /reports следуют тому же
- * инварианту, что и де-идентификация (export.md §3): уважается data_scope
- * пользователя, а ячейки с числом пациентов < k подавляются (k-anonymity) —
- * иначе малые группы (count=1..2) деанонимизируются через differencing attack.
+ * с признаком X» (spec-stage-2.md §3). Агрегаты /reports уважают data_scope
+ * пользователя (тот же row-level access, что у списков, — export.md §3).
  */
 export async function countByField(
   db: D1Database,
   fieldId: string,
-  scope: DeidentifiedScope = { mode: 'all' },
-  k: number = K_ANONYMITY_K
+  scope: DeidentifiedScope = { mode: 'all' }
 ): Promise<Array<{ value: number; count: number }>> {
   const column = assertPhaseField(fieldId)
   const s = scopeSqlForPhases(scope)
@@ -58,22 +55,20 @@ export async function countByField(
        FROM phases
        WHERE ${String(column)} IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
        GROUP BY ${String(column)}
-       HAVING COUNT(DISTINCT patient_id) >= ?
        ORDER BY count DESC, value ASC`
     )
-    .bind(...s.binds, k)
+    .bind(...s.binds)
     .all<{ value: number; count: number }>()
   return results
 }
 
 /**
  * Средние длительности фаз/интермиссий по номеру фазы. patients — число РАЗНЫХ
- * пациентов; scope уважается; группы с числом пациентов < k подавляются.
+ * пациентов; scope уважается.
  */
 export async function phaseDurationsByOrder(
   db: D1Database,
-  scope: DeidentifiedScope = { mode: 'all' },
-  k: number = K_ANONYMITY_K
+  scope: DeidentifiedScope = { mode: 'all' }
 ): Promise<
   Array<{ phase_order_id: number; patients: number; avg_phase: number; avg_intermission: number }>
 > {
@@ -89,10 +84,9 @@ export async function phaseDurationsByOrder(
          SELECT id FROM patients WHERE consent_withdrawn_at IS NULL
        )${s.sql}
        GROUP BY phase_order_id
-       HAVING COUNT(DISTINCT patient_id) >= ?
        ORDER BY phase_order_id`
     )
-    .bind(...s.binds, k)
+    .bind(...s.binds)
     .all<{
       phase_order_id: number
       patients: number
@@ -104,12 +98,11 @@ export async function phaseDurationsByOrder(
 
 /**
  * Эффективность АД в разрезе основного компонента. count — число РАЗНЫХ
- * пациентов; scope уважается; ячейки с числом пациентов < k подавляются.
+ * пациентов; scope уважается.
  */
 export async function efficacyByMainComponent(
   db: D1Database,
-  scope: DeidentifiedScope = { mode: 'all' },
-  k: number = K_ANONYMITY_K
+  scope: DeidentifiedScope = { mode: 'all' }
 ): Promise<Array<{ main_component: number; ad_efficacy: number; count: number }>> {
   const s = scopeSqlForPhases(scope)
   const { results } = await db
@@ -118,10 +111,9 @@ export async function efficacyByMainComponent(
        FROM phases
        WHERE main_component IS NOT NULL AND ad_efficacy IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
        GROUP BY main_component, ad_efficacy
-       HAVING COUNT(DISTINCT patient_id) >= ?
        ORDER BY main_component, ad_efficacy`
     )
-    .bind(...s.binds, k)
+    .bind(...s.binds)
     .all<{ main_component: number; ad_efficacy: number; count: number }>()
   return results
 }
@@ -134,12 +126,8 @@ export async function efficacyByMainComponent(
 //  - pii:true (study_entry_date, birth_year, phase_start_date) исключены;
 //    вместо них age_group (1..5) и phase_start_diff_months (diffMonths
 //    от даты включения, не абсолютные даты);
-//  - k-anonymity: группы < k подавляются (meta.suppressedRows);
 //  - consent_withdrawn_at IS NOT NULL — исключены; scope уважается.
 // ---------------------------------------------------------------------------
-
-/** Минимальный размер k-anonymity группы (порог подавления). */
-export const K_ANONYMITY_K = 5
 
 /** Ширина видимости экспорта (как PatientScope, но без кросс-импорта сущностей — FSD). */
 export type DeidentifiedScope =
@@ -206,11 +194,10 @@ interface DeidentifiedRawRow {
   [key: string]: unknown
 }
 
-/** Слой агрегации: единственный владелец де-идентификации и k-anonymity. */
+/** Слой агрегации: единственный владелец де-идентификации. */
 export async function getDeidentifiedDataset(
   db: D1Database,
-  scope: DeidentifiedScope = { mode: 'all' },
-  k: number = K_ANONYMITY_K
+  scope: DeidentifiedScope = { mode: 'all' }
 ): Promise<DeidentifiedDataset> {
   const w = scopeWhereOnPatient(scope, 'p')
   const selectCols = ['p.id AS patient_id', 'p.study_entry_date', 'p.birth_year']
@@ -255,15 +242,6 @@ export async function getDeidentifiedDataset(
     return row as unknown as DeidentifiedRow
   })
 
-  const keyOf = (r: DeidentifiedRow): string =>
-    JSON.stringify([r.age_group, r.gender, r.phase_order_id])
-  const sizes = new Map<string, number>()
-  for (const r of mapped) {
-    const key = keyOf(r)
-    sizes.set(key, (sizes.get(key) ?? 0) + 1)
-  }
-  const rows = mapped.filter((r) => (sizes.get(keyOf(r)) ?? 0) >= k)
-
   const columns = [
     'seq_id',
     'registry_version',
@@ -275,15 +253,12 @@ export async function getDeidentifiedDataset(
   ]
 
   return {
-    rows,
+    rows: mapped,
     columns,
     meta: {
       exportedAt: new Date().toISOString(),
-      k,
       patients: seqByPatient.size,
       rowsTotal: mapped.length,
-      rowsExported: rows.length,
-      suppressedRows: mapped.length - rows.length,
       registryVersions: [...new Set(mapped.map((r) => r.registry_version))].sort((a, b) => a - b),
     },
   }

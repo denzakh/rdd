@@ -10,9 +10,9 @@
 - **Слой агрегации** — `getDeidentifiedDataset()` в
   `src/entities/phase/api/queries.ts`. Возвращает нейтральные TS-объекты
   `{ rows, columns, meta }`. Это единственное место с бизнес-логикой
-  и k-anonymity (см. §3). Сюда же входят уже существующие агрегаты
+  де-идентификации (см. §3). Сюда же входят уже существующие агрегаты
   `countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent` —
-  они разделяют с экспортом тот же инвариант (scope + подавление малых ячеек).
+  они разделяют с экспортом тот же scope-фильтр (`data_scope`).
 - **Слой сериализации** — тонкие адаптеры в `src/shared/lib/export/`
   поверх одних и тех же агрегатов: `toCsv`, `toJson` (`serializers.ts`),
   `toXlsx` (`xlsx.ts`, без зависимостей — stored ZIP + inline strings).
@@ -36,7 +36,7 @@ UI: панель на `/reports` (`src/features/reports/ui/export-panel.tsx`).
 ### Троттлинг (миграция `0007_export_throttle.sql`)
 
 Экспорт — самый дорогой Server Action (полная выборка `patients`+`phases`,
-де-идентификация + k-anonymity в памяти): флуд им бьёт по D1 сильнее обычного
+де-идентификация в памяти): флуд им бьёт по D1 сильнее обычного
 CRUD. Минимальная защита: **1 экспорт / 60 с на пользователя**
 (`users.last_export_at`, `EXPORT_THROTTLE_SECONDS` в
 `src/shared/api/export-throttle.ts`, `tryClaimExportSlot`). Превышение —
@@ -65,13 +65,8 @@ rate-limit: флуд экспорта не должен блокировать �
 - списки колонок строятся из реестра (`PATIENT_EXPORT_COLUMNS`,
   `EXPORT_PHASE_COLUMNS`), а не захардкожены: новое поле без `pii`
   попадёт в экспорт само, поле с `pii: true` — никогда;
-- **k-anonymity:** ключ группы — `(age_group, gender, phase_order_id)`;
-  строки групп размером < `K_ANONYMITY_K` (5) подавляются,
-  счётчик — `meta.suppressedRows`;
 - **агрегаты `/reports`** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`)
-  следуют тому же инварианту: уважают `data_scope` пользователя и подавляют ячейки
-  с числом пациентов < `K_ANONYMITY_K` — иначе малые группы (count=1..2) деанонимизируются
-  через differencing attack;
+  уважают тот же `data_scope` пользователя, что и списки (row-level access);
 - согласие: `consent_withdrawn_at IS NOT NULL` — исключены из выборки
   (данные не удаляются); scope пользователя уважается.
 - **версионность протокола** (./schema-evolution.md §6): каждая строка несёт

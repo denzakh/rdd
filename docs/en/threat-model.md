@@ -50,13 +50,12 @@ No public registration — model assumes "insider attacker" (existing user) and
 
 ### I — Information Disclosure
 
-| Threat                                        | Measure                                                                                                               | Source                     |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| IDOR: clinician sees other patients           | `data_scope`; scope-repository on list/count/findById                                                                 | auth.md — Row-level access |
-| Deanonymization via aggregates (differencing) | Scope filter in ALL aggregates + suppression < K=5                                                                    | export.md §3; `queries.ts` |
-| PII via logs                                  | `audit_log`: ids + JSON values only                                                                                   | matrix.md §6.6             |
-| DB leak → session theft                       | DB: SHA-256(token) only; raw token in HttpOnly cookie                                                                 | auth.md §5                 |
-| Reading others' cells in the matrix           | Collaboration is polling by authorized users; the conflict diff is visible only to the patient's participants (scope) | matrix.md §6.4–6.5         |
+| Threat                              | Measure                                                                                                               | Source                     |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| IDOR: clinician sees other patients | `data_scope`; scope-repository on list/count/findById                                                                 | auth.md — Row-level access |
+| PII via logs                        | `audit_log`: ids + JSON values only                                                                                   | matrix.md §6.6             |
+| DB leak → session theft             | DB: SHA-256(token) only; raw token in HttpOnly cookie                                                                 | auth.md §5                 |
+| Reading others' cells in the matrix | Collaboration is polling by authorized users; the conflict diff is visible only to the patient's participants (scope) | matrix.md §6.4–6.5         |
 
 ### D — Denial of Service
 
@@ -88,8 +87,8 @@ Full list — "Demo boundaries" in `architecture-overview.md`:
 - **Uptime/alerting** — missing (see `nfr.md`); incidents not auto-detected.
 - **Server-side requiredness** — compensated in UI; close at Zod level for prod.
 
-> `/reports` aggregates were scope-unfiltered and unsuppressed (k-anonymity) — fixed:
-> they now respect `data_scope` and suppress cells < K.
+> `/reports` aggregates were scope-unfiltered — fixed:
+> they now respect `data_scope`.
 
 **Conclusion:** two axes — _client untrusted_ (`canWrite()`, whitelist,
 scope-repository, CAS duplicated on server) and _every action traceable_

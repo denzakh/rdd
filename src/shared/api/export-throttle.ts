@@ -2,7 +2,7 @@
  * Троттлинг экспорта (docs/export.md §2, миграция 0007_export_throttle.sql).
  *
  * exportDeidentified — самый дорогой Server Action (полная выборка
- * patients+phases, де-идентификация + k-anonymity в памяти): флуд им бьёт
+ * patients+phases, де-идентификация в памяти): флуд им бьёт
  * по D1 сильнее обычного CRUD. Минимальная защита: 1 экспорт / 60 с
  * на пользователя (users.last_export_at, ISO).
  *

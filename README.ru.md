@@ -70,7 +70,7 @@ npm run dev                 # http://localhost:3000
 - `docs/ru/rdd-v1.md` — ядро: архитектура, реестр полей, схема данных
 - `docs/ru/auth.md` — аутентификация, роли, row-level access (`data_scope`)
 - `docs/ru/matrix.md` — виджет «Матрица»: виртуализация, CAS-конфликты, аудит
-- `docs/ru/export.md` — де-идентифицированный экспорт (csv/json/xlsx), k-anonymity
+- `docs/ru/export.md` — де-идентифицированный экспорт (csv/json/xlsx)
 - `docs/ru/data-dictionary.md` — автогенерируемый словарь данных (страница `/data-dictionary`)
 - `docs/ru/schema-evolution.md` — **эволюция схемы без миграций**: версионность протокола
   (`registry_versions` + `registry_version` на записи) живёт в генерируемом baseline

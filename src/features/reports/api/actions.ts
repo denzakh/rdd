@@ -9,7 +9,7 @@ import { requireUser } from '@/shared/api'
 import { getDb } from '@/shared/api'
 import { EXPORT_THROTTLE_SECONDS, tryClaimExportSlot } from '@/shared/api'
 import { patientScopeFor } from '@/entities/patient'
-import { getDeidentifiedDataset, K_ANONYMITY_K } from '@/entities/phase'
+import { getDeidentifiedDataset } from '@/entities/phase'
 import { toCsv, toJson, toXlsx, exportFileMeta } from '@/shared/lib/export'
 import { createAuditRepository } from '@/shared/api'
 
@@ -23,9 +23,6 @@ export interface ExportResult {
   base64: string
   patients: number
   rowsTotal: number
-  rowsExported: number
-  suppressedRows: number
-  k: number
 }
 
 const toBase64 = (bytes: Uint8Array): string => Buffer.from(bytes).toString('base64')
@@ -50,7 +47,7 @@ export async function exportDeidentified(format: ExportFormat): Promise<ExportRe
     )
   }
   const scope = patientScopeFor(user)
-  const dataset = await getDeidentifiedDataset(db, scope, K_ANONYMITY_K)
+  const dataset = await getDeidentifiedDataset(db, scope)
 
   let bytes: Uint8Array
   if (format === 'json') bytes = new TextEncoder().encode(toJson(dataset))
@@ -63,7 +60,7 @@ export async function exportDeidentified(format: ExportFormat): Promise<ExportRe
     patientId: 0,
     fieldId: 'export:deidentified',
     action: 'update',
-    newValue: { format, rowsExported: dataset.meta.rowsExported, k: dataset.meta.k },
+    newValue: { format, rows: dataset.meta.rowsTotal },
   })
 
   return {
@@ -73,8 +70,5 @@ export async function exportDeidentified(format: ExportFormat): Promise<ExportRe
     base64: toBase64(bytes),
     patients: dataset.meta.patients,
     rowsTotal: dataset.meta.rowsTotal,
-    rowsExported: dataset.meta.rowsExported,
-    suppressedRows: dataset.meta.suppressedRows,
-    k: dataset.meta.k,
   }
 }

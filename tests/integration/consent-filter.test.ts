@@ -40,15 +40,12 @@ describe('consent: данные с отозванным согласием ис�
       .run()
 
     // до отзыва согласия — пациент участвует во всех агрегатах
-    // k=1: порог подавления не скрывает малую группу (тест про consent, не про k-anonymity).
+    expect(countOf(await countByField(db, 'main_component', { mode: 'all' }), 1)).toBeGreaterThan(0)
     expect(
-      countOf(await countByField(db, 'main_component', { mode: 'all' }, 1), 1)
-    ).toBeGreaterThan(0)
-    expect(
-      (await phaseDurationsByOrder(db, { mode: 'all' }, 1)).some((r) => r.phase_order_id === 1)
+      (await phaseDurationsByOrder(db, { mode: 'all' })).some((r) => r.phase_order_id === 1)
     ).toBe(true)
     expect(
-      (await efficacyByMainComponent(db, { mode: 'all' }, 1)).some(
+      (await efficacyByMainComponent(db, { mode: 'all' })).some(
         (r) => r.main_component === 1 && r.ad_efficacy === 2
       )
     ).toBe(true)
@@ -64,12 +61,12 @@ describe('consent: данные с отозванным согласием ис�
     expect(row).toBeTruthy()
 
     // после отзыва — пациент исключён из отчётов
-    expect(countOf(await countByField(db, 'main_component', { mode: 'all' }, 1), 1)).toBe(0)
+    expect(countOf(await countByField(db, 'main_component', { mode: 'all' }), 1)).toBe(0)
     expect(
-      (await phaseDurationsByOrder(db, { mode: 'all' }, 1)).some((r) => r.phase_order_id === 1)
+      (await phaseDurationsByOrder(db, { mode: 'all' })).some((r) => r.phase_order_id === 1)
     ).toBe(false)
     expect(
-      (await efficacyByMainComponent(db, { mode: 'all' }, 1)).some(
+      (await efficacyByMainComponent(db, { mode: 'all' })).some(
         (r) => r.main_component === 1 && r.ad_efficacy === 2
       )
     ).toBe(false)

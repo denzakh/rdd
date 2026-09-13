@@ -46,11 +46,8 @@ export interface DeidentifiedDataset {
   columns: string[]
   meta: {
     exportedAt: string
-    k: number
     patients: number
     rowsTotal: number
-    rowsExported: number
-    suppressedRows: number
     /** Версии протокола, представленные в выгрузке (docs/schema-evolution.md §6). */
     registryVersions: number[]
   }

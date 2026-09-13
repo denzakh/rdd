@@ -5,12 +5,7 @@ import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { patientScopeFor } from '@/entities/patient'
 import { getLocale } from '@/shared/lib/intl'
-import {
-  countByField,
-  phaseDurationsByOrder,
-  efficacyByMainComponent,
-  K_ANONYMITY_K,
-} from '@/entities/phase'
+import { countByField, phaseDurationsByOrder, efficacyByMainComponent } from '@/entities/phase'
 
 /**
  * Простая аналитика (docs/spec-stage-2.md §4): распределения по признакам,
@@ -66,8 +61,8 @@ export default async function ReportsPage() {
 
         <p className="text-xs text-neutral-500">
           {en
-            ? `Aggregates respect your data_scope; cells with fewer than ${K_ANONYMITY_K} patients are hidden (k-anonymity, docs/ru/export.md §3).`
-            : `Агрегаты учитывают ваш data_scope; ячейки с числом пациентов меньше ${K_ANONYMITY_K} скрыты (k-anonymity, docs/ru/export.md §3).`}
+            ? 'Aggregates respect your data_scope (the same patient visibility as in lists).'
+            : 'Агрегаты учитывают ваш data_scope (та же видимость пациентов, что и в списках).'}
         </p>
 
         <ExportPanel locale={locale} />

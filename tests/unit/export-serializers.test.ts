@@ -54,11 +54,8 @@ const dataset = (): DeidentifiedDataset => ({
   ],
   meta: {
     exportedAt: '2026-01-01T00:00:00.000Z',
-    k: 5,
     patients: 2,
     rowsTotal: 2,
-    rowsExported: 2,
-    suppressedRows: 0,
     registryVersions: [1],
   },
 })
@@ -84,11 +81,11 @@ describe('export serializers: csv/json/xlsx поверх нейтральног�
 
   it('json: meta + columns + rows со стабильным порядком ключей', () => {
     const parsed = JSON.parse(toJson(dataset())) as {
-      meta: { k: number }
+      meta: { rowsTotal: number }
       columns: string[]
       rows: Array<Record<string, number | null>>
     }
-    expect(parsed.meta.k).toBe(5)
+    expect(parsed.meta.rowsTotal).toBe(2)
     expect(parsed.columns[0]).toBe('seq_id')
     expect(Object.keys(parsed.rows[0])).toEqual(parsed.columns)
     expect(JSON.stringify(parsed)).not.toContain('birth_year')

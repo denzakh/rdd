@@ -109,7 +109,7 @@ filtered, including `findById` (otherwise the card would open by a direct link
 when the list is hidden — IDOR). When creating a patient, the Server Action sets
 the creator's `site_id` and `assigned_clinician_id` (if the creator is not `all`).
 The `/reports` aggregates also respect `data_scope` (the same `site_id`/`assigned_clinician_id`,
-see `queries.ts`), and also suppress small cells (k-anonymity, `K_ANONYMITY_K = 5`).
+see `queries.ts`).
 
 ## 9. Creating users (scripts/create-user.ts)
 
