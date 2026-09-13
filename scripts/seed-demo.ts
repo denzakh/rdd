@@ -469,73 +469,89 @@ const SYMPTOM_PROFILES: Partial<PhaseInput>[] = [
   },
 ]
 
+/**
+ * Минимальное число фаз на пациента — 3 (в реальной выборке в среднем
+ * 3,3 ± 2,4 фазы); часть пациентов получает 4–5 фаз: с течением времени
+ * течение учащается (64% наблюдений).
+ */
+const MIN_PHASES = 3
+
+/** Число фаз пациента: 3, 4 или 5 (детерминированно, без рандома). */
+function phaseCountFor(patientIndex: number): number {
+  return MIN_PHASES + (patientIndex % 3)
+}
+
+/** Прибавляет months к дате 'YYYY-MM-DD' (переход к следующей фазе). */
+function addMonths(date: string, months: number): string {
+  const [year, month] = date.split('-').map(Number)
+  const total = year * 12 + (month - 1) + Math.round(months)
+  const y = Math.floor(total / 12)
+  const m = (total % 12) + 1
+  return `${y}-${String(m).padStart(2, '0')}-15`
+}
+
+/**
+ * Фазы пациента отражают неблагоприятное течение (см. контекст статьи):
+ * каждая следующая депрессивная фаза длиннее предыдущей (удлинение),
+ * а интермиссии, наоборот, укорачиваются — в реальной выборке первая
+ * ремиссия 101,1 ± 119,5 мес против 55,3 ± 87,7 в последней. Тяжесть
+ * депрессии и когнитивное снижение нарастают от фазы к фазе; на последней
+ * фазе интермиссия ещё не наступила (NULL — текущее состояние).
+ */
 function phasesFor(patientIndex: number): PhaseInput[] {
-  // Год фазы — по модулю 4, чтобы не уезжать в будущее при росте числа пациентов.
-  const base: Partial<PhaseInput> = {
-    phase_start_date: `202${2 + (patientIndex % 4)}-0${(patientIndex % 9) + 1}-15`,
-    ad_efficacy: (patientIndex % 3) + 1,
-  }
   const symptoms = SYMPTOM_PROFILES[patientIndex % SYMPTOM_PROFILES.length]
+  const count = phaseCountFor(patientIndex)
 
-  // Фаза обострения: полный симптоматический профиль, высокие баллы шкал.
-  const acute: Partial<PhaseInput> = {
-    ...base,
-    ...symptoms,
-    hamd_total: 16 + patientIndex * 3,
-    beck_total: 20 + patientIndex * 2,
-    mmse_total: 30 - (symptoms.cognitive_impair ? 3 : 0) - (symptoms.orientation === 0 ? 3 : 0),
+  // Длительности: первая фаза 4–6 мес и +2–3 мес к каждой следующей;
+  // первая ремиссия 84…40 мес, каждая следующая меньше на 14–20 мес
+  // (минимум 12 мес). Так агрегаты по номеру фазы показывают удлинение
+  // фаз и укорочение интермиссий.
+  const durations: Array<{ phase: number; intermission: number | null }> = []
+  let duration = 4 + (patientIndex % 3)
+  let intermission = 84 - patientIndex * 4
+  for (let i = 0; i < count; i++) {
+    durations.push({
+      phase: duration,
+      intermission: i === count - 1 ? null : intermission,
+    })
+    duration += 2 + (patientIndex % 2)
+    intermission = Math.max(12, intermission - (14 + (patientIndex % 3) * 3))
   }
 
-  // Вторая фаза — ремиссия: острая симптоматика угасает, остаются
-  // резидуальные признаки и факты о лечении в интермиссии.
-  const remission: Partial<PhaseInput> = {
-    ...base,
-    ...symptoms,
-    // острая симптоматика и психотика уходят
-    melancholy_obj: 0,
-    anxiety_obj: 0,
-    apathy_obj: 0,
-    hallucinations: 0,
-    delusions: 0,
-    obsessions: 0,
-    motor_agitation: 0,
-    motor_retardation: 0,
-    fixed_posture: 0,
-    hygiene_decline: 0,
-    diurnal_rhythm: 0,
-    orientation: 1,
-    insight: 1,
-    sleep_worsening: 0,
-    appetite_loss: 0,
-    // резидуальная симптоматика
-    fatigue: 1,
-    affect_lability: 1,
-    cognitive_impair: symptoms.cognitive_impair ? 1 : 0,
-    physical_pain: symptoms.physical_pain ? 1 : 0,
-    hypochondria: symptoms.hypochondria ? 1 : 0,
-    // картина ремиссии (src/shared/config/registry/remission.ts)
-    subdepression_const: patientIndex % 2,
-    affective_lability_rem: patientIndex % 3 === 0 ? 1 : 0,
-    anxiety_lability_rem: patientIndex % 3 === 1 ? 1 : 0,
-    unfavorable_env: patientIndex % 4 === 0 ? 1 : 0,
-    pain_in_remission: symptoms.physical_pain ? 1 : 0,
-    treatment_in_remission: patientIndex === 9 ? 0 : 1,
-    prophylaxis_type: patientIndex === 9 ? 0 : (patientIndex % 3) + 1,
-    // шкалы в ремиссии заметно ниже
-    hamd_total: 6 + (patientIndex % 4),
-    beck_total: 8 + (patientIndex % 5),
-    mmse_total: 30 - (symptoms.cognitive_impair ? 2 : 0),
-  }
+  const phases: PhaseInput[] = []
+  // Начальная дата — как раньше (по модулю 4), далее сдвиг на длительность
+  // фазы + интермиссию, чтобы даты начал фаз были монотонными.
+  let startDate = `202${2 + (patientIndex % 4)}-0${(patientIndex % 9) + 1}-15`
+  for (const [i, d] of durations.entries()) {
+    // Доля неполных ремиссий растёт с течением заболевания (с 45% до 66%).
+    const partialRemission = i >= 1 || patientIndex % 2 === 0
 
-  return [
-    { patient_id: 0, ...acute, phase_duration_months: 4 + patientIndex },
-    {
+    phases.push({
       patient_id: 0,
-      ...remission,
-      phase_duration_months: 2 + patientIndex,
-      intermission_duration: 5,
-    },
-  ]
+      phase_start_date: startDate,
+      ad_efficacy: (patientIndex % 3) + 1,
+      ...symptoms,
+      // Картина ремиссии после текущей фазы (src/shared/config/registry/remission.ts).
+      subdepression_const: partialRemission ? 1 : 0,
+      affective_lability_rem: patientIndex % 3 === 0 ? 1 : 0,
+      anxiety_lability_rem: patientIndex % 3 === 1 ? 1 : 0,
+      unfavorable_env: patientIndex % 4 === 0 ? 1 : 0,
+      pain_in_remission: symptoms.physical_pain ? 1 : 0,
+      treatment_in_remission: patientIndex === 9 ? 0 : 1,
+      prophylaxis_type: patientIndex === 9 ? 0 : (patientIndex % 3) + 1,
+      // Удлинение фаз и укорочение интермиссий (durations выше).
+      phase_duration_months: d.phase,
+      intermission_duration: d.intermission,
+      // Шкалы: тяжесть и когнитивный дефицит нарастают от фазы к фазе.
+      hamd_total: 16 + patientIndex * 3 + i * 2,
+      beck_total: 20 + patientIndex * 2 + i * 2,
+      mmse_total:
+        30 - (symptoms.cognitive_impair ? 3 : 0) - (symptoms.orientation === 0 ? 3 : 0) - i * 2,
+    })
+
+    startDate = addMonths(startDate, d.phase + (d.intermission ?? 0))
+  }
+  return phases
 }
 
 // ---------- remote БД (wrangler d1 execute --remote) ----------
@@ -676,10 +692,11 @@ async function main() {
     }
     for (const [i, input] of PATIENTS.entries()) {
       const id = await patients.create(input)
-      for (const p of phasesFor(i)) {
+      const patientPhases = phasesFor(i)
+      for (const p of patientPhases) {
         await phases.create({ ...p, patient_id: id })
       }
-      console.log(`  ✔ пациент #${id} + 2 фазы`)
+      console.log(`  ✔ пациент #${id} + ${patientPhases.length} фаз`)
     }
     console.log('✅ Демо-данные созданы (npm run dev:cf → /patients)')
   } finally {
