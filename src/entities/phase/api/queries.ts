@@ -126,6 +126,11 @@ export async function efficacyByMainComponent(
 export interface AverageStat {
   /** Средняя величина (в годах/месяцах) или null, если корректных строк нет. */
   value: number | null
+  /**
+   * Выборочное среднее квадратичное отклонение (знаменатель n−1) той же
+   * величины; null, если учтённых строк меньше двух.
+   */
+  stddev: number | null
   /** Число учтённых пациентов (или строк для средних по фазам). */
   patients: number
 }
@@ -133,6 +138,7 @@ export interface AverageStat {
 /**
  * Средний возраст начала заболевания (в годах): пациент учитывается по своей
  * ПЕРВОЙ фазе (phase_order_id = 1), возраст = год(phase_start_date) − birth_year.
+ * stddev — выборочное СКО по возрастам пациентов.
  */
 export async function averageOnsetAge(
   db: D1Database,
@@ -141,24 +147,30 @@ export async function averageOnsetAge(
   const s = scopeSqlForPhases(scope)
   const { results } = await db
     .prepare(
-      `SELECT AVG(CAST(strftime('%Y', ph.phase_start_date) AS REAL) - p.birth_year) AS value,
-              COUNT(*) AS patients
-       FROM phases ph
-       JOIN patients p ON p.id = ph.patient_id
-       WHERE ph.phase_order_id = 1
-         AND ph.phase_start_date IS NOT NULL
-         AND p.birth_year IS NOT NULL
-         AND p.consent_withdrawn_at IS NULL${s.sql}`
+      `SELECT AVG(age) AS value,
+              COUNT(age) AS patients,
+              SQRT((SUM(age * age) - SUM(age) * SUM(age) / COUNT(age)) /
+                   (COUNT(age) - 1)) AS stddev
+       FROM (
+         SELECT CAST(strftime('%Y', ph.phase_start_date) AS REAL) - p.birth_year AS age
+         FROM phases ph
+         JOIN patients p ON p.id = ph.patient_id
+         WHERE ph.phase_order_id = 1
+           AND ph.phase_start_date IS NOT NULL
+           AND p.birth_year IS NOT NULL
+           AND p.consent_withdrawn_at IS NULL${s.sql}
+       )`
     )
     .bind(...s.binds)
     .all<AverageStat>()
-  return results[0] ?? { value: null, patients: 0 }
+  return results[0] ?? { value: null, patients: 0, stddev: null }
 }
 
 /**
  * Средняя длительность заболевания в месяцах: для каждого пациента
  * суммируются длительности всех фаз и интермиссий, затем — среднее
  * по пациентам с ненулевой накопленной длительностью.
+ * stddev — выборочное СКО по накопленным длительностям пациентов.
  */
 export async function averageDiseaseDurationMonths(
   db: D1Database,
@@ -167,7 +179,10 @@ export async function averageDiseaseDurationMonths(
   const s = scopeSqlForPhases(scope)
   const { results } = await db
     .prepare(
-      `SELECT AVG(total) AS value, COUNT(*) AS patients
+      `SELECT AVG(total) AS value,
+              COUNT(total) AS patients,
+              SQRT((SUM(total * total) - SUM(total) * SUM(total) / COUNT(total)) /
+                   (COUNT(total) - 1)) AS stddev
        FROM (
          SELECT ph.patient_id,
                 SUM(COALESCE(ph.phase_duration_months, 0)) +
@@ -181,7 +196,7 @@ export async function averageDiseaseDurationMonths(
     )
     .bind(...s.binds)
     .all<AverageStat>()
-  return results[0] ?? { value: null, patients: 0 }
+  return results[0] ?? { value: null, patients: 0, stddev: null }
 }
 
 /** Средние длительности фаз и интермиссий по всем эпизодам (в месяцах). */
@@ -192,6 +207,10 @@ export interface AverageDurations {
   phaseRows: number
   /** Число фаз с заполненной длительностью интермиссии. */
   intermissionRows: number
+  /** Выборочное СКО длительности фаз, мес (null, если фаз < 2). */
+  stddevPhaseMonths: number | null
+  /** Выборочное СКО длительности интермиссий, мес (null, если интермиссий < 2). */
+  stddevIntermissionMonths: number | null
 }
 
 export async function averageDurations(
@@ -204,7 +223,15 @@ export async function averageDurations(
       `SELECT AVG(phase_duration_months) AS avg_phase,
               AVG(intermission_duration) AS avg_intermission,
               COUNT(phase_duration_months) AS phase_rows,
-              COUNT(intermission_duration) AS intermission_rows
+              COUNT(intermission_duration) AS intermission_rows,
+              SQRT((SUM(phase_duration_months * phase_duration_months) -
+                      SUM(phase_duration_months) * SUM(phase_duration_months) /
+                      COUNT(phase_duration_months)) / (COUNT(phase_duration_months) - 1))
+                AS phase_stddev,
+              SQRT((SUM(intermission_duration * intermission_duration) -
+                      SUM(intermission_duration) * SUM(intermission_duration) /
+                      COUNT(intermission_duration)) / (COUNT(intermission_duration) - 1))
+                AS intermission_stddev
        FROM phases
        WHERE patient_id IN (SELECT p.id FROM patients p
                             WHERE p.consent_withdrawn_at IS NULL)${s.sql}`
@@ -215,6 +242,8 @@ export async function averageDurations(
       avg_intermission: number | null
       phase_rows: number
       intermission_rows: number
+      phase_stddev: number | null
+      intermission_stddev: number | null
     }>()
   const r = results[0]
   return {
@@ -222,6 +251,8 @@ export async function averageDurations(
     avgIntermissionMonths: r?.avg_intermission ?? null,
     phaseRows: r?.phase_rows ?? 0,
     intermissionRows: r?.intermission_rows ?? 0,
+    stddevPhaseMonths: r?.phase_stddev ?? null,
+    stddevIntermissionMonths: r?.intermission_stddev ?? null,
   }
 }
 /** Динамика «первый → предпоследний» (длительности фаз/интермиссий). */

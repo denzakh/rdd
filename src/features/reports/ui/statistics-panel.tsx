@@ -14,6 +14,8 @@ export interface StatsValueCount {
 
 export interface StatsAverage {
   value: number | null
+  /** Выборочное среднее квадратичное отклонение (null, если строк < 2). */
+  stddev: number | null
   patients: number
 }
 
@@ -30,6 +32,8 @@ export interface StatsReport {
     total: number
     gender: StatsValueCount[]
     averageAgeYears: number | null
+    /** Выборочное СКО среднего возраста (null, если пациентов < 2). */
+    averageAgeStddev: number | null
     averageAgePatients: number
     familyHistory: StatsValueCount[]
   }
@@ -38,6 +42,10 @@ export interface StatsReport {
     diseaseDurationMonths: StatsAverage
     avgPhaseMonths: number | null
     avgIntermissionMonths: number | null
+    /** Выборочное СКО длительности фаз, мес (null, если фаз < 2). */
+    stddevPhaseMonths: number | null
+    /** Выборочное СКО длительности интермиссий, мес (null, если интермиссий < 2). */
+    stddevIntermissionMonths: number | null
     phaseRows: number
     intermissionRows: number
     phaseRatio: StatsRatio
@@ -109,6 +117,21 @@ const monthsOrDash = (v: number | null, en: boolean): string =>
 const yearsOrDash = (v: number | null, en: boolean): string =>
   v === null ? '—' : `${fmt1(v)} ${en ? 'yrs' : 'лет'}`
 
+/**
+ * «Среднее ± СКО» (пример: «50 ± 2.2»); тире, если средняя или СКО недоступны
+ * (нет данных или учтена одна строка). unit: 'yr' — годы, 'mo' — месяцы.
+ */
+const meanPmSd = (
+  mean: number | null,
+  sd: number | null,
+  unit: 'yr' | 'mo',
+  en: boolean
+): string => {
+  if (mean === null || sd === null) return '—'
+  const u = unit === 'mo' ? (en ? 'mo' : 'мес') : en ? 'yrs' : 'лет'
+  return `${fmt1(mean)} ± ${fmt1(sd)} ${u}`
+}
+
 /** Панель статистики страницы /reports (серверный компонент, без JS). */
 export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: Locale }) {
   const en = locale === 'en'
@@ -161,7 +184,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             {en ? 'Average age' : 'Средний возраст'}
           </h3>
           <p className="text-2xl font-semibold tabular-nums">
-            {yearsOrDash(p.averageAgeYears, en)}
+            {meanPmSd(p.averageAgeYears, p.averageAgeStddev, 'yr', en)}
           </p>
           <p className="text-xs text-neutral-500">
             {en
@@ -193,7 +216,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               {en ? 'Average age at disease onset' : 'Средний возраст начала заболевания'}
             </h3>
             <p className="text-2xl font-semibold tabular-nums">
-              {yearsOrDash(f.onsetAge.value, en)}
+              {meanPmSd(f.onsetAge.value, f.onsetAge.stddev, 'yr', en)}
             </p>
             <p className="text-xs text-neutral-500">
               {en
@@ -207,7 +230,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               {en ? 'Average disease duration' : 'Средняя длительность заболевания'}
             </h3>
             <p className="text-2xl font-semibold tabular-nums">
-              {monthsOrDash(f.diseaseDurationMonths.value, en)}
+              {meanPmSd(f.diseaseDurationMonths.value, f.diseaseDurationMonths.stddev, 'mo', en)}
             </p>
             <p className="text-xs text-neutral-500">
               {f.diseaseDurationMonths.value === null
@@ -229,9 +252,13 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           </h3>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
             <dt className="text-neutral-500">{en ? 'Phase, months' : 'Фазы, мес'}</dt>
-            <dd className="tabular-nums">{monthsOrDash(f.avgPhaseMonths, en)}</dd>
+            <dd className="tabular-nums">
+              {meanPmSd(f.avgPhaseMonths, f.stddevPhaseMonths, 'mo', en)}
+            </dd>
             <dt className="text-neutral-500">{en ? 'Intermission, months' : 'Интермиссии, мес'}</dt>
-            <dd className="tabular-nums">{monthsOrDash(f.avgIntermissionMonths, en)}</dd>
+            <dd className="tabular-nums">
+              {meanPmSd(f.avgIntermissionMonths, f.stddevIntermissionMonths, 'mo', en)}
+            </dd>
           </dl>
           <p className="text-xs text-neutral-500">
             {en

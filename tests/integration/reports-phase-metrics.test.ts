@@ -116,11 +116,15 @@ describe('агрегаты /reports по фазам', () => {
       const onset = await averageOnsetAge(db, { mode: 'all' })
       expect(onset.patients).toBe(2)
       expect(onset.value).toBeCloseTo(32.5, 6)
+      // выборочное СКО: значения [40, 25] → s = √112.5 ≈ 10.6066
+      expect(onset.stddev).toBeCloseTo(Math.sqrt(112.5), 6)
 
       // --- длительность заболевания, мес: A=(6+8+10)+(12+10)=46, B=(4+6)+2=12 → 29
       const dur = await averageDiseaseDurationMonths(db, { mode: 'all' })
       expect(dur.patients).toBe(2)
       expect(dur.value).toBeCloseTo(29, 6)
+      // выборочное СКО: значения [46, 12] → s = √578 ≈ 24.0416
+      expect(dur.stddev).toBeCloseTo(Math.sqrt(578), 6)
 
       // --- средние по строкам: фазы (6+8+10+4+6)/5=6.8, интермиссии (12+10+2)/3=8
       const avg = await averageDurations(db, { mode: 'all' })
@@ -128,6 +132,9 @@ describe('агрегаты /reports по фазам', () => {
       expect(avg.avgIntermissionMonths).toBeCloseTo(8, 6)
       expect(avg.phaseRows).toBe(5)
       expect(avg.intermissionRows).toBe(3)
+      // выборочное СКО: фазы [6,8,10,4,6] → s = √5.2 ≈ 2.2804; интермиссии [12,10,2] → s = √28 ≈ 5.2915
+      expect(avg.stddevPhaseMonths).toBeCloseTo(Math.sqrt(5.2), 6)
+      expect(avg.stddevIntermissionMonths).toBeCloseTo(Math.sqrt(28), 6)
 
       // --- динамика фаз: первая 6 / предпоследняя 8 → 0.75 (удлинение)
       const ph = await firstToPenultimatePhaseDuration(db, { mode: 'all' })

@@ -81,6 +81,8 @@ describe('агрегаты /reports по пациентам', () => {
       const age = await averageAgeAtInclusion(db, allScope)
       expect(age.value).toBeCloseTo(30, 6)
       expect(age.patients).toBe(3)
+      // выборочное СКО: значения [45, 35, 10] → s = √325 ≈ 18.0278
+      expect(age.stddev).toBeCloseTo(Math.sqrt(325), 6)
 
       // data_scope 'site-a' — только свой центр
       const siteA = patientScopeFor(mkUser('site', 'site-a'))
@@ -90,6 +92,8 @@ describe('агрегаты /reports по пациентам', () => {
       const ageA = await averageAgeAtInclusion(db, siteA)
       expect(ageA.value).toBeCloseTo(40, 6)
       expect(ageA.patients).toBe(2)
+      // выборочное СКО: значения [45, 35] → s = √50 ≈ 7.0711
+      expect(ageA.stddev).toBeCloseTo(Math.sqrt(50), 6)
 
       // 'site' без привязки к центру — fail closed, пусто
       const noBinding = patientScopeFor(mkUser('site', null))
@@ -97,6 +101,7 @@ describe('агрегаты /reports по пациентам', () => {
       expect(await familyHistoryDistribution(db, noBinding)).toEqual([])
       expect((await averageAgeAtInclusion(db, noBinding)).patients).toBe(0)
       expect((await averageAgeAtInclusion(db, noBinding)).value).toBeNull()
+      expect((await averageAgeAtInclusion(db, noBinding)).stddev).toBeNull()
     } finally {
       for (const id of [idA1, idA2, idB]) await cleanupPatient(db, id)
     }

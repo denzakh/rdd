@@ -72,25 +72,30 @@ export async function familyHistoryDistribution(
  * Средний возраст (в полных годах) на момент включения в исследование:
  * год(study_entry_date) − birth_year — та же семантика, что у вычисляемого
  * поля current_age реестра пациента. Учитываются только пациенты
- * с заполненными обеими величинами.
+ * с заполненными обеими величинами. stddev — выборочное СКО по возрастам.
  */
 export async function averageAgeAtInclusion(
   db: D1Database,
   scope: PatientScope = PATIENT_SCOPE_ALL
-): Promise<{ value: number | null; patients: number }> {
+): Promise<{ value: number | null; patients: number; stddev: number | null }> {
   const w = patientScopeWhere(scope)
   const conditions = [CONSENT_OK]
   if (w.sql) conditions.push(w.sql)
   const row = await db
     .prepare(
-      `SELECT AVG(CAST(strftime('%Y', study_entry_date) AS REAL) - birth_year) AS value,
-              COUNT(*) AS patients
-       FROM patients
-       WHERE ${conditions.join(' AND ')}
-         AND study_entry_date IS NOT NULL
-         AND birth_year IS NOT NULL`
+      `SELECT AVG(age) AS value,
+              COUNT(age) AS patients,
+              SQRT((SUM(age * age) - SUM(age) * SUM(age) / COUNT(age)) /
+                   (COUNT(age) - 1)) AS stddev
+       FROM (
+         SELECT CAST(strftime('%Y', study_entry_date) AS REAL) - birth_year AS age
+         FROM patients
+         WHERE ${conditions.join(' AND ')}
+           AND study_entry_date IS NOT NULL
+           AND birth_year IS NOT NULL
+       )`
     )
     .bind(...w.binds)
-    .first<{ value: number | null; patients: number }>()
-  return row ?? { value: null, patients: 0 }
+    .first<{ value: number | null; patients: number; stddev: number | null }>()
+  return row ?? { value: null, patients: 0, stddev: null }
 }
