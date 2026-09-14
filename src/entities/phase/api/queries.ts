@@ -117,6 +117,272 @@ export async function efficacyByMainComponent(
   return results
 }
 // ---------------------------------------------------------------------------
+// Дополнительные показатели /reports (по фазам).
+// Семантика count: в распределениях (severity/season/component) — число ФАЗ
+// (эпизодов), т.к. каждый эпизод характеризуется своей тяжестью/компонентом
+// и датой начала. Запросы используют только статические колонки и биндинги.
+// ---------------------------------------------------------------------------
+
+export interface AverageStat {
+  /** Средняя величина (в годах/месяцах) или null, если корректных строк нет. */
+  value: number | null
+  /** Число учтённых пациентов (или строк для средних по фазам). */
+  patients: number
+}
+
+/**
+ * Средний возраст начала заболевания (в годах): пациент учитывается по своей
+ * ПЕРВОЙ фазе (phase_order_id = 1), возраст = год(phase_start_date) − birth_year.
+ */
+export async function averageOnsetAge(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<AverageStat> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT AVG(CAST(strftime('%Y', ph.phase_start_date) AS REAL) - p.birth_year) AS value,
+              COUNT(*) AS patients
+       FROM phases ph
+       JOIN patients p ON p.id = ph.patient_id
+       WHERE ph.phase_order_id = 1
+         AND ph.phase_start_date IS NOT NULL
+         AND p.birth_year IS NOT NULL
+         AND p.consent_withdrawn_at IS NULL${s.sql}`
+    )
+    .bind(...s.binds)
+    .all<AverageStat>()
+  return results[0] ?? { value: null, patients: 0 }
+}
+
+/**
+ * Средняя длительность заболевания в месяцах: для каждого пациента
+ * суммируются длительности всех фаз и интермиссий, затем — среднее
+ * по пациентам с ненулевой накопленной длительностью.
+ */
+export async function averageDiseaseDurationMonths(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<AverageStat> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT AVG(total) AS value, COUNT(*) AS patients
+       FROM (
+         SELECT ph.patient_id,
+                SUM(COALESCE(ph.phase_duration_months, 0)) +
+                  SUM(COALESCE(ph.intermission_duration, 0)) AS total
+         FROM phases ph
+         WHERE ph.patient_id IN (SELECT p.id FROM patients p
+                                 WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+         GROUP BY ph.patient_id
+       )
+       WHERE total > 0`
+    )
+    .bind(...s.binds)
+    .all<AverageStat>()
+  return results[0] ?? { value: null, patients: 0 }
+}
+
+/** Средние длительности фаз и интермиссий по всем эпизодам (в месяцах). */
+export interface AverageDurations {
+  avgPhaseMonths: number | null
+  avgIntermissionMonths: number | null
+  /** Число фаз с заполненной длительностью фазы. */
+  phaseRows: number
+  /** Число фаз с заполненной длительностью интермиссии. */
+  intermissionRows: number
+}
+
+export async function averageDurations(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<AverageDurations> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT AVG(phase_duration_months) AS avg_phase,
+              AVG(intermission_duration) AS avg_intermission,
+              COUNT(phase_duration_months) AS phase_rows,
+              COUNT(intermission_duration) AS intermission_rows
+       FROM phases
+       WHERE patient_id IN (SELECT p.id FROM patients p
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}`
+    )
+    .bind(...s.binds)
+    .all<{
+      avg_phase: number | null
+      avg_intermission: number | null
+      phase_rows: number
+      intermission_rows: number
+    }>()
+  const r = results[0]
+  return {
+    avgPhaseMonths: r?.avg_phase ?? null,
+    avgIntermissionMonths: r?.avg_intermission ?? null,
+    phaseRows: r?.phase_rows ?? 0,
+    intermissionRows: r?.intermission_rows ?? 0,
+  }
+}
+/** Динамика «первый → предпоследний» (длительности фаз/интермиссий). */
+export interface FirstToPenultimate {
+  /** Средняя длительность первой фазы/интермиссии, мес. */
+  firstAvg: number | null
+  /** Средняя длительность предпоследней фазы/интермиссии, мес. */
+  penultimateAvg: number | null
+  /** firstAvg / penultimateAvg (null, если одна из средних недоступна). */
+  ratio: number | null
+  /** Число пациентов с минимум 3 фазами (по ним осмысленна «предпоследняя»). */
+  patients: number
+}
+
+/** Динамика длительности ФАЗ: первая фаза против предпоследней. */
+export async function firstToPenultimatePhaseDuration(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<FirstToPenultimate> {
+  return firstToPenultimateOfColumn(db, 'phase_duration_months', scope)
+}
+
+/** Динамика длительности ИНТЕРМИССИЙ: первая против предпоследней. */
+export async function firstToPenultimateIntermissionDuration(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<FirstToPenultimate> {
+  return firstToPenultimateOfColumn(db, 'intermission_duration', scope)
+}
+
+/**
+ * Сравнение 1-го и предпоследнего эпизода по пациентам с минимум 3 фазами.
+ * «Первая» = ранг 1 по phase_order_id, «предпоследняя» = ранг n−1 (n — число
+ * фаз пациента). Имя колонки — только константа из двух литералов
+ * (инъекция невозможна); вывод о динамике: ratio > 1 — укорочение,
+ * ratio < 1 — удлинение (см. statistics-panel.tsx).
+ */
+async function firstToPenultimateOfColumn(
+  db: D1Database,
+  column: 'phase_duration_months' | 'intermission_duration',
+  scope: DeidentifiedScope
+): Promise<FirstToPenultimate> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `WITH ordered AS (
+         SELECT patient_id, ${column},
+                ROW_NUMBER() OVER (PARTITION BY patient_id ORDER BY phase_order_id) AS rn,
+                COUNT(*) OVER (PARTITION BY patient_id) AS total
+         FROM phases
+         WHERE patient_id IN (SELECT p.id FROM patients p
+                              WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+       )
+       SELECT AVG(CASE WHEN rn = 1 THEN ${column} END) AS first_avg,
+              AVG(CASE WHEN rn = total - 1 THEN ${column} END) AS penultimate_avg,
+              COUNT(DISTINCT patient_id) AS patients
+       FROM ordered
+       WHERE total >= 3`
+    )
+    .bind(...s.binds)
+    .all<{ first_avg: number | null; penultimate_avg: number | null; patients: number }>()
+  const r = results[0]
+  const firstAvg = r?.first_avg ?? null
+  const penultimateAvg = r?.penultimate_avg ?? null
+  const ratio =
+    firstAvg !== null && penultimateAvg !== null && penultimateAvg > 0
+      ? firstAvg / penultimateAvg
+      : null
+  return { firstAvg, penultimateAvg, ratio, patients: r?.patients ?? 0 }
+}
+/** Сезон начала обострения: 1 — зима, 2 — весна, 3 — лето, 4 — осень. */
+export interface SeasonCount {
+  season: number
+  count: number
+}
+
+/** Распределение начал фаз (обострений) по сезонам года (число фаз). */
+export async function seasonalDistribution(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<SeasonCount[]> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT CASE CAST(strftime('%m', phase_start_date) AS INTEGER)
+                WHEN 12 THEN 1 WHEN 1 THEN 1 WHEN 2 THEN 1
+                WHEN 3 THEN 2 WHEN 4 THEN 2 WHEN 5 THEN 2
+                WHEN 6 THEN 3 WHEN 7 THEN 3 WHEN 8 THEN 3
+                WHEN 9 THEN 4 WHEN 10 THEN 4 WHEN 11 THEN 4
+                ELSE 0 END AS season_code,
+              COUNT(*) AS count
+       FROM phases
+       WHERE phase_start_date IS NOT NULL
+         AND patient_id IN (SELECT p.id FROM patients p
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+       GROUP BY season_code
+       ORDER BY season_code`
+    )
+    .bind(...s.binds)
+    .all<{ season_code: number; count: number }>()
+  return results
+    .filter((r) => r.season_code > 0)
+    .map((r) => ({ season: r.season_code, count: r.count }))
+}
+
+/**
+ * Тяжесть депрессии по HAM-D: распределение ФАЗ по hamd_severity
+ * (2 — лёгкая, 3 — умеренная, 4 — тяжёлая). Категория 1 («Отсутствует»,
+ * ≤7 баллов) не входит в запрошенные категории — отфильтровывается здесь.
+ */
+export async function depressionSeverityDistribution(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<Array<{ value: number; count: number }>> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT patient_id, hamd_total
+       FROM phases
+       WHERE hamd_total IS NOT NULL
+         AND patient_id IN (SELECT p.id FROM patients p
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}`
+    )
+    .bind(...s.binds)
+    .all<{ patient_id: number; hamd_total: number }>()
+
+  const field = (FLAT_REGISTRY as unknown as Record<string, RegistryField>).hamd_severity
+  const severityOf = field?.calculate
+  const counts = new Map<number, number>()
+  for (const r of results) {
+    const severity = severityOf ? Number(severityOf({ hamd_total: r.hamd_total }) ?? 0) : 0
+    if (severity < 2) continue
+    counts.set(severity, (counts.get(severity) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([value, count]: [number, number]) => ({ value, count }))
+    .sort((a, b) => a.value - b.value)
+}
+
+/** Преобладающий компонент депрессии: распределение ФАЗ по main_component. */
+export async function mainComponentDistribution(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<Array<{ value: number; count: number }>> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT main_component AS value, COUNT(*) AS count
+       FROM phases
+       WHERE main_component IS NOT NULL
+         AND patient_id IN (SELECT p.id FROM patients p
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+       GROUP BY main_component
+       ORDER BY count DESC, value ASC`
+    )
+    .bind(...s.binds)
+    .all<{ value: number; count: number }>()
+  return results
+}
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // Слой агрегации де-идентифицированного датасета (docs/export.md).
 // ИНВАРИАНТ: де-идентификация — ЗДЕСЬ, один раз, до любой сериализации
 // (csv/json/xlsx). Сериализаторы получают нейтральные TS-объекты и PII

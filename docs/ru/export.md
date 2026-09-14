@@ -65,8 +65,10 @@ rate-limit: флуд экспорта не должен блокировать �
 - списки колонок строятся из реестра (`PATIENT_EXPORT_COLUMNS`,
   `EXPORT_PHASE_COLUMNS`), а не захардкожены: новое поле без `pii`
   попадёт в экспорт само, поле с `pii: true` — никогда;
-- **агрегаты `/reports`** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`)
-  уважают тот же `data_scope` пользователя, что и списки (row-level access);
+- **агрегаты `/reports`** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`
+  и расширенные показатели по фазам/пациентам: `entities/phase/api/queries.ts`,
+  `entities/patient/api/patient-queries.ts`) уважают тот же `data_scope`
+  пользователя, что и списки (row-level access);
 - согласие: `consent_withdrawn_at IS NOT NULL` — исключены из выборки
   (данные не удаляются); scope пользователя уважается.
 - **версионность протокола** (./schema-evolution.md §6): каждая строка несёт

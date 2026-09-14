@@ -65,7 +65,9 @@ to duplicate the masking — a classic hole.
 - column lists are built from the registry (`PATIENT_EXPORT_COLUMNS`,
   `EXPORT_PHASE_COLUMNS`), not hardcoded: a new field without `pii`
   will reach the export on its own, a field with `pii: true` — never;
-- **`/reports` aggregates** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`)
+- **`/reports` aggregates** (`countByField`, `phaseDurationsByOrder`, `efficacyByMainComponent`
+  plus the extended phase/patient metrics in `entities/phase/api/queries.ts`
+  and `entities/patient/api/patient-queries.ts`)
   respect the same `data_scope` as the lists (row-level access);
 - consent: `consent_withdrawn_at IS NOT NULL` — excluded from the query
   (data is not deleted); the user's scope is respected.

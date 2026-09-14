@@ -31,6 +31,17 @@
   - `countByField(fieldId, scope?)` — «сколько пациентов с признаком X» (колонка существует по построению схемы; `count` = число РАЗНЫХ пациентов);
   - `phaseDurationsByOrder(scope?)` — средние длительности фаз/интермиссий;
   - `efficacyByMainComponent(scope?)` — эффективность АД (`ad_efficacy`) в разрезе `main_component`.
+  - показатели /reports (по фазам): `averageOnsetAge` (возраст начала заболевания),
+    `averageDiseaseDurationMonths` (длительность заболевания), `averageDurations`
+    (средние длительности фаз/интермиссий), `firstToPenultimatePhaseDuration` /
+    `firstToPenultimateIntermissionDuration` (динамика «первая → предпоследняя»,
+    пациенты с минимум 3 фазами), `seasonalDistribution` (сезон начала обострения),
+    `depressionSeverityDistribution` (тяжесть HAM-D: лёгкая/умеренная/тяжёлая),
+    `mainComponentDistribution` (преобладающий компонент). Распределения
+    severity/season/component считаются числом ФАЗ (эпизодов);
+  - показатели /reports (по пациентам) — `src/entities/patient/api/patient-queries.ts`:
+    `genderDistribution` (пол), `averageAgeAtInclusion` (средний возраст),
+    `familyHistoryDistribution` (наследственная отягощённость).
 - Все агрегаты уважают `data_scope` пользователя (тот же row-level access, что у списков).
 - Валидатор `fieldId`: разрешены только ключи `FLAT_REGISTRY` со scope фазы (защита от SQL-инъекции через имя колонки).
 

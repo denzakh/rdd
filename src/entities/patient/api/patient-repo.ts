@@ -52,6 +52,12 @@ function scopeWhere(scope: PatientScope): { sql: string; binds: unknown[] } {
   }
 }
 
+/**
+ * Публичный доступ к scope-фрагменту для агрегатов /reports
+ * (patient-queries.ts) — тот же row-level access, что и у списков репозитория.
+ */
+export const patientScopeWhere = scopeWhere
+
 export interface PatientRepository {
   create(input: PatientInput): Promise<number>
   findById(id: number): Promise<PatientRow | null>

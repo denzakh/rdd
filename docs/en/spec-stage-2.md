@@ -31,6 +31,17 @@
   - `countByField(fieldId, scope?)` — "how many patients with feature X" (the column exists by schema construction; `count` = number of DISTINCT patients);
   - `phaseDurationsByOrder(scope?)` — average durations of phases/intermissions;
   - `efficacyByMainComponent(scope?)` — efficacy of ADs (`ad_efficacy`) in the `main_component` breakdown.
+  - `/reports` metrics (by phase): `averageOnsetAge` (disease onset age),
+    `averageDiseaseDurationMonths` (disease duration), `averageDurations`
+    (average phase/intermission durations), `firstToPenultimatePhaseDuration` /
+    `firstToPenultimateIntermissionDuration` ("first → penultimate" dynamics,
+    patients with at least 3 phases), `seasonalDistribution` (exacerbation season),
+    `depressionSeverityDistribution` (HAM-D severity: mild/moderate/severe),
+    `mainComponentDistribution` (predominant component). Distributions
+    severity/season/component count PHASES (episodes);
+  - `/reports` metrics (by patient) — `src/entities/patient/api/patient-queries.ts`:
+    `genderDistribution` (gender), `averageAgeAtInclusion` (average age),
+    `familyHistoryDistribution` (hereditary mental burden).
 - All aggregates respect the user's `data_scope` (the same row-level access as for lists).
 - `fieldId` validator: only `FLAT_REGISTRY` keys with a phase scope are allowed (SQL-injection protection via the column name).
 
