@@ -46,6 +46,7 @@ CREATE TABLE phases (
     "prophylaxis_type" INTEGER NULL,
     "onset_trigger" INTEGER NULL,
     "main_component" INTEGER NULL,
+    "depression_severity" INTEGER NULL,
     "orientation" INTEGER NULL,
     "melancholy_obj" INTEGER NULL,
     "anxiety_obj" INTEGER NULL,
