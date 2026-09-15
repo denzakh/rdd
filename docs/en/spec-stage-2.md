@@ -36,7 +36,8 @@
     (average phase/intermission durations), `firstToPenultimatePhaseDuration` /
     `firstToPenultimateIntermissionDuration` ("first → penultimate" dynamics,
     patients with at least 3 phases), `seasonalDistribution` (exacerbation season),
-    `depressionSeverityDistribution` (HAM-D severity: mild/moderate/severe),
+    `depressionSeverityDistribution` (depression severity — clinical attribute
+    `depression_severity`: mild/moderate/severe, recorded in every phase),
     `mainComponentDistribution` (predominant component). Distributions
     severity/season/component count PHASES (episodes);
   - `/reports` metrics (by patient) — `src/entities/patient/api/patient-queries.ts`:

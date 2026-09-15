@@ -68,7 +68,7 @@ const SEASONS: Record<number, { ru: string; en: string }> = {
 const pick = (t: { ru: string; en: string }, locale: Locale): string =>
   locale === 'en' ? t.en : t.ru
 
-/** Подписи опций реестра (gender, main_component, hamd_severity). */
+/** Подписи опций реестра (gender, main_component, depression_severity). */
 function optionRows(fieldId: string, values: StatsValueCount[], locale: Locale): DistributionRow[] {
   const field = FLAT[fieldId]
   return values.map((r) => {
@@ -292,10 +292,10 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
 
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Depression severity (HAM-D)' : 'Тяжесть депрессии (HAM-D)'}
+            {en ? 'Depression severity' : 'Тяжесть депрессии'}
           </h3>
           <DistributionTable
-            rows={optionRows('hamd_severity', f.severity, locale)}
+            rows={optionRows('depression_severity', f.severity, locale)}
             locale={locale}
             unit="phases"
             accent="amber"

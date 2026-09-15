@@ -359,9 +359,11 @@ export async function seasonalDistribution(
 }
 
 /**
- * Тяжесть депрессии по HAM-D: распределение ФАЗ по hamd_severity
- * (2 — лёгкая, 3 — умеренная, 4 — тяжёлая). Категория 1 («Отсутствует»,
- * ≤7 баллов) не входит в запрошенные категории — отфильтровывается здесь.
+ * Тяжесть депрессии: распределение ФАЗ по клиническому признаку
+ * depression_severity (1 — лёгкая, 2 — умеренная, 3 — тяжёлая).
+ * Признак НЕ является шкалой: заполняется врачом в каждой фазе (1..N, 98, 99),
+ * поэтому в отличие от HAM-D не зависит от наличия hamd_total и не вычисляется.
+ * NULL (не заполнено) в распределение не включается.
  */
 export async function depressionSeverityDistribution(
   db: D1Database,
@@ -370,26 +372,17 @@ export async function depressionSeverityDistribution(
   const s = scopeSqlForPhases(scope)
   const { results } = await db
     .prepare(
-      `SELECT patient_id, hamd_total
+      `SELECT depression_severity AS value, COUNT(*) AS count
        FROM phases
-       WHERE hamd_total IS NOT NULL
+       WHERE depression_severity IS NOT NULL
          AND patient_id IN (SELECT p.id FROM patients p
-                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}`
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+       GROUP BY depression_severity
+       ORDER BY value ASC`
     )
     .bind(...s.binds)
-    .all<{ patient_id: number; hamd_total: number }>()
-
-  const field = (FLAT_REGISTRY as unknown as Record<string, RegistryField>).hamd_severity
-  const severityOf = field?.calculate
-  const counts = new Map<number, number>()
-  for (const r of results) {
-    const severity = severityOf ? Number(severityOf({ hamd_total: r.hamd_total }) ?? 0) : 0
-    if (severity < 2) continue
-    counts.set(severity, (counts.get(severity) ?? 0) + 1)
-  }
-  return [...counts.entries()]
-    .map(([value, count]: [number, number]) => ({ value, count }))
-    .sort((a, b) => a.value - b.value)
+    .all<{ value: number; count: number }>()
+  return results
 }
 
 /** Преобладающий компонент депрессии: распределение ФАЗ по main_component. */

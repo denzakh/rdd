@@ -36,7 +36,8 @@
     (средние длительности фаз/интермиссий), `firstToPenultimatePhaseDuration` /
     `firstToPenultimateIntermissionDuration` (динамика «первая → предпоследняя»,
     пациенты с минимум 3 фазами), `seasonalDistribution` (сезон начала обострения),
-    `depressionSeverityDistribution` (тяжесть HAM-D: лёгкая/умеренная/тяжёлая),
+    `depressionSeverityDistribution` (тяжесть депрессии — клинический признак
+    `depression_severity`: лёгкая/умеренная/тяжёлая, заполняется в каждой фазе),
     `mainComponentDistribution` (преобладающий компонент). Распределения
     severity/season/component считаются числом ФАЗ (эпизодов);
   - показатели /reports (по пациентам) — `src/entities/patient/api/patient-queries.ts`:
