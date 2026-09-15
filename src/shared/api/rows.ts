@@ -68,6 +68,8 @@ export type PhaseRow = {
   prophylaxis_type: number | null
   onset_trigger: number | null
   main_component: number | null
+  /** Клинический признак «тяжесть депрессии» — не шкала, заполняется в каждой фазе. */
+  depression_severity: number | null
   orientation: number | null
   melancholy_obj: number | null
   anxiety_obj: number | null

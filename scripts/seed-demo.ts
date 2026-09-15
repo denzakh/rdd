@@ -16,7 +16,13 @@ import { join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { getPlatformProxy } from 'wrangler'
 import { createPatientRepository, type PatientInput } from '../src/entities/patient'
-import { createPhaseRepository, DATA_COLUMNS, type PhaseInput } from '../src/entities/phase'
+import {
+  createPhaseRepository,
+  DATA_COLUMNS,
+  PHASE_RELATIVE_ADMISSION,
+  PHASE_RELATIVE_DISCHARGE,
+  type PhaseInput,
+} from '../src/entities/phase'
 
 const PATIENTS: PatientInput[] = [
   {
@@ -470,15 +476,15 @@ const SYMPTOM_PROFILES: Partial<PhaseInput>[] = [
 ]
 
 /**
- * Минимальное число фаз на пациента — 3 (в реальной выборке в среднем
- * 3,3 ± 2,4 фазы); часть пациентов получает 4–5 фаз: с течением времени
- * течение учащается (64% наблюдений).
+ * Всего фаз на пациента — 4, 5 или 6: обычные с № (2–4) плюс служебные
+ * 98 «Поступление» и 99 «Выписка». Количество разное у разных пациентов,
+ * чтобы витрина и агрегаты не были однородными.
  */
-const MIN_PHASES = 3
+const MIN_PHASES_TOTAL = 4
 
-/** Число фаз пациента: 3, 4 или 5 (детерминированно, без рандома). */
+/** Всего фаз пациента: 4, 5 или 6 (детерминированно, без рандома). */
 function phaseCountFor(patientIndex: number): number {
-  return MIN_PHASES + (patientIndex % 3)
+  return MIN_PHASES_TOTAL + (patientIndex % 3)
 }
 
 /** Прибавляет months к дате 'YYYY-MM-DD' (переход к следующей фазе). */
@@ -495,12 +501,23 @@ function addMonths(date: string, months: number): string {
  * каждая следующая депрессивная фаза длиннее предыдущей (удлинение),
  * а интермиссии, наоборот, укорачиваются — в реальной выборке первая
  * ремиссия 101,1 ± 119,5 мес против 55,3 ± 87,7 в последней. Тяжесть
- * депрессии и когнитивное снижение нарастают от фазы к фазе; на последней
- * фазе интермиссия ещё не наступила (NULL — текущее состояние).
+ * депрессии (depression_severity — клинический признак, не шкала)
+ * нарастает от фазы к фазе и заполняется во ВСЕХ фазах; шкалы
+ * (hamd_total/beck_total/часы/MMSE, is_current_only) — только в 98/99.
+ * На последней фазе (99 «Выписка») интермиссия ещё не наступила
+ * (NULL — текущее состояние).
  */
 function phasesFor(patientIndex: number): PhaseInput[] {
   const symptoms = SYMPTOM_PROFILES[patientIndex % SYMPTOM_PROFILES.length]
-  const count = phaseCountFor(patientIndex)
+  if (!symptoms) throw new Error(`Нет симптом-профиля для индекса ${patientIndex}`)
+  const total = phaseCountFor(patientIndex)
+  // Всего фаз = обычные (1..N) + служебные 98 и 99.
+  const ordinaryCount = Math.max(2, total - 2)
+  const relativeIds = [
+    ...Array.from({ length: ordinaryCount }, (_, k) => k + 1),
+    PHASE_RELATIVE_ADMISSION,
+    PHASE_RELATIVE_DISCHARGE,
+  ]
 
   // Длительности: первая фаза 4–6 мес и +2–3 мес к каждой следующей;
   // первая ремиссия 84…40 мес, каждая следующая меньше на 14–20 мес
@@ -509,10 +526,10 @@ function phasesFor(patientIndex: number): PhaseInput[] {
   const durations: Array<{ phase: number; intermission: number | null }> = []
   let duration = 4 + (patientIndex % 3)
   let intermission = 84 - patientIndex * 4
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < total; i++) {
     durations.push({
       phase: duration,
-      intermission: i === count - 1 ? null : intermission,
+      intermission: i === total - 1 ? null : intermission,
     })
     duration += 2 + (patientIndex % 2)
     intermission = Math.max(12, intermission - (14 + (patientIndex % 3) * 3))
@@ -523,11 +540,19 @@ function phasesFor(patientIndex: number): PhaseInput[] {
   // фазы + интермиссию, чтобы даты начал фаз были монотонными.
   let startDate = `202${2 + (patientIndex % 4)}-0${(patientIndex % 9) + 1}-15`
   for (const [i, d] of durations.entries()) {
+    const relativeId = relativeIds[i]
+    if (relativeId === undefined) throw new Error(`Нет relativeId для фазы ${i}`)
+    const isOrdinary = relativeId < PHASE_RELATIVE_ADMISSION
     // Доля неполных ремиссий растёт с течением заболевания (с 45% до 66%).
     const partialRemission = i >= 1 || patientIndex % 2 === 0
+    const hamd = 16 + patientIndex * 3 + i * 2
+    const beck = 20 + patientIndex * 2 + i * 2
+    const mmse =
+      30 - (symptoms.cognitive_impair ? 3 : 0) - (symptoms.orientation === 0 ? 3 : 0) - i * 2
 
     phases.push({
       patient_id: 0,
+      phase_relative_id: relativeId,
       phase_start_date: startDate,
       ad_efficacy: (patientIndex % 3) + 1,
       ...symptoms,
@@ -542,11 +567,14 @@ function phasesFor(patientIndex: number): PhaseInput[] {
       // Удлинение фаз и укорочение интермиссий (durations выше).
       phase_duration_months: d.phase,
       intermission_duration: d.intermission,
-      // Шкалы: тяжесть и когнитивный дефицит нарастают от фазы к фазе.
-      hamd_total: 16 + patientIndex * 3 + i * 2,
-      beck_total: 20 + patientIndex * 2 + i * 2,
-      mmse_total:
-        30 - (symptoms.cognitive_impair ? 3 : 0) - (symptoms.orientation === 0 ? 3 : 0) - i * 2,
+      // Тяжесть депрессии — клинический признак: во всех фазах, растёт к 98/99.
+      depression_severity: Math.min(3, 1 + Math.floor(i / Math.max(1, Math.ceil(total / 3)))),
+      // Шкалы (is_current_only) — только в 98/99; в обычных фазах NULL.
+      // hamd_severity — вычисляемое поле (calculate по hamd_total), в БД не хранится.
+      hamd_total: isOrdinary ? null : hamd,
+      beck_total: isOrdinary ? null : beck,
+      mmse_total: isOrdinary ? null : mmse,
+      clock_drawing_test: isOrdinary ? null : Math.max(0, 10 - i),
     })
 
     startDate = addMonths(startDate, d.phase + (d.intermission ?? 0))
@@ -635,8 +663,9 @@ function buildSeedSql(firstPatientId: number): string {
       const phaseRecord = phase as Record<string, unknown>
       const phaseValues = [
         id,
-        order + 1,
-        order + 1, // phase_relative_id совпадает с номером демо-фазы (1..n)
+        order + 1, // phase_order_id — порядок вставки (1..n)
+        // phase_relative_id — семантический номер: 1..N, затем 98 «Поступление» и 99 «Выписка».
+        phaseRecord.phase_relative_id ?? order + 1,
         REGISTRY_VERSION,
         ...DATA_COLUMNS.map((c) => phaseRecord[c] ?? null),
       ]

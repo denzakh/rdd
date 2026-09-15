@@ -36,6 +36,23 @@ export const MENTAL_STATUS_REGISTRY = {
     ],
     db_type: 'INTEGER',
   },
+  // Клинический признак «тяжесть депрессии» — НЕ шкала: заполняется врачом
+  // в каждой фазе (1..N, 98, 99), в отличие от is_current_only-шкал блока
+  // diagnostic (hamd_total/beck_total/часы/MMSE — только 98/99).
+  depression_severity: {
+    id: 'depression_severity',
+    label: { ru: 'Тяжесть депрессии', en: 'Depression severity' },
+    ui: 'select',
+    options: [
+      { value: 1, label: { ru: 'Лёгкая', en: 'Mild' } },
+      { value: 2, label: { ru: 'Умеренная', en: 'Moderate' } },
+      { value: 3, label: { ru: 'Тяжёлая', en: 'Severe' } },
+    ],
+    db_type: 'INTEGER',
+    min: 1,
+    max: 3,
+    scope: 'phase',
+  },
 
   // --- БАЗОВЫЕ ФУНКЦИИ ---
   orientation: {

@@ -96,6 +96,7 @@ export const DATA_COLUMNS: Array<keyof PhaseRow> = [
   'prophylaxis_type',
   'onset_trigger',
   'main_component',
+  'depression_severity',
   'orientation',
   'melancholy_obj',
   'anxiety_obj',

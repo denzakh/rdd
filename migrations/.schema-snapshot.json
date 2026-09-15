@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 8,
   "tables": {
     "patients": [
       {
@@ -122,6 +122,10 @@
       },
       {
         "name": "main_component",
+        "sqlType": "INTEGER"
+      },
+      {
+        "name": "depression_severity",
         "sqlType": "INTEGER"
       },
       {
