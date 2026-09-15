@@ -636,11 +636,12 @@ function buildSeedSql(firstPatientId: number): string {
       const phaseValues = [
         id,
         order + 1,
+        order + 1, // phase_relative_id совпадает с номером демо-фазы (1..n)
         REGISTRY_VERSION,
         ...DATA_COLUMNS.map((c) => phaseRecord[c] ?? null),
       ]
       stmts.push(
-        `INSERT INTO phases (patient_id, phase_order_id, registry_version, ${DATA_COLUMNS.join(', ')}) ` +
+        `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id, registry_version, ${DATA_COLUMNS.join(', ')}) ` +
           `VALUES (${phaseValues.map(sqlValue).join(', ')});`
       )
     }

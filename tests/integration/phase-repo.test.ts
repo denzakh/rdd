@@ -1,6 +1,13 @@
 import { afterAll, describe, expect, it } from 'vitest'
 import { createPatientRepository } from '@/entities/patient'
-import { createPhaseRepository, type PhaseInput } from '@/entities/phase'
+import {
+  createPhaseRepository,
+  DEFAULT_PHASE_RELATIVE_IDS,
+  PHASE_RELATIVE_ADMISSION,
+  PHASE_RELATIVE_DISCHARGE,
+  phaseColumnTitle,
+  type PhaseInput,
+} from '@/entities/phase'
 import { cleanupPatient, disposeTestDb, getTestDb } from '../helpers/db'
 
 const phaseInput = (patientId: number, patch: Partial<PhaseInput> = {}): PhaseInput => ({
@@ -44,6 +51,89 @@ describe('phase-repo (интеграция, локальная D1)', () => {
     expect(p3?.phase_order_id).toBe(3)
 
     await cleanupPatient(db, patientId)
+  })
+
+  it('create: явный phase_relative_id и автонумерация 3, 4… перед 98', async () => {
+    const db = await getTestDb()
+    const patients = createPatientRepository(db)
+    const phases = createPhaseRepository(db)
+
+    const patientId = await patients.create({
+      study_entry_date: '2024-01-01',
+      birth_year: 1980,
+      gender: 1,
+      education_level: 2,
+      career_level: 2,
+      living_status: 1,
+      disability_status: 0,
+      family_history: 0,
+      personality_type: 3,
+    })
+
+    // Стартовый набор нового пациента: 1, 2, 98, 99.
+    for (const relativeId of DEFAULT_PHASE_RELATIVE_IDS) {
+      await phases.create(phaseInput(patientId, { phase_relative_id: relativeId }))
+    }
+    expect((await phases.listByPatient(patientId)).map((p) => p.phase_relative_id)).toEqual([
+      1,
+      2,
+      PHASE_RELATIVE_ADMISSION,
+      PHASE_RELATIVE_DISCHARGE,
+    ])
+
+    // Новые фазы встают перед 98 и получают очередной номер 3, затем 4.
+    const n3 = await phases.findById(await phases.create(phaseInput(patientId)))
+    expect(n3?.phase_relative_id).toBe(3)
+    const n4 = await phases.findById(await phases.create(phaseInput(patientId)))
+    expect(n4?.phase_relative_id).toBe(4)
+    expect((await phases.listByPatient(patientId)).map((p) => p.phase_relative_id)).toEqual([
+      1,
+      2,
+      3,
+      4,
+      PHASE_RELATIVE_ADMISSION,
+      PHASE_RELATIVE_DISCHARGE,
+    ])
+
+    await cleanupPatient(db, patientId)
+  })
+
+  it('backfillMissingRelativeIds: старые NULL-записи получают номера 1, 2, …', async () => {
+    const db = await getTestDb()
+    const patients = createPatientRepository(db)
+    const phases = createPhaseRepository(db)
+
+    const patientId = await patients.create({
+      study_entry_date: '2024-01-01',
+      birth_year: 1980,
+      gender: 1,
+      education_level: 2,
+      career_level: 2,
+      living_status: 1,
+      disability_status: 0,
+      family_history: 0,
+      personality_type: 3,
+    })
+    await db
+      .prepare(
+        'INSERT INTO phases (patient_id, phase_order_id, phase_relative_id) VALUES (?, 1, NULL), (?, 2, NULL)'
+      )
+      .bind(patientId, patientId)
+      .run()
+
+    expect(await phases.backfillMissingRelativeIds(patientId)).toBe(2)
+    expect((await phases.listByPatient(patientId)).map((p) => p.phase_relative_id)).toEqual([1, 2])
+
+    await cleanupPatient(db, patientId)
+  })
+
+  it('phaseColumnTitle: 98 → Поступление, 99 → Выписка, обычные — Фаза N', () => {
+    expect(phaseColumnTitle(PHASE_RELATIVE_ADMISSION, 'ru')).toBe('Поступление')
+    expect(phaseColumnTitle(PHASE_RELATIVE_DISCHARGE, 'ru')).toBe('Выписка')
+    expect(phaseColumnTitle(3, 'ru')).toBe('Фаза 3')
+    expect(phaseColumnTitle(PHASE_RELATIVE_ADMISSION, 'en')).toBe('Admission')
+    expect(phaseColumnTitle(PHASE_RELATIVE_DISCHARGE, 'en')).toBe('Discharge')
+    expect(phaseColumnTitle(4, 'en')).toBe('Phase 4')
   })
 
   it('update изменяет колонки', async () => {

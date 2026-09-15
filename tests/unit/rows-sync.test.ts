@@ -13,6 +13,7 @@ describe('rows.ts: синхронность строк, реестра и схе
       'id',
       'patient_id',
       'phase_order_id',
+      'phase_relative_id',
       ...DATA_COLUMNS,
       'updated_at',
     ])
@@ -59,10 +60,16 @@ describe('rows.ts: синхронность строк, реестра и схе
   it('PhaseRow: ключевые колонки есть в схеме, updated_at — опциональный токен версии', () => {
     const desired = buildDesiredTables()
     const phaseCols = new Set(desired.phases.map((c) => c.name))
-    const sample: Partial<PhaseRow> = { id: 0, patient_id: 0, phase_order_id: 0 }
+    const sample: Partial<PhaseRow> = {
+      id: 0,
+      patient_id: 0,
+      phase_order_id: 0,
+      phase_relative_id: 0,
+    }
     void sample.updated_at // опциональность уже проверена типами
     expect(phaseCols.has('id')).toBe(true)
     expect(phaseCols.has('patient_id')).toBe(true)
     expect(phaseCols.has('phase_order_id')).toBe(true)
+    expect(phaseCols.has('phase_relative_id')).toBe(true)
   })
 })

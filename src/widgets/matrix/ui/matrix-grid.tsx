@@ -130,7 +130,11 @@ function CellConnector({
       data-matrix-cell={`${row}:${colIdx}`}
       title={tooltip}
       className={`focus-within:bg-accent/30 flex-1 border-b border-neutral-200 outline-none ${
-        col.isCurrentStatus ? 'border-l-2 border-l-amber-500' : 'border-r border-neutral-200'
+        col.isSystemPhase
+          ? 'bg-neutral-100'
+          : col.isCurrentStatus
+            ? 'border-l-2 border-l-amber-500'
+            : 'border-r border-neutral-200'
       }${deprecated ? 'opacity-60' : ''}`}
       style={{ minWidth: COL_W, height: ROW_H }}
     >
@@ -335,9 +339,11 @@ export function MatrixGrid({
               <div
                 key={col.id}
                 className={`flex flex-1 items-center border-b border-neutral-200 px-2 text-xs font-semibold ${
-                  col.isCurrentStatus
-                    ? 'border-l-2 border-l-amber-500 text-amber-700'
-                    : 'border-r border-neutral-200'
+                  col.isSystemPhase
+                    ? 'bg-neutral-100 text-neutral-600'
+                    : col.isCurrentStatus
+                      ? 'border-l-2 border-l-amber-500 text-amber-700'
+                      : 'border-r border-neutral-200'
                 }`}
                 style={{ minWidth: COL_W }}
               >

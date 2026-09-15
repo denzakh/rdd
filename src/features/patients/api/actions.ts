@@ -14,6 +14,7 @@ import type { RegistryField } from '@/shared/config'
 import { z } from 'zod'
 import { createAuditRepository } from '@/shared/api'
 import { createPatientRepository, patientScopeFor, type PatientInput } from '@/entities/patient'
+import { createPhaseRepository, DEFAULT_PHASE_RELATIVE_IDS } from '@/entities/phase'
 
 /** Zod-схема паспортной части, сгенерированная по полям реестра. */
 const patientShape: Record<string, z.ZodTypeAny> = {}
@@ -98,6 +99,19 @@ export async function savePatientAction(
       action: 'update',
       newValue: input,
     })
+    // Стартовые фазы нового пациента: 1, 2, 98 (Поступление), 99 (Выписка).
+    // Пустые, по умолчанию открывают матрицу с 4 колонками.
+    const phases = createPhaseRepository(db)
+    for (const relativeId of DEFAULT_PHASE_RELATIVE_IDS) {
+      const phaseId = await phases.create({ patient_id: newId, phase_relative_id: relativeId })
+      await createAuditRepository(db).insert({
+        actorId: user.id,
+        patientId: newId,
+        phaseId,
+        fieldId: 'phase',
+        action: 'phase_created',
+      })
+    }
     revalidatePath('/patients')
     redirect(`/patients/${newId}`)
   }

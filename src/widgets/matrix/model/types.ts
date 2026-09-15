@@ -7,7 +7,15 @@ export interface MatrixColumn {
   id: string
   title: string
   order: number
-  /** Флаг колонки 98 — «текущий статус» (подсветка border-amber-500). */
+  /**
+   * Семантический номер фазы (phases.phase_relative_id): 1..97 — обычные фазы,
+   * 98 — «Поступление», 99 — «Выписка». Используется для подсветки служебных
+   * колонок и логики доступности is_current_only-полей.
+   */
+  relativeId?: number
+  /** Служебная фаза (98/99): колонка выделяется светло-серым. */
+  isSystemPhase?: boolean
+  /** Флаг колонки 98 — «текущий статус» (поля is_current_only доступны здесь). */
   isCurrentStatus?: boolean
 }
 

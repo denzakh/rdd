@@ -33,6 +33,7 @@ CREATE TABLE phases (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "patient_id" INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
     "phase_order_id" INTEGER NOT NULL,
+    "phase_relative_id" INTEGER NULL,
     "phase_start_date" TEXT NULL,
     "phase_duration_months" REAL NULL,
     "intermission_duration" REAL NULL,

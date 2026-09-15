@@ -9,7 +9,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireUser, canWrite, getDb, createAuditRepository, type PhaseRow } from '@/shared/api'
 import { createPatientRepository } from '@/entities/patient'
-import { createPhaseRepository, DATA_COLUMNS } from '@/entities/phase'
+import { createPhaseRepository, DATA_COLUMNS, isSystemPhaseRelativeId } from '@/entities/phase'
 import { phaseSchema } from '@/shared/lib/registry'
 
 /** Значение ячейки (string | number | boolean | null) — без импорта из widgets. */
@@ -110,6 +110,11 @@ export async function deletePhase(
   const existing = await repo.findById(phaseId)
   if (!existing || existing.patient_id !== patientId) {
     return { ok: false, error: 'Фаза не найдена' }
+  }
+  // Служебные фазы «Поступление» (98) и «Выписка» (99) — неотъемлемая ось
+  // матрицы, удаление сломает протокол нумерации (nextPhaseRelativeId).
+  if (isSystemPhaseRelativeId(existing.phase_relative_id)) {
+    return { ok: false, error: 'Служебные фазы «Поступление»/«Выписка» нельзя удалить' }
   }
 
   await repo.remove(phaseId)

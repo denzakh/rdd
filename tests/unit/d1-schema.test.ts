@@ -10,10 +10,11 @@ describe('d1-schema: buildDesiredTables', () => {
     const phases = tables.phases
 
     expect(patients[0]).toEqual({ name: 'id', sqlType: 'INTEGER' })
-    expect(phases.slice(0, 3)).toEqual([
+    expect(phases.slice(0, 4)).toEqual([
       { name: 'id', sqlType: 'INTEGER' },
       { name: 'patient_id', sqlType: 'INTEGER' },
       { name: 'phase_order_id', sqlType: 'INTEGER' },
+      { name: 'phase_relative_id', sqlType: 'INTEGER' },
     ])
   })
 
@@ -68,6 +69,10 @@ describe('d1-schema: generateD1Schema (DDL)', () => {
   it('NOT NULL / REFERENCES для системных колонок фаз', () => {
     expect(ddl).toContain('"patient_id" INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE')
     expect(ddl).toContain('"phase_order_id" INTEGER NOT NULL')
+  })
+
+  it('phase_relative_id — системная колонка, nullable осознанно (SQLite/D1 ADD COLUMN)', () => {
+    expect(ddl).toContain('"phase_relative_id" INTEGER NULL')
   })
 
   it('доменные колонки — nullable', () => {

@@ -32,9 +32,9 @@ describe('consent: данные с отозванным согласием ис�
     const patientId = await patients.create(patientInput)
     await db
       .prepare(
-        `INSERT INTO phases (patient_id, phase_order_id, phase_duration_months,
+        `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id, phase_duration_months,
            intermission_duration, main_component, ad_efficacy)
-         VALUES (?, 1, 6.0, 3.0, 1, 2)`
+         VALUES (?, 1, 1, 6.0, 3.0, 1, 2)`
       )
       .bind(patientId)
       .run()

@@ -49,13 +49,14 @@ async function insertPhase(
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO phases (patient_id, phase_order_id, phase_start_date, phase_duration_months,
+      `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id, phase_start_date, phase_duration_months,
          intermission_duration, hamd_total, main_component)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       patientId,
       orderId,
+      orderId, // обычные фазы: relative_id = номер по порядку
       p.phase_start_date ?? null,
       p.phase_duration_months ?? null,
       p.intermission_duration ?? null,

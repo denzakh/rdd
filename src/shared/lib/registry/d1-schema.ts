@@ -69,6 +69,11 @@ const PHASE_SYSTEM_COLUMNS: TableColumn[] = [
   { name: 'id', sqlType: 'INTEGER' },
   { name: 'patient_id', sqlType: 'INTEGER' },
   { name: 'phase_order_id', sqlType: 'INTEGER' },
+  // Семантический номер фазы: 1..97 — обычные фазы (добавляются по порядку
+  // перед «Поступлением»), 98 — «Поступление», 99 — «Выписка». Назначается
+  // репозиторием при create; колонка НЕ из реестра (поле phase_relative_id
+  // в реестре остаётся чисто отображаемым «типом точки» без db_type).
+  { name: 'phase_relative_id', sqlType: 'INTEGER' },
 ]
 
 /** Метаданные таблиц: системные колонки + завершающий constraint. */
@@ -122,6 +127,11 @@ const EXTRA: Record<TableId, Record<string, string>> = {
     id: 'INTEGER PRIMARY KEY AUTOINCREMENT',
     patient_id: 'INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE',
     phase_order_id: 'INTEGER NOT NULL',
+    // Nullable осознанно: SQLite/D1 не умеет ADD COLUMN NOT NULL в непустую
+    // таблицу, а renderOpSql для системных колонок (кроме registry_version)
+    // рендерит NULL — NOT NULL здесь давал бы вечное расхождение baseline ↔ дельта.
+    // Значение гарантирует репозиторий (create всегда пишет phase_relative_id).
+    phase_relative_id: 'INTEGER NULL',
   },
 }
 

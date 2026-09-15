@@ -27,9 +27,9 @@ const patient = (siteId: string | null) => ({
 async function addPhase(db: D1Database, patientId: number, mainComponent: number): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO phases (patient_id, phase_order_id, phase_duration_months,
+      `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id, phase_duration_months,
          intermission_duration, main_component, ad_efficacy)
-       VALUES (?, 1, 6.0, 3.0, ?, 2)`
+       VALUES (?, 1, 1, 6.0, 3.0, ?, 2)`
     )
     .bind(patientId, mainComponent)
     .run()

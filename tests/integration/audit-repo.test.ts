@@ -40,7 +40,9 @@ describe('audit-repo (интеграция, локальная D1)', () => {
       personality_type: 3,
     })
     const phase = await db
-      .prepare(`INSERT INTO phases (patient_id, phase_order_id) VALUES (?, 1)`)
+      .prepare(
+        `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id) VALUES (?, 1, 1)`
+      )
       .bind(patientId)
       .run()
     const phaseId = Number(phase.meta.last_row_id)

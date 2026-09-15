@@ -4,7 +4,7 @@ import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
 import { getLocale } from '@/shared/lib/intl'
 import { createPatientRepository, patientScopeFor } from '@/entities/patient'
-import { createPhaseRepository } from '@/entities/phase'
+import { createPhaseRepository, isSystemPhaseRelativeId, phaseColumnTitle } from '@/entities/phase'
 import type { MatrixColumn, MatrixData, FieldValue } from '@/widgets/matrix'
 import MatrixClient from './matrix-client'
 
@@ -24,13 +24,30 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
   const locale = await getLocale()
   const patient = await createPatientRepository(db, patientScopeFor(user)).findById(patientId)
   if (!patient) redirect('/patients')
-  const phases = await createPhaseRepository(db).listByPatient(patientId)
+  const phaseRepo = createPhaseRepository(db)
+  let phases = await phaseRepo.listByPatient(patientId)
+  // Обратная совместимость: NULL-значения у старых фаз заполняются
+  // последовательно (см. backfillMissingRelativeIds), UI видит колонки
+  // в порядке 1, 2, …, 98, 99.
+  if (phases.some((p) => p.phase_relative_id === null)) {
+    await phaseRepo.backfillMissingRelativeIds(patientId)
+    phases = await phaseRepo.listByPatient(patientId)
+  }
 
-  const columns: MatrixColumn[] = phases.map((p, i) => ({
-    id: String(p.id),
-    title: locale === 'en' ? `Phase ${p.phase_order_id}` : `Фаза ${p.phase_order_id}`,
-    order: i,
-  }))
+  const columns: MatrixColumn[] = phases.map((p, i) => {
+    const relId = p.phase_relative_id
+    const isSystemPhase = isSystemPhaseRelativeId(relId)
+    return {
+      id: String(p.id),
+      title: phaseColumnTitle(relId, locale === 'en' ? 'en' : 'ru'),
+      order: i,
+      relativeId: relId ?? undefined,
+      isSystemPhase,
+      // is_current_only-поля (шкалы HAM-D/Бек/часы/MMSE) доступны только
+      // в колонках Поступление/Выписка (см. scales.ts и disabledFor в гриде).
+      isCurrentStatus: isSystemPhase,
+    }
+  })
 
   const data: MatrixData = {}
   const versions: Record<string, string | null> = {}

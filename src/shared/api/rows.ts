@@ -47,6 +47,13 @@ export type PhaseRow = {
   id: number
   patient_id: number
   phase_order_id: number
+  /**
+   * Семантический номер фазы (системная колонка): 1..97 — обычные фазы,
+   * 98 — «Поступление», 99 — «Выписка». Назначается репозиторием при create,
+   * из грида не редактируется; сортировка фаз матрицы — по этой колонке.
+   * Nullable в БД — у старых записей (до миграции 0008) значения может не быть.
+   */
+  phase_relative_id: number | null
   /** Версия протокола CRF на момент сбора фазы (docs/schema-evolution.md §4). */
   registry_version: number
   phase_start_date: string | null

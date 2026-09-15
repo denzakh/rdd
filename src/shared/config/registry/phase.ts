@@ -1,20 +1,17 @@
 export const PHASE_CONTROL_REGISTRY = {
   // --- АВТОМАТИЧЕСКИЕ ИДЕНТИФИКАТОРЫ ---
-  phase_order_id: {
-    id: 'phase_order_id',
-    label: { ru: '№ фазы', en: 'Phase Order #' },
-    ui: 'number-readonly', // Врач видит, но не правит
-    calculate: 'array_index + 1',
-    scope: 'phase',
-  },
+  // phase_order_id удалён из реестра: это системная колонка (номер фазы =
+  // вставка по порядку), в матрице «№ фазы» не показывается — номер виден
+  // в заголовке колонки («Фаза N»/«Поступление»/«Выписка»).
   phase_relative_id: {
     id: 'phase_relative_id',
     label: { ru: 'Тип точки', en: 'Point Type' },
-    ui: 'badge-readonly', // Отображается как метка (Анамнез/98/99)
-    // Контекст списка фаз: 99 — выход, 98 — текущий статус, 1 — анамнез.
-    // Не исполняется в applyComputed (зависит от индекса/количества фаз) —
-    // вычисляется в UI-слое матрицы.
+    ui: 'badge-readonly', // Отображается как метка (1, 2, ..., 98, 99)
     scope: 'phase',
+    // Системная колонка phases.phase_relative_id (см. d1-schema.ts): назначается
+    // при создании фазы и НЕ редактируется из грида (только просмотр меткой).
+    // Семантика: 1, 2, ... — обычные фазы (добавляются перед фазой 98 по порядку),
+    // 98 — «Поступление», 99 — «Выписка». Заголовки колонок строит UI-слой матрицы.
   },
 
   // Основная дата начала
@@ -49,7 +46,10 @@ export const PHASE_CONTROL_REGISTRY = {
   },
   episode_age: {
     id: 'episode_age',
-    label: { ru: 'Возраст эпизода', en: 'Age at Episode' },
+    label: {
+      ru: 'Возраст пациента (лет) на начало фазы',
+      en: 'Patient Age (years) at Phase Start',
+    },
     ui: 'number-readonly',
     calculate: 'phase_start_date - birth_year',
     scope: 'phase',

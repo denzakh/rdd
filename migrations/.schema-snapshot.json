@@ -73,6 +73,10 @@
         "sqlType": "INTEGER"
       },
       {
+        "name": "phase_relative_id",
+        "sqlType": "INTEGER"
+      },
+      {
         "name": "phase_start_date",
         "sqlType": "TEXT"
       },

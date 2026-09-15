@@ -13,12 +13,54 @@ import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 export type PhaseInput = {
   patient_id: number
   phase_order_id?: number
+  /**
+   * Семантический номер фазы (системная колонка). Если не задан — назначится
+   * автоматически как следующий обычный номер (max(< 98) + 1: 1, 2, ..., 97).
+   * 98 — «Поступление», 99 — «Выписка» (DEFAULT_PHASE_RELATIVE_IDS).
+   */
+  phase_relative_id?: number
   [key: string]: unknown
+}
+
+/**
+ * Служебные фазы: 98 — «Поступление», 99 — «Выписка». Обычные фазы занимают
+ * диапазон 1..97 и добавляются строго ПЕРЕД фазой 98 (см. nextPhaseRelativeId).
+ */
+export const PHASE_RELATIVE_ADMISSION = 98
+export const PHASE_RELATIVE_DISCHARGE = 99
+
+/** Стартовый набор фаз нового пациента (§ пользовательского ТЗ): 2 обычные + Поступление + Выписка. */
+export const DEFAULT_PHASE_RELATIVE_IDS: readonly number[] = [
+  1,
+  2,
+  PHASE_RELATIVE_ADMISSION,
+  PHASE_RELATIVE_DISCHARGE,
+]
+
+/** Служебные ли это фазы (Поступление/Выписка)? */
+export const isSystemPhaseRelativeId = (relId: number | null | undefined): boolean =>
+  relId === PHASE_RELATIVE_ADMISSION || relId === PHASE_RELATIVE_DISCHARGE
+
+/** Заголовок колонки матрицы (верхняя строка, "фаза №"): 98 → «Поступление», 99 → «Выписка». */
+export function phaseColumnTitle(
+  relId: number | null | undefined,
+  locale: 'ru' | 'en' = 'ru'
+): string {
+  if (relId === PHASE_RELATIVE_ADMISSION) return locale === 'en' ? 'Admission' : 'Поступление'
+  if (relId === PHASE_RELATIVE_DISCHARGE) return locale === 'en' ? 'Discharge' : 'Выписка'
+  return locale === 'en' ? `Phase ${relId}` : `Фаза ${relId}`
 }
 
 export interface PhaseRepository {
   create(input: PhaseInput): Promise<number>
   listByPatient(patientId: number): Promise<PhaseRow[]>
+  /**
+   * Обратная совместимость: заполняет phase_relative_id у старых записей,
+   * где значения нет (до миграции 0008). Для каждой NULL-записи назначает
+   * следующий обычный номер (1, 2, …) — служебные 98/99 есть только там,
+   * где их явно создали (новые пациенты их получают при создании).
+   */
+  backfillMissingRelativeIds(patientId: number): Promise<number>
   findById(id: number): Promise<PhaseRow | null>
   update(id: number, patch: Partial<PhaseInput>): Promise<void>
   /**
@@ -119,7 +161,8 @@ export const DATA_COLUMNS: Array<keyof PhaseRow> = [
 
 /**
  * Назначение следующего phase_order_id для пациента.
- * Если фаз нет — 1, иначе max+1.
+ * Если фаз нет — 1, иначе max+1 (последовательность вставки,
+ * используется отчётами/экспортом — см. queries.ts).
  */
 async function nextOrderId(db: D1Database, patientId: number): Promise<number> {
   const row = await db
@@ -129,31 +172,51 @@ async function nextOrderId(db: D1Database, patientId: number): Promise<number> {
   return (row?.m ?? 0) + 1
 }
 
+/**
+ * Следующий обычный номер фазы (1..97): max(phase_relative_id < 98) + 1.
+ * Для набора [1, 2, 98, 99] даёт 3, затем 4 и т.д. — новые фазы всегда
+ * встают перед «Поступлением» (98) и после «Выписки» (99) при сортировке.
+ */
+async function nextPhaseRelativeId(db: D1Database, patientId: number): Promise<number> {
+  const row = await db
+    .prepare(
+      `SELECT COALESCE(MAX(CASE WHEN phase_relative_id < ${PHASE_RELATIVE_ADMISSION} THEN phase_relative_id END), 0) + 1 AS n
+       FROM phases WHERE patient_id = ?`
+    )
+    .bind(patientId)
+    .first<{ n: number | null }>()
+  return row?.n ?? 1
+}
+
 export function createPhaseRepository(db: D1Database): PhaseRepository {
   const audit = createAuditRepository(db)
   const selectById = db.prepare('SELECT * FROM phases WHERE id = ?')
+  // Порядок фаз матрицы — по семантическому номеру: 1, 2, 3, ..., 98, 99.
   const selectByPatient = db.prepare(
-    'SELECT * FROM phases WHERE patient_id = ? ORDER BY phase_order_id'
+    'SELECT * FROM phases WHERE patient_id = ? ORDER BY phase_relative_id'
   )
   const del = db.prepare('DELETE FROM phases WHERE id = ?')
 
   return {
     async create(input) {
       const orderId = await nextOrderId(db, input.patient_id)
+      const relativeId =
+        input.phase_relative_id ?? (await nextPhaseRelativeId(db, input.patient_id))
       // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4).
       const registryVersion =
         (input as Record<string, unknown>).registry_version ?? REGISTRY_CURRENT_VERSION
       const values = [
         input.patient_id,
         orderId,
+        relativeId,
         registryVersion,
         ...DATA_COLUMNS.map((c) => (input as Record<string, unknown>)[c] ?? null),
       ]
       const placeholders = DATA_COLUMNS.map(() => '?').join(', ')
       const res = await db
         .prepare(
-          `INSERT INTO phases (patient_id, phase_order_id, registry_version, ${DATA_COLUMNS.join(', ')})
-           VALUES (?, ?, ?, ${placeholders})`
+          `INSERT INTO phases (patient_id, phase_order_id, phase_relative_id, registry_version, ${DATA_COLUMNS.join(', ')})
+           VALUES (?, ?, ?, ?, ${placeholders})`
         )
         .bind(...values)
         .run()
@@ -163,6 +226,32 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
     async listByPatient(patientId) {
       const { results } = await selectByPatient.bind(patientId).all<PhaseRow>()
       return results
+    },
+
+    async backfillMissingRelativeIds(patientId) {
+      const missing = await db
+        .prepare(
+          'SELECT id, phase_order_id FROM phases WHERE patient_id = ? AND phase_relative_id IS NULL ORDER BY phase_order_id'
+        )
+        .bind(patientId)
+        .all<{ id: number; phase_order_id: number }>()
+      let filled = 0
+      for (const row of missing.results) {
+        // Следующий свободный обычный номер: учитываем уже заполненные значения.
+        const rel = await db
+          .prepare(
+            `SELECT COALESCE(MAX(CASE WHEN phase_relative_id < ${PHASE_RELATIVE_ADMISSION} THEN phase_relative_id END), 0) + 1 AS n
+             FROM phases WHERE patient_id = ?`
+          )
+          .bind(patientId)
+          .first<{ n: number | null }>()
+        await db
+          .prepare('UPDATE phases SET phase_relative_id = ? WHERE id = ?')
+          .bind(rel?.n ?? 1, row.id)
+          .run()
+        filled++
+      }
+      return filled
     },
 
     async findById(id) {

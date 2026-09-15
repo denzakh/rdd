@@ -1,6 +1,11 @@
 export {
   createPhaseRepository,
   DATA_COLUMNS,
+  PHASE_RELATIVE_ADMISSION,
+  PHASE_RELATIVE_DISCHARGE,
+  DEFAULT_PHASE_RELATIVE_IDS,
+  isSystemPhaseRelativeId,
+  phaseColumnTitle,
   type PhaseRepository,
   type PhaseInput,
 } from './api/phase-repo'
