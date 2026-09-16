@@ -48,13 +48,13 @@
 
 ## 4. Pages (`src/app` / root `app/`)
 
-| Route                   | Content                                                                                   |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `/patients`             | Patient table: search by id/inclusion date, pagination, "New patient" button (clinician+) |
-| `/patients/new`         | Passport form: fields rendered from `REGISTRY.patient` by `field.ui`                      |
-| `/patients/[id]`        | Patient card + phase list + "Matrix" button                                               |
-| `/patients/[id]/matrix` | Grid (stage 1) with the patient's real phases, phase create/delete                        |
-| `/reports`              | The simplest aggregates from §3 (tables), admin + clinician                               |
+| Route                   | Content                                                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `/patients`             | Patient table: search by id/inclusion date, pagination, "New patient" button (clinician+)                                     |
+| `/patients/new`         | Passport form: fields rendered from `REGISTRY.patient` by `field.ui`                                                          |
+| `/patients/[id]`        | Patient card + phase list + "Matrix" button                                                                                   |
+| `/patients/[id]/matrix` | Grid (stage 1) with the patient's real phases, phase create/delete                                                            |
+| `/reports`              | The simplest aggregates from §3 (tables; gender, severity, component and seasonality shares as pie charts), admin + clinician |
 
 Form actions are Server Actions with `phaseSchema`/patient schema and `canWrite`.
 

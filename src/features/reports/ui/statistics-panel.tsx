@@ -3,6 +3,8 @@ import { optionLabel } from '@/shared/lib/intl'
 import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import { DistributionTable, fmt1, type DistributionRow } from './distribution-table'
+import { DistributionPie } from './distribution-pie'
+import { GENDER_COLORS, SEASON_COLORS } from './colors'
 
 // --- Контракт данных с app/reports/page.tsx (структурно совпадает
 //     с результатами агрегатов entities) ---
@@ -171,11 +173,12 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Gender ratio (abs, %)' : 'Соотношение полов (абс, %)'}
           </h3>
-          <DistributionTable
+          <DistributionPie
             rows={optionRows('gender', p.gender, locale)}
             locale={locale}
             unit="patients"
-            accent="amber"
+            title={en ? 'Gender ratio' : 'Соотношение полов'}
+            colors={GENDER_COLORS}
           />
         </div>
 
@@ -282,11 +285,12 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
           </h3>
-          <DistributionTable
+          <DistributionPie
             rows={seasonRows(f.seasons, locale)}
             locale={locale}
             unit="phases"
-            accent="neutral"
+            title={en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
+            colors={SEASON_COLORS}
           />
         </div>
 
@@ -294,11 +298,11 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Depression severity' : 'Тяжесть депрессии'}
           </h3>
-          <DistributionTable
+          <DistributionPie
             rows={optionRows('depression_severity', f.severity, locale)}
             locale={locale}
             unit="phases"
-            accent="amber"
+            title={en ? 'Depression severity' : 'Тяжесть депрессии'}
           />
         </div>
 
@@ -306,11 +310,11 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
           </h3>
-          <DistributionTable
+          <DistributionPie
             rows={optionRows('main_component', f.component, locale)}
             locale={locale}
             unit="phases"
-            accent="green"
+            title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
           />
         </div>
       </section>
