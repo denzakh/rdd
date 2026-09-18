@@ -171,19 +171,6 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
 
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Gender ratio (abs, %)' : 'Соотношение полов (абс, %)'}
-          </h3>
-          <DistributionPie
-            rows={optionRows('gender', p.gender, locale)}
-            locale={locale}
-            unit="patients"
-            title={en ? 'Gender ratio' : 'Соотношение полов'}
-            colors={GENDER_COLORS}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Average age' : 'Средний возраст'}
           </h3>
           <p className="text-2xl font-semibold tabular-nums">
@@ -280,42 +267,61 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             f.intermissionRatio
           )}
         </div>
+      </section>
+      {/* ----- Круговые диаграммы с легендами в одном блоке (сетка 2 колонки) ----- */}
+      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
+        <h2 className="text-sm font-semibold">{en ? 'Distributions' : 'Распределения'}</h2>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
-          </h3>
-          <DistributionPie
-            rows={seasonRows(f.seasons, locale)}
-            locale={locale}
-            unit="phases"
-            title={en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
-            colors={SEASON_COLORS}
-          />
-        </div>
+        <div className="grid gap-8 gap-x-12 md:grid-cols-2">
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-neutral-600">
+              {en ? 'Gender ratio (abs, %)' : 'Соотношение полов (абс, %)'}
+            </h3>
+            <DistributionPie
+              rows={optionRows('gender', p.gender, locale)}
+              locale={locale}
+              unit="patients"
+              title={en ? 'Gender ratio' : 'Соотношение полов'}
+              colors={GENDER_COLORS}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Depression severity' : 'Тяжесть депрессии'}
-          </h3>
-          <DistributionPie
-            rows={optionRows('depression_severity', f.severity, locale)}
-            locale={locale}
-            unit="phases"
-            title={en ? 'Depression severity' : 'Тяжесть депрессии'}
-          />
-        </div>
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-neutral-600">
+              {en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
+            </h3>
+            <DistributionPie
+              rows={seasonRows(f.seasons, locale)}
+              locale={locale}
+              unit="phases"
+              title={en ? 'Seasonality of exacerbations' : 'Сезонная зависимость обострений'}
+              colors={SEASON_COLORS}
+            />
+          </div>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
-          </h3>
-          <DistributionPie
-            rows={optionRows('main_component', f.component, locale)}
-            locale={locale}
-            unit="phases"
-            title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
-          />
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-neutral-600">
+              {en ? 'Depression severity' : 'Тяжесть депрессии'}
+            </h3>
+            <DistributionPie
+              rows={optionRows('depression_severity', f.severity, locale)}
+              locale={locale}
+              unit="phases"
+              title={en ? 'Depression severity' : 'Тяжесть депрессии'}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-neutral-600">
+              {en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
+            </h3>
+            <DistributionPie
+              rows={optionRows('main_component', f.component, locale)}
+              locale={locale}
+              unit="phases"
+              title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
+            />
+          </div>
         </div>
       </section>
     </section>

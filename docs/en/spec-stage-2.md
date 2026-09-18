@@ -44,6 +44,7 @@
     `genderDistribution` (gender), `averageAgeAtInclusion` (average age),
     `familyHistoryDistribution` (hereditary mental burden).
 - All aggregates respect the user's `data_scope` (the same row-level access as for lists).
+- The service phases 98 ("Admission") and 99 ("Discharge") are excluded from all aggregates: only ordinary episodes (1..97) are counted in the `/reports` statistics.
 - `fieldId` validator: only `FLAT_REGISTRY` keys with a phase scope are allowed (SQL-injection protection via the column name).
 
 ## 4. Pages (`src/app` / root `app/`)

@@ -4,11 +4,15 @@ import {
   averageDiseaseDurationMonths,
   averageDurations,
   averageOnsetAge,
+  countByField,
   depressionSeverityDistribution,
   firstToPenultimateIntermissionDuration,
   firstToPenultimatePhaseDuration,
   mainComponentDistribution,
+  phaseDurationsByOrder,
   seasonalDistribution,
+  PHASE_RELATIVE_ADMISSION,
+  PHASE_RELATIVE_DISCHARGE,
 } from '@/entities/phase'
 import { cleanupPatient, disposeTestDb, getTestDb } from '../helpers/db'
 
@@ -47,7 +51,8 @@ async function insertPhase(
   db: D1Database,
   patientId: number,
   orderId: number,
-  p: PhaseSeed
+  p: PhaseSeed,
+  relativeId: number = orderId
 ): Promise<void> {
   await db
     .prepare(
@@ -58,7 +63,7 @@ async function insertPhase(
     .bind(
       patientId,
       orderId,
-      orderId, // обычные фазы: relative_id = номер по порядку
+      relativeId,
       p.phase_start_date ?? null,
       p.phase_duration_months ?? null,
       p.intermission_duration ?? null,
@@ -183,6 +188,112 @@ describe('агрегаты /reports по фазам', () => {
       expect(cv(3)).toBe(2)
     } finally {
       for (const id of [idA, idB]) await cleanupPatient(db, id)
+    }
+  })
+
+  it('служебные фазы 98/99 исключены из статистики', async () => {
+    const db = await getTestDb()
+    const repo = createPatientRepository(db)
+    const id = await repo.create({ ...basePatient, birth_year: 1990 })
+
+    // Два обычных эпизода (relative_id 1, 2) + служебные «Поступление» (98) и
+    // «Выписка» (99) с намеренно большими длительностями и признаками.
+    await insertPhase(db, id, 1, {
+      phase_start_date: '2020-01-15',
+      phase_duration_months: 6,
+      intermission_duration: 3,
+      hamd_total: 10,
+      main_component: 1,
+      depression_severity: 1,
+    })
+    await insertPhase(db, id, 2, {
+      phase_start_date: '2020-07-15',
+      phase_duration_months: 8,
+      intermission_duration: null,
+      hamd_total: 20,
+      main_component: 2,
+      depression_severity: 2,
+    })
+    await insertPhase(
+      db,
+      id,
+      3,
+      {
+        phase_start_date: '2021-03-15',
+        phase_duration_months: 100,
+        intermission_duration: 50,
+        hamd_total: 30,
+        main_component: 3,
+        depression_severity: 3,
+      },
+      PHASE_RELATIVE_ADMISSION
+    )
+    await insertPhase(
+      db,
+      id,
+      4,
+      {
+        phase_start_date: '2021-09-15',
+        phase_duration_months: 100,
+        intermission_duration: 50,
+        hamd_total: 30,
+        main_component: 3,
+        depression_severity: 1,
+      },
+      PHASE_RELATIVE_DISCHARGE
+    )
+
+    try {
+      // Средние считаются только по двум обычным фазам (6 и 8 мес).
+      const avg = await averageDurations(db, { mode: 'all' })
+      expect(avg.phaseRows).toBe(2)
+      expect(avg.intermissionRows).toBe(1)
+      expect(avg.avgPhaseMonths).toBeCloseTo(7, 6)
+      expect(avg.avgIntermissionMonths).toBeCloseTo(3, 6)
+      expect(avg.stddevPhaseMonths).toBeCloseTo(Math.sqrt(2), 6)
+      expect(avg.stddevIntermissionMonths).toBeNull()
+
+      // Длительность заболевания: (6 + 3) + 8 = 17 мес (без 98/99).
+      const dur = await averageDiseaseDurationMonths(db, { mode: 'all' })
+      expect(dur.patients).toBe(1)
+      expect(dur.value).toBeCloseTo(17, 6)
+
+      // Возраст начала: 2020 − 1990 = 30 лет.
+      const onset = await averageOnsetAge(db, { mode: 'all' })
+      expect(onset.patients).toBe(1)
+      expect(onset.value).toBeCloseTo(30, 6)
+
+      // Сезонность: только зима (янв) и лето (июл) обычных фаз.
+      const seasons = await seasonalDistribution(db, { mode: 'all' })
+      expect(seasons.reduce((s, x) => s + x.count, 0)).toBe(2)
+      expect(seasons.find((x) => x.season === 1)?.count).toBe(1)
+      expect(seasons.find((x) => x.season === 3)?.count).toBe(1)
+      expect(seasons.find((x) => x.season === 2)).toBeUndefined()
+      expect(seasons.find((x) => x.season === 4)).toBeUndefined()
+
+      // Тяжесть/компонент: 98/99 не попали (значения 3 отсутствуют).
+      const sev = await depressionSeverityDistribution(db, { mode: 'all' })
+      expect(sev.reduce((s, x) => s + x.count, 0)).toBe(2)
+      expect(sev.find((x) => x.value === 3)).toBeUndefined()
+
+      const comp = await mainComponentDistribution(db, { mode: 'all' })
+      expect(comp.reduce((s, x) => s + x.count, 0)).toBe(2)
+      expect(comp.find((x) => x.value === 3)).toBeUndefined()
+
+      // «Предпоследняя» требует ≥ 3 обычных эпизодов: служебные не считаются.
+      const ph = await firstToPenultimatePhaseDuration(db, { mode: 'all' })
+      expect(ph.patients).toBe(0)
+      expect(ph.firstAvg).toBeNull()
+
+      // Группировка по порядку вставки тоже отсекает служебные строки.
+      const byOrder = await phaseDurationsByOrder(db, { mode: 'all' })
+      expect(byOrder.map((r) => r.phase_order_id)).toEqual([1, 2])
+
+      // countByField — число РАЗНЫХ пациентов с признаком, без 98/99.
+      const byComponent = await countByField(db, 'main_component', { mode: 'all' })
+      expect(byComponent.find((r) => r.value === 3)).toBeUndefined()
+    } finally {
+      await cleanupPatient(db, id)
     }
   })
 })

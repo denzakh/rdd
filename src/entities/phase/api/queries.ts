@@ -1,7 +1,7 @@
 import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import type { DeidentifiedDataset, DeidentifiedRow } from '@/shared/lib/export'
-import { DATA_COLUMNS } from './phase-repo'
+import { DATA_COLUMNS, PHASE_RELATIVE_ADMISSION } from './phase-repo'
 
 /**
  * Агрегаты по фазам (docs/spec-stage-2.md §3).
@@ -26,6 +26,16 @@ const EXCLUDE_WITHDRAWN_CONSENT = `
          SELECT 1 FROM patients p
          WHERE p.id = phases.patient_id AND p.consent_withdrawn_at IS NOT NULL
        )`
+
+/**
+ * Служебные фазы 98 («Поступление») и 99 («Выписка») — технические колонки
+ * матрицы, а не клинические эпизоды: в статистику /reports они не входят.
+ * Условие `< 98` отсекает обе, но оставляет обычные фазы (1..97) и строки
+ * с NULL phase_relative_id (записи до миграции 0008 — это обычные эпизоды).
+ * alias — псевдоним таблицы phases в запросе (например, 'ph.').
+ */
+const excludeSystemPhases = (alias = ''): string =>
+  ` AND (${alias}phase_relative_id IS NULL OR ${alias}phase_relative_id < ${PHASE_RELATIVE_ADMISSION})`
 
 export function assertPhaseField(fieldId: string): keyof (typeof DATA_COLUMNS)[number] {
   if (!PHASE_FIELD_IDS.has(fieldId)) {
@@ -52,7 +62,7 @@ export async function countByField(
     .prepare(
       `SELECT ${String(column)} AS value, COUNT(DISTINCT patient_id) AS count
        FROM phases
-       WHERE ${String(column)} IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
+       WHERE ${String(column)} IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${excludeSystemPhases()}${s.sql}
        GROUP BY ${String(column)}
        ORDER BY count DESC, value ASC`
     )
@@ -81,7 +91,7 @@ export async function phaseDurationsByOrder(
        FROM phases
        WHERE patient_id IN (
          SELECT id FROM patients WHERE consent_withdrawn_at IS NULL
-       )${s.sql}
+       )${s.sql}${excludeSystemPhases()}
        GROUP BY phase_order_id
        ORDER BY phase_order_id`
     )
@@ -108,7 +118,7 @@ export async function efficacyByMainComponent(
     .prepare(
       `SELECT main_component, ad_efficacy, COUNT(DISTINCT patient_id) AS count
        FROM phases
-       WHERE main_component IS NOT NULL AND ad_efficacy IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${s.sql}
+       WHERE main_component IS NOT NULL AND ad_efficacy IS NOT NULL${EXCLUDE_WITHDRAWN_CONSENT}${excludeSystemPhases()}${s.sql}
        GROUP BY main_component, ad_efficacy
        ORDER BY main_component, ad_efficacy`
     )
@@ -158,7 +168,7 @@ export async function averageOnsetAge(
          WHERE ph.phase_order_id = 1
            AND ph.phase_start_date IS NOT NULL
            AND p.birth_year IS NOT NULL
-           AND p.consent_withdrawn_at IS NULL${s.sql}
+           AND p.consent_withdrawn_at IS NULL${s.sql}${excludeSystemPhases('ph.')}
        )`
     )
     .bind(...s.binds)
@@ -189,7 +199,7 @@ export async function averageDiseaseDurationMonths(
                   SUM(COALESCE(ph.intermission_duration, 0)) AS total
          FROM phases ph
          WHERE ph.patient_id IN (SELECT p.id FROM patients p
-                                 WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+                                 WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases('ph.')}
          GROUP BY ph.patient_id
        )
        WHERE total > 0`
@@ -234,7 +244,7 @@ export async function averageDurations(
                 AS intermission_stddev
        FROM phases
        WHERE patient_id IN (SELECT p.id FROM patients p
-                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}`
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}`
     )
     .bind(...s.binds)
     .all<{
@@ -304,7 +314,7 @@ async function firstToPenultimateOfColumn(
                 COUNT(*) OVER (PARTITION BY patient_id) AS total
          FROM phases
          WHERE patient_id IN (SELECT p.id FROM patients p
-                              WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+                              WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}
        )
        SELECT AVG(CASE WHEN rn = 1 THEN ${column} END) AS first_avg,
               AVG(CASE WHEN rn = total - 1 THEN ${column} END) AS penultimate_avg,
@@ -347,7 +357,7 @@ export async function seasonalDistribution(
        FROM phases
        WHERE phase_start_date IS NOT NULL
          AND patient_id IN (SELECT p.id FROM patients p
-                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}
        GROUP BY season_code
        ORDER BY season_code`
     )
@@ -376,7 +386,7 @@ export async function depressionSeverityDistribution(
        FROM phases
        WHERE depression_severity IS NOT NULL
          AND patient_id IN (SELECT p.id FROM patients p
-                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}
        GROUP BY depression_severity
        ORDER BY value ASC`
     )
@@ -397,7 +407,7 @@ export async function mainComponentDistribution(
        FROM phases
        WHERE main_component IS NOT NULL
          AND patient_id IN (SELECT p.id FROM patients p
-                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}
+                            WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}
        GROUP BY main_component
        ORDER BY count DESC, value ASC`
     )
