@@ -83,11 +83,12 @@ export default async function ReportsPage() {
   return (
     <div>
       <Header displayName={user.displayName} role={user.role} />
-      <main className="mx-auto max-w-[1000px] space-y-8 p-6">
+      <main className="mx-auto max-w-[1000px] space-y-6 p-6">
         <h1 className="text-xl font-semibold">{en ? 'Reports' : 'Отчёты'}</h1>
-
-        <StatisticsPanel data={data} locale={locale} />
         <ExportPanel locale={locale} />
+
+        <h2 className="text-xl font-semibold">{en ? 'Statistics' : 'Статистика'}</h2>
+        <StatisticsPanel data={data} locale={locale} />
       </main>
     </div>
   )

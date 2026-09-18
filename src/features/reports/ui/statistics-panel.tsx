@@ -2,7 +2,8 @@ import type { Locale } from '@/shared/lib/intl'
 import { optionLabel } from '@/shared/lib/intl'
 import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
-import { DistributionTable, fmt1, type DistributionRow } from './distribution-table'
+import { fmt1, type DistributionRow } from './distribution-table'
+import { DistributionTableYes, yesFeatureRow } from './distribution-table-yes'
 import { DistributionPie } from './distribution-pie'
 import { GENDER_COLORS, SEASON_COLORS } from './colors'
 
@@ -81,17 +82,6 @@ function optionRows(fieldId: string, values: StatsValueCount[], locale: Locale):
       count: r.count,
     }
   })
-}
-
-/** Подписи наследственной отягощённости (0/1, options в реестре нет). */
-function familyRows(values: StatsValueCount[], locale: Locale): DistributionRow[] {
-  const en = locale === 'en'
-  return values.map((r) => ({
-    value: r.value,
-    label:
-      r.value === 1 ? (en ? 'Yes' : 'Да') : r.value === 0 ? (en ? 'No' : 'Нет') : String(r.value),
-    count: r.count,
-  }))
 }
 
 function seasonRows(
@@ -316,13 +306,15 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en
-              ? 'Hereditary mental burden'
-              : 'Наследственная отягощённость психическими заболеваниями'}
-          </h3>
-          <DistributionTable
-            rows={familyRows(p.familyHistory, locale)}
+          <DistributionTableYes
+            rows={[
+              yesFeatureRow(
+                p.familyHistory,
+                en
+                  ? 'Hereditary mental burden'
+                  : 'Наследственная отягощённость психическими заболеваниями'
+              ),
+            ]}
             locale={locale}
             unit="patients"
           />
