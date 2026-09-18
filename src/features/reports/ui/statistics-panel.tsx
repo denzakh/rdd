@@ -128,10 +128,14 @@ const meanPmSd = (
   sd: number | null,
   unit: 'yr' | 'mo',
   en: boolean
-): string => {
+): React.ReactNode => {
   if (mean === null || sd === null) return '—'
   const u = unit === 'mo' ? (en ? 'mo' : 'мес') : en ? 'yrs' : 'лет'
-  return `${fmt1(mean)} ± ${fmt1(sd)} ${u}`
+  return (
+    <>
+      <b>{fmt1(mean)}</b>&nbsp;±&nbsp;{fmt1(sd)}&nbsp;{u}
+    </>
+  )
 }
 
 /** Панель статистики страницы /reports (серверный компонент, без JS). */
@@ -173,7 +177,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           <h3 className="text-xs font-semibold text-neutral-600">
             {en ? 'Average age' : 'Средний возраст'}
           </h3>
-          <p className="text-2xl font-semibold tabular-nums">
+          <p className="text-2xl tabular-nums">
             {meanPmSd(p.averageAgeYears, p.averageAgeStddev, 'yr', en)}
           </p>
           <p className="text-xs text-neutral-500">
@@ -181,19 +185,6 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               ? `At study inclusion; based on ${p.averageAgePatients} patients`
               : `На момент включения; по ${p.averageAgePatients} пациентам`}
           </p>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en
-              ? 'Hereditary mental burden'
-              : 'Наследственная отягощённость психическими заболеваниями'}
-          </h3>
-          <DistributionTable
-            rows={familyRows(p.familyHistory, locale)}
-            locale={locale}
-            unit="patients"
-          />
         </div>
       </section>
       {/* ----- По фазам ----- */}
@@ -205,7 +196,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average age at disease onset' : 'Средний возраст начала заболевания'}
             </h3>
-            <p className="text-2xl font-semibold tabular-nums">
+            <p className="text-2xl tabular-nums">
               {meanPmSd(f.onsetAge.value, f.onsetAge.stddev, 'yr', en)}
             </p>
             <p className="text-xs text-neutral-500">
@@ -219,7 +210,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average disease duration' : 'Средняя длительность заболевания'}
             </h3>
-            <p className="text-2xl font-semibold tabular-nums">
+            <p className="text-2xl tabular-nums">
               {meanPmSd(f.diseaseDurationMonths.value, f.diseaseDurationMonths.stddev, 'mo', en)}
             </p>
             <p className="text-xs text-neutral-500">
@@ -322,6 +313,19 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-neutral-600">
+            {en
+              ? 'Hereditary mental burden'
+              : 'Наследственная отягощённость психическими заболеваниями'}
+          </h3>
+          <DistributionTable
+            rows={familyRows(p.familyHistory, locale)}
+            locale={locale}
+            unit="patients"
+          />
         </div>
       </section>
     </section>
