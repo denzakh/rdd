@@ -34,8 +34,6 @@ export function yesFeatureRow(
 interface DistributionTableYesProps {
   rows: YesFeatureRow[]
   locale: Locale
-  /** Единица строки таблицы (пациенты / фазы). */
-  unit?: 'patients' | 'phases'
 }
 
 /**
@@ -43,19 +41,13 @@ interface DistributionTableYesProps {
  * «%» (доля записей с признаком от заполненных) и абсолютное число «да».
  * Серверный рендер, без JS, подходит для /reports.
  */
-export function DistributionTableYes({
-  rows,
-  locale,
-  unit = 'patients',
-}: DistributionTableYesProps) {
+export function DistributionTableYes({ rows, locale }: DistributionTableYesProps) {
   const en = locale === 'en'
   const filled = rows.reduce((s, r) => s + r.total, 0)
 
   if (rows.length === 0 || filled === 0) {
     return <p className="text-xs text-neutral-500">{en ? 'No data' : 'Нет данных'}</p>
   }
-
-  const unitLabel = unit === 'phases' ? (en ? 'phases' : 'фаз') : en ? 'patients' : 'пациентов'
 
   return (
     <table className="w-full text-sm">

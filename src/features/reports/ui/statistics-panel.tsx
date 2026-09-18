@@ -222,7 +222,6 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               ),
             ]}
             locale={locale}
-            unit="patients"
           />
         </div>
       </section>
