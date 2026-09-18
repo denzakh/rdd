@@ -163,25 +163,21 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
       <section className="space-y-4 rounded-md border border-neutral-300 p-4">
         <h2 className="text-sm font-semibold">{en ? 'By patient' : 'По пациентам'}</h2>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Average age' : 'Средний возраст'}
-          </h3>
-          <p className="text-2xl tabular-nums">
-            {meanPmSd(p.averageAgeYears, p.averageAgeStddev, 'yr', en)}
-          </p>
-          <p className="text-xs text-neutral-500">
-            {en
-              ? `At study inclusion; based on ${p.averageAgePatients} patients`
-              : `На момент включения; по ${p.averageAgePatients} пациентам`}
-          </p>
-        </div>
-      </section>
-      {/* ----- По фазам ----- */}
-      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
-        <h2 className="text-sm font-semibold">{en ? 'By phase' : 'По фазам'}</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-neutral-600">
+              {en ? 'Average age' : 'Средний возраст'}
+            </h3>
+            <p className="text-2xl tabular-nums">
+              {meanPmSd(p.averageAgeYears, p.averageAgeStddev, 'yr', en)}
+            </p>
+            <p className="text-xs text-neutral-500">
+              {en
+                ? `At study inclusion; based on ${p.averageAgePatients} patients`
+                : `На момент включения; по ${p.averageAgePatients} пациентам`}
+            </p>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average age at disease onset' : 'Средний возраст начала заболевания'}
@@ -214,6 +210,10 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             </p>
           </div>
         </div>
+      </section>
+      {/* ----- По фазам ----- */}
+      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
+        <h2 className="text-sm font-semibold">{en ? 'By phase' : 'По фазам'}</h2>
 
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-neutral-600">
