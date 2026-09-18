@@ -83,7 +83,7 @@ export function DistributionPie({ rows, locale, title, unit, colors }: Distribut
           <circle key="all" cx="100" cy="100" r="92" fill="#ffffff50"></circle>
           <circle key="center" cx="100" cy="100" r="40" fill="#ffffff"></circle>
         </svg>
-        <ul className="min-w-0 flex-1 space-y-2 pr-6 text-sm">
+        <ul className="min-w-0 flex-1 space-y-2 text-sm">
           {slices.map((row) => (
             <li key={row.value} className="flex items-baseline gap-2">
               <span
@@ -98,7 +98,7 @@ export function DistributionPie({ rows, locale, title, unit, colors }: Distribut
                     {fmt1(row.pct)}%{' '}
                   </span>
                 </b>{' '}
-                <span className="text-neutral-500">{row.count}</span>
+                <span className="inline-block min-w-10 text-neutral-500">{row.count}</span>
               </span>
             </li>
           ))}
