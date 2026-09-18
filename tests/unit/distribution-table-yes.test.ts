@@ -36,7 +36,7 @@ describe('yesFeatureRow: сборка строки «да/нет»-призна�
 
 /** Рендер таблицы /reports (серверный, без JS). */
 describe('DistributionTableYes: рендер таблицы «да/нет»-признаков', () => {
-  it('рендер: строка признака — название, % да и абс. число да', () => {
+  it('рендер: строка признака — название, % и абс. число да', () => {
     const html = renderToStaticMarkup(
       DistributionTableYes({
         rows: [
@@ -53,8 +53,8 @@ describe('DistributionTableYes: рендер таблицы «да/нет»-пр
 
     expect(html).toContain('<table')
     expect(html).toContain('Наследственная отягощённость психическими заболеваниями')
-    expect(html).toContain('% да')
-    expect(html).toContain('Абс. число да (пациентов)')
+    expect(html).toContain('%')
+    expect(html).toContain('Абс. число')
     expect(html).toContain('66.7%')
     expect(html).toContain('>2<')
   })

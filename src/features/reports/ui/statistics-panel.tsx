@@ -210,6 +210,21 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             </p>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <DistributionTableYes
+            rows={[
+              yesFeatureRow(
+                p.familyHistory,
+                en
+                  ? 'Hereditary mental burden'
+                  : 'Наследственная отягощённость психическими заболеваниями'
+              ),
+            ]}
+            locale={locale}
+            unit="patients"
+          />
+        </div>
       </section>
       {/* ----- По фазам ----- */}
       <section className="space-y-4 rounded-md border border-neutral-300 p-4">
@@ -303,21 +318,6 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
             />
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <DistributionTableYes
-            rows={[
-              yesFeatureRow(
-                p.familyHistory,
-                en
-                  ? 'Hereditary mental burden'
-                  : 'Наследственная отягощённость психическими заболеваниями'
-              ),
-            ]}
-            locale={locale}
-            unit="patients"
-          />
         </div>
       </section>
     </section>

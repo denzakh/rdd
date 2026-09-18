@@ -11,7 +11,7 @@ export interface YesFeatureRow {
   label: string
   /** Абсолютное число записей с признаком («да»). */
   yes: number
-  /** Число записей с заполненным признаком (знаменатель для «% да»). */
+  /** Число записей с заполненным признаком (знаменатель для «%»). */
   total: number
 }
 
@@ -40,7 +40,7 @@ interface DistributionTableYesProps {
 
 /**
  * Таблица «да/нет»-признаков: каждая строка — название признака,
- * «% да» (доля записей с признаком от заполненных) и абсолютное число «да».
+ * «%» (доля записей с признаком от заполненных) и абсолютное число «да».
  * Серверный рендер, без JS, подходит для /reports.
  */
 export function DistributionTableYes({
@@ -61,11 +61,9 @@ export function DistributionTableYes({
     <table className="w-full text-sm">
       <thead>
         <tr className="text-left text-xs text-neutral-500">
-          <th className="py-1 pl-0">{en ? 'Feature' : 'Название'}</th>
-          <th className="py-1 text-right">{en ? 'Yes, %' : '% да'}</th>
-          <th className="py-1 text-right">
-            {en ? `Yes, abs (${unitLabel})` : `Абс. число да (${unitLabel})`}
-          </th>
+          <th className="py-1 pl-0">{en ? 'Feature' : 'Признак'}</th>
+          <th className="py-1 text-right"></th>
+          <th className="py-1 text-right"></th>
         </tr>
       </thead>
       <tbody>
@@ -75,7 +73,7 @@ export function DistributionTableYes({
             <tr key={r.label}>
               <td className="py-1.5">{r.label}</td>
               <td className="py-1.5 text-right whitespace-nowrap text-neutral-700 tabular-nums">
-                {fmt1(pct)}%
+                <b>{fmt1(pct)}%</b>
               </td>
               <td className="py-1.5 text-right whitespace-nowrap text-neutral-700 tabular-nums">
                 {r.yes}
