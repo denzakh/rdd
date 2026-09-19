@@ -206,6 +206,10 @@ The cell component selects a UI controller based on the `field.ui` property:
 ## 4. Visual hierarchy and UX
 
 - **Section grouping:** While scrolling, categories (Socium, Mental status, Pharmacotherapy, Scales) are separated by divider rows with `bg-muted` background and `font-semibold`.
+- **Section subgroups (Option A):** Within a section, fields may carry a `group` (a reference to a subgroup dictionary key next to the registry block, e.g. `THERAPY_GROUPS` in `src/shared/config/registry/therapy.ts`). When the group changes, `buildMatrixRows` (`matrix-rows.ts`) inserts a subheader row (`kind: 'subgroup'`): background `bg-muted/60`, `text-xs font-medium`, `pl-6` indent — visually quieter than the section header. The "Field = column" invariant is untouched: grouping is display-only (matrix + Data Dictionary), the registry stays flat. A section without a subgroup dictionary (`SECTION_GROUPS` in `matrix-rows.ts`) renders as a flat list. Currently only the "Pharmacotherapy" section has subgroups: Depressogenic background, Somatic support, Antidepressant classes, AD course: dose/route/effect, Antipsychotics & tranquilizers.
+- **Grid row hiding (row-level):**
+  - `hide_in_matrix` in the registry — the field is not rendered as a grid row (auto-duplicates: the phase number is visible in the column header; `hamd_severity`/`pure_remission`/`ad_any` derive from nearby visible values). The field remains in the registry, `applyComputed`, Data Dictionary and export.
+  - Deprecated fields by protocol version: the row is excluded entirely if ALL phases of the grid are under version ≥ `deprecated_since`; if at least one phase is older, the row stays and cells of "withdrawn" phases are hidden individually. Conditions — `src/shared/lib/registry/field-availability.ts`, lifecycle — `./schema-evolution.md` §6.1.
 - **Active row/column highlighting:** add a hover effect for the whole row (`hover:bg-accent/50`) and visual highlight of the current-status column (98) with a thin color border (`border-l-2 border-amber-500`).
 - **Keyboard navigation (decision 4-A — declarative focus):**
 - **Roving tabindex:** among the row's interactive elements exactly one cell has `tabIndex=0`; the rest have `tabIndex=-1` (they are reached by arrows, not by Tab through the whole table).
@@ -228,6 +232,7 @@ const moveVertical = (row: number, col: number, dir: 1 | -1) => {
 ```
 
 - Cells outside the viewport cannot receive focus — therefore `scrollToIndex` + `requestAnimationFrame` (after the virtualized row mounts) is mandatory before focusing.
+- Section and subgroup header rows (`kind: 'section' | 'subgroup'`) contain no cells — focus "skips" them to the nearest field in the direction of movement (the `nextFieldRow` helper in `matrix-grid.tsx`).
 - **Responsiveness (decision 5-C):** v1 — **desktop-only** (min viewport width 1024px). A mobile layout (phase cards, compact sticky column) is a separate task after v1 stabilization.
 
 ---

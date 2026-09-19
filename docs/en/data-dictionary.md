@@ -25,11 +25,17 @@ the single source of truth of the application.
 ## Table reading rules
 
 - **NULL** — the field value is not filled (columns are created as `NULL`).
+- "Subgroup" — the title of a logical group within a section (`group` in
+  `RegistryField`, the subgroup dictionary next to the registry block, e.g.
+  `THERAPY_GROUPS`; also used by the matrix as subheader rows —
+  `./matrix.md` §4). `—` — a field without a subgroup (or a section without a
+  subgroup dictionary; currently all sections except "Therapy").
 - "current status only" — a field with `is_current_only`: available only in columns
   98 (current status) and 99 (exit) of the matrix.
 - "computed" — a field with no DB column, the value is calculated on the fly
   (`src/shared/api/with-computed`), e.g. `current_age`, `age_group`,
-  `hamd_severity`.
+  `hamd_severity`. Computed auto-duplicate fields with `hide_in_matrix` are not
+  rendered as matrix grid rows, but remain in the dictionary and export.
 - "deprecated since vN" — the field was taken out of use by a protocol amendment
   (`deprecated_since` in the registry, ./schema-evolution.md §3, §6): the column
   stays in the schema and remains readable, the dictionary shows the marker and does not
