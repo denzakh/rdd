@@ -4,6 +4,7 @@ import { FLAT_REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import { fmt1, type DistributionRow } from './distribution-table'
 import { DistributionTableYes, yesFeatureRow } from './distribution-table-yes'
+import { BinaryFeaturesSection } from './binary-features-section'
 import { DistributionPie } from './distribution-pie'
 import { GENDER_COLORS, SEASON_COLORS } from './colors'
 
@@ -74,13 +75,6 @@ const SEASONS: Record<number, { ru: string; en: string }> = {
 
 const pick = (t: { ru: string; en: string }, locale: Locale): string =>
   locale === 'en' ? t.en : t.ru
-
-/** Подпись поля реестра: { ru, en } или простая строка (RU-фолбэк). */
-function fieldLabel(fieldId: string, locale: Locale): string {
-  const field = FLAT[fieldId]
-  if (!field) return fieldId
-  return typeof field.label === 'string' ? field.label : pick(field.label, locale)
-}
 
 /** Подписи опций реестра (gender, main_component, depression_severity). */
 function optionRows(fieldId: string, values: StatsValueCount[], locale: Locale): DistributionRow[] {
@@ -379,24 +373,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           )}
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
-          </h3>
-          <DistributionTableYes
-            rows={f.binaryFeatures.map((b) => ({
-              label: fieldLabel(b.fieldId, locale),
-              yes: b.yes,
-              total: b.total,
-            }))}
-            locale={locale}
-          />
-          <p className="text-xs text-neutral-500">
-            {en
-              ? 'Share of phases with the feature among phases with the attribute filled (0/1); service phases 98/99 excluded.'
-              : 'Доля фаз с признаком среди фаз с заполненным значением (0/1); служебные фазы 98/99 исключены.'}
-          </p>
-        </div>
+        <BinaryFeaturesSection counts={f.binaryFeatures} locale={locale} />
       </section>
     </section>
   )

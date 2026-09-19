@@ -44,8 +44,10 @@
     the phase registry: `db_type: 'BOOLEAN'` without computed fields and
     patient scope) in ONE query with conditional aggregation
     (`SUM(CASE WHEN col = 1 ...)` + `COUNT(col)`); count of PHASES with "yes"
-    and the denominator — filled phases; rendered as the yes/no table on
-    /reports;
+    and the denominator — filled phases; rendered as yes/no tables on
+    /reports, split by registry sections (status / therapy / remission in
+    matrix order) and THERAPY_GROUPS subgroups
+    (`src/features/reports/ui/binary-features-section.tsx`);
   - `/reports` metrics (by patient) — `src/entities/patient/api/patient-queries.ts`:
     `genderDistribution` (gender), `averageAgeAtInclusion` (average age),
     `familyHistoryDistribution` (hereditary mental burden).

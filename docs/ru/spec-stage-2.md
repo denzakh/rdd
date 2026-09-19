@@ -44,7 +44,9 @@
     реестра фаз: `db_type: 'BOOLEAN'` без вычисляемых полей и patient-scope)
     ОДНИМ запросом с условной агрегацией (`SUM(CASE WHEN col = 1 ...)` +
     `COUNT(col)`); число ФАЗ с «да» и знаменатель — заполненные фазы; вывод —
-    таблица «да/нет» на /reports;
+    таблицы «да/нет» на /reports, разбитые по секциям реестра (status /
+    therapy / remission в порядке матрицы) и подгруппам THERAPY_GROUPS
+    (`src/features/reports/ui/binary-features-section.tsx`);
   - показатели /reports (по пациентам) — `src/entities/patient/api/patient-queries.ts`:
     `genderDistribution` (пол), `averageAgeAtInclusion` (средний возраст),
     `familyHistoryDistribution` (наследственная отягощённость).
