@@ -19,6 +19,16 @@ describe('validate: validateCellValue', () => {
     expect(validateCellValue(birthYear, 1800)).toBeDefined()
   })
 
+  it('main_component=0 («Отсутствует») — валиден как число', () => {
+    const mainComponent = FLAT_REGISTRY.main_component as RegistryField
+    expect(validateCellValue(mainComponent, 0)).toBeUndefined()
+  })
+
+  it('main_component="0" (строка вместо числа) — ошибка типа', () => {
+    const mainComponent = FLAT_REGISTRY.main_component as RegistryField
+    expect(validateCellValue(mainComponent, '0' as unknown as number)).toBeDefined()
+  })
+
   it('несуществующее в схеме поле — валидно (нет валидатора)', () => {
     const ghost = { ...birthYear, id: 'no_such_field' } as RegistryField
     expect(validateCellValue(ghost, 123)).toBeUndefined()

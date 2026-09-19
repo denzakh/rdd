@@ -79,9 +79,25 @@ function MatrixCellBase({
         return (
           <select
             defaultValue={value === null ? '' : String(value)}
-            onChange={(e) =>
-              commit(e.target.value === '' ? null : Number(e.target.value) || e.target.value)
-            }
+            onChange={(e) => {
+              const raw = e.target.value
+              if (raw === '') {
+                commit(null)
+                return
+              }
+              // Совпадение с опцией реестра — коммитим каноническое значение
+              // (сохраняет тип number|string из RegistryOption).
+              const match = options?.find((o) => String(o.value) === raw)
+              if (match !== undefined) {
+                commit(match.value as FieldValue)
+                return
+              }
+              // Фолбэк: числовые строки → number (включая "0"),
+              // иначе — как есть. Старый вариант
+              // `Number(raw) || raw` превращал "0" в строку "0"
+              // (0 — falsy), и Zod (z.number) отклонял её как «ошибка типа».
+              commit(raw.trim() !== '' && !Number.isNaN(Number(raw)) ? Number(raw) : raw)
+            }}
             className={`h-7 w-full rounded border border-neutral-300 bg-white px-1 text-xs ${ring}`}
           >
             <option value="">—</option>
