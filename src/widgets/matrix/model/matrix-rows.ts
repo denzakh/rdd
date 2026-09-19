@@ -4,15 +4,15 @@ import { fieldLabel as pickFieldLabel, type Locale } from '@/shared/lib/intl'
 import type { MatrixRowItem, MatrixScope } from './types'
 
 /**
- * Порядок секций матрицы (§4 спеки): Фармакотерапия, Ремиссия,
- * Психический статус, Шкалы. Секция `patient` в матрицу фаз не входит.
+ * Порядок секций матрицы: Контроль фазы, Психический статус,
+ * Шкалы, Фармакотерапия, Ремиссия. Секция `patient` в матрицу фаз не входит.
  */
 const SECTION_ORDER: Array<keyof typeof REGISTRY> = [
   'phase',
-  'therapy',
-  'remission',
   'status',
   'diagnostic',
+  'therapy',
+  'remission',
 ]
 
 const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> = {

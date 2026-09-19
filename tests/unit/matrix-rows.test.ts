@@ -16,11 +16,11 @@ describe('matrix-rows: buildMatrixRows', () => {
     expect(rows.some((r) => r.kind === 'section' && r.sectionId === 'patient')).toBe(false)
   })
 
-  it('порядок секций: phase, therapy, remission, status, diagnostic', () => {
+  it('порядок секций: phase, status, diagnostic, therapy, remission', () => {
     const sections = buildMatrixRows()
       .filter((r) => r.kind === 'section')
       .map((r) => (r as { sectionId: string }).sectionId)
-    expect(sections).toEqual(['phase', 'therapy', 'remission', 'status', 'diagnostic'])
+    expect(sections).toEqual(['phase', 'status', 'diagnostic', 'therapy', 'remission'])
   })
 
   it('число field-строк равно числу полей секций, индексы последовательны', () => {
