@@ -43,6 +43,8 @@ export interface StatsReport {
   phases: {
     onsetAge: StatsAverage
     diseaseDurationMonths: StatsAverage
+    /** Среднее количество фаз на пациента (± СКО) по пациентам с ≥ 1 фазой. */
+    avgPhaseCount: StatsAverage
     avgPhaseMonths: number | null
     avgIntermissionMonths: number | null
     /** Выборочное СКО длительности фаз, мес (null, если фаз < 2). */
@@ -128,19 +130,21 @@ const yearsOrDash = (v: number | null, en: boolean): string =>
 
 /**
  * «Среднее ± СКО» (пример: «50 ± 2.2»); тире, если средняя или СКО недоступны
- * (нет данных или учтена одна строка). unit: 'yr' — годы, 'mo' — месяцы.
+ * (нет данных или учтена одна строка). unit: 'yr' — годы, 'mo' — месяцы,
+ * null — безразмерная величина (например, количество фаз).
  */
 const meanPmSd = (
   mean: number | null,
   sd: number | null,
-  unit: 'yr' | 'mo',
+  unit: 'yr' | 'mo' | null,
   en: boolean
 ): React.ReactNode => {
   if (mean === null || sd === null) return '—'
-  const u = unit === 'mo' ? (en ? 'mo' : 'мес') : en ? 'yrs' : 'лет'
+  const u = unit === null ? null : unit === 'mo' ? (en ? 'mo' : 'мес') : en ? 'yrs' : 'лет'
   return (
     <>
-      <b className="text-[1.3em]">{fmt1(mean)}</b>&nbsp;±&nbsp;{fmt1(sd)}&nbsp;{u}
+      <b className="text-[1.3em]">{fmt1(mean)}</b>&nbsp;±&nbsp;{fmt1(sd)}
+      {u !== null && <span>&nbsp;{u}</span>}
     </>
   )
 }
@@ -307,32 +311,45 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
         </h2>
 
         <div className="space-y-2">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <dl className="flex items-center gap-x-4 gap-y-1 text-sm">
-              <dt className="text-neutral-500">
-                {en ? 'Average durations' : 'Средняя длительность'}
-                &nbsp;<b className="text-black">{en ? 'phase' : 'фаз'}</b>&nbsp;
-                <span>({en ? 'months' : 'мес'})</span>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <dl className="flex flex-col gap-x-4 gap-y-1 text-sm">
+              <dt className="text-xs font-semibold text-neutral-600">
+                {en ? 'Average number of phases' : 'Среднee количество фаз'}
               </dt>
-              <dd className="tabular-nums">
+              <dd className="text-xl tabular-nums">
+                {meanPmSd(f.avgPhaseCount.value, f.avgPhaseCount.stddev, null, en)}
+              </dd>
+            </dl>
+            <dl className="flex flex-col gap-x-4 gap-y-1 text-sm">
+              <dt className="text-xs font-semibold text-neutral-600">
+                {en ? 'Average durations phase' : 'Средняя длительность фаз'}
+              </dt>
+              <dd className="text-xl tabular-nums">
                 {meanPmSd(f.avgPhaseMonths, f.stddevPhaseMonths, 'mo', en)}
               </dd>
             </dl>
-            <dl className="flex items-center gap-x-4 gap-y-1 text-sm">
-              <dt className="text-neutral-500">
-                {en ? 'Average durations' : 'Средняя длительность'}
-                &nbsp;<b className="text-black">{en ? 'intermission' : 'интермиссий'}</b>&nbsp;
-                <span>({en ? 'months' : 'мес'})</span>
+            <dl className="flex flex-col gap-x-4 gap-y-1 text-sm">
+              <dt className="text-xs font-semibold text-neutral-600">
+                {en ? 'Average durations intermission' : 'Средняя длительность интермиссий'}
               </dt>
-              <dd className="tabular-nums">
+              <dd className="text-xl tabular-nums">
                 {meanPmSd(f.avgIntermissionMonths, f.stddevIntermissionMonths, 'mo', en)}
               </dd>
             </dl>
           </div>
           <p className="text-xs text-neutral-500">
+            {f.avgPhaseCount.value === null
+              ? en
+                ? 'No phases recorded'
+                : 'Нет зарегистрированных фаз'
+              : en
+                ? `Phases per patient; based on ${f.avgPhaseCount.patients} patients`
+                : `Количество фаз на пациента; по ${f.avgPhaseCount.patients} пациентам`}
+            .&nbsp;
             {en
               ? `${f.phaseRows} phases / ${f.intermissionRows} intermissions with recorded duration`
               : `Фаз с заполненной длительностью: ${f.phaseRows}; интермиссий: ${f.intermissionRows}`}
+            .
           </p>
         </div>
 

@@ -4,6 +4,7 @@ import {
   averageDiseaseDurationMonths,
   averageDurations,
   averageOnsetAge,
+  averagePhasesPerPatient,
   countByField,
   depressionSeverityDistribution,
   firstToPenultimateIntermissionDuration,
@@ -150,6 +151,13 @@ describe('агрегаты /reports по фазам', () => {
       expect(avg.stddevPhaseMonths).toBeCloseTo(Math.sqrt(5.2), 6)
       expect(avg.stddevIntermissionMonths).toBeCloseTo(Math.sqrt(28), 6)
 
+      // --- среднее количество фаз: A=3, B=2 → 2.5
+      const pc = await averagePhasesPerPatient(db, { mode: 'all' })
+      expect(pc.patients).toBe(2)
+      expect(pc.value).toBeCloseTo(2.5, 6)
+      // выборочное СКО: [3, 2] → s = √0.5 ≈ 0.7071
+      expect(pc.stddev).toBeCloseTo(Math.sqrt(0.5), 6)
+
       // --- динамика фаз: первая 6 / предпоследняя 8 → 0.75 (удлинение)
       const ph = await firstToPenultimatePhaseDuration(db, { mode: 'all' })
       expect(ph.patients).toBe(1) // только A (у B < 3 фаз)
@@ -252,6 +260,13 @@ describe('агрегаты /reports по фазам', () => {
       expect(avg.avgIntermissionMonths).toBeCloseTo(3, 6)
       expect(avg.stddevPhaseMonths).toBeCloseTo(Math.sqrt(2), 6)
       expect(avg.stddevIntermissionMonths).toBeNull()
+
+      // Среднее количество фаз: только 2 обычные фазы (98/99 исключены),
+      // пациент с одной лишь служебной фазой не учитывался бы вовсе.
+      const pc = await averagePhasesPerPatient(db, { mode: 'all' })
+      expect(pc.patients).toBe(1)
+      expect(pc.value).toBeCloseTo(2, 6)
+      expect(pc.stddev).toBeNull()
 
       // Длительность заболевания: (6 + 3) + 8 = 17 мес (без 98/99).
       const dur = await averageDiseaseDurationMonths(db, { mode: 'all' })

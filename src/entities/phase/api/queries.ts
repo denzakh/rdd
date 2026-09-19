@@ -265,6 +265,35 @@ export async function averageDurations(
     stddevIntermissionMonths: r?.intermission_stddev ?? null,
   }
 }
+
+/**
+ * Среднее количество фаз на одного пациента: для каждого пациента считается
+ * число обычных фаз (служебные 98/99 исключены), затем — среднее и выборочное
+ * СКО по пациентам, имеющим хотя бы одну фазу.
+ */
+export async function averagePhasesPerPatient(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<AverageStat> {
+  const s = scopeSqlForPhases(scope)
+  const { results } = await db
+    .prepare(
+      `SELECT AVG(cnt) AS value,
+              COUNT(cnt) AS patients,
+              SQRT((SUM(cnt * cnt) - SUM(cnt) * SUM(cnt) / (COUNT(cnt) * 1.0)) /
+                   (COUNT(cnt) - 1)) AS stddev
+       FROM (
+         SELECT patient_id, COUNT(*) AS cnt
+         FROM phases
+         WHERE patient_id IN (SELECT p.id FROM patients p
+                              WHERE p.consent_withdrawn_at IS NULL)${s.sql}${excludeSystemPhases()}
+         GROUP BY patient_id
+       )`
+    )
+    .bind(...s.binds)
+    .all<AverageStat>()
+  return results[0] ?? { value: null, patients: 0, stddev: null }
+}
 /** Динамика «первый → предпоследний» (длительности фаз/интермиссий). */
 export interface FirstToPenultimate {
   /** Средняя длительность первой фазы/интермиссии, мес. */

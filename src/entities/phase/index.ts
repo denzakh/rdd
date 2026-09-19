@@ -17,6 +17,7 @@ export {
   averageOnsetAge,
   averageDiseaseDurationMonths,
   averageDurations,
+  averagePhasesPerPatient,
   firstToPenultimatePhaseDuration,
   firstToPenultimateIntermissionDuration,
   seasonalDistribution,
