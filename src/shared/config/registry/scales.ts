@@ -17,6 +17,9 @@ export const DIAGNOSTIC_SCALES_REGISTRY = {
     db_type: 'INTEGER',
     is_current_only: true,
     scope: 'phase',
+    // Интерпретация балла hamd_total: в матрице рядом с баллом избыточна
+    // (значение видно в словаре/экспорте через applyComputed).
+    hide_in_matrix: true,
     // Единый контракт: принимает объект строки, читает hamd_total.
     calculate: (row: Record<string, unknown>) => {
       const score = row.hamd_total as number | null | undefined

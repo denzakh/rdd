@@ -23,17 +23,21 @@ describe('matrix-rows: buildMatrixRows', () => {
     expect(sections).toEqual(['phase', 'status', 'diagnostic', 'therapy', 'remission'])
   })
 
-  it('число field-строк равно числу полей секций, индексы последовательны', () => {
+  it('число field-строк равно числу видимых полей секций, индексы последовательны', () => {
     const rows = buildMatrixRows()
     const fieldRows = rows.filter((r) => r.kind === 'field') as Array<
       Extract<(typeof rows)[number], { kind: 'field' }>
     >
+    // hide_in_matrix-поля (Тип точки, Выраженность HAM-D, Чистая ремиссия)
+    // в грид не попадают, но остаются в реестре/словаре/applyComputed.
+    const visibleCount = (section: keyof typeof REGISTRY): number =>
+      Object.values(REGISTRY[section]).filter((f) => !(f as RegistryField).hide_in_matrix).length
     const totalRegistryFields =
-      Object.values(REGISTRY.phase).length +
-      Object.values(REGISTRY.therapy).length +
-      Object.values(REGISTRY.remission).length +
-      Object.values(REGISTRY.status).length +
-      Object.values(REGISTRY.diagnostic).length
+      visibleCount('phase') +
+      visibleCount('therapy') +
+      visibleCount('remission') +
+      visibleCount('status') +
+      visibleCount('diagnostic')
     expect(fieldRows).toHaveLength(totalRegistryFields)
     fieldRows.forEach((r, i) => {
       expect(r.index).toBe(i)
@@ -41,10 +45,26 @@ describe('matrix-rows: buildMatrixRows', () => {
     })
   })
 
+  it('hide_in_matrix: Тип точки / Выраженность HAM-D / Чистая ремиссия скрыты', () => {
+    const ids = buildMatrixRows()
+      .filter((r) => r.kind === 'field')
+      .map((r) => (r as { field: RegistryField }).field.id)
+    for (const hidden of ['phase_relative_id', 'hamd_severity', 'pure_remission']) {
+      expect(ids).not.toContain(hidden)
+      // поле остаётся в реестре (словарь/applyComputed/экспорт его видят)
+      expect((FLAT_REGISTRY as Record<string, RegistryField>)[hidden]).toBeDefined()
+    }
+    // соседний computed-факт (ad_any) — остаётся видимой строкой
+    expect(ids).toContain('ad_any')
+  })
+
   it('scopes-фильтр отбирает только указанные секции', () => {
     const rows = buildMatrixRows(['phase'])
     expect(rows[0]).toEqual({ kind: 'section', sectionId: 'phase', title: 'Контроль фазы' })
-    expect(rows).toHaveLength(1 + Object.values(REGISTRY.phase).length)
+    const visiblePhase = Object.values(REGISTRY.phase).filter(
+      (f) => !(f as RegistryField).hide_in_matrix
+    ).length
+    expect(rows).toHaveLength(1 + visiblePhase)
   })
 })
 

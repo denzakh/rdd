@@ -60,6 +60,11 @@ export default async function DataDictionaryPage() {
                         {e.isComputed && (
                           <span className="ml-1 text-xs text-cyan-700">({dict.computed})</span>
                         )}
+                        {e.hiddenInMatrix && (
+                          <span className="ml-1 text-xs text-neutral-500">
+                            ({locale === 'en' ? 'hidden in matrix' : 'скрыто в матрице'})
+                          </span>
+                        )}
                         {e.deprecatedSince !== null && (
                           <span className="ml-1 text-xs text-neutral-500">
                             ({locale === 'en' ? 'deprecated since v' : 'deprecated с v'}

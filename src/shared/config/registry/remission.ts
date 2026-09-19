@@ -50,6 +50,9 @@ export const REMISSION_REGISTRY = {
     label: { ru: 'Чистая ремиссия', en: 'Pure Remission' },
     ui: 'badge-readonly',
     db_type: 'BOOLEAN',
+    // Итог трёх чекбоксов выше: в матрице-гриде не нужен отдельной строкой
+    // (значение видно в словаре/экспорте через applyComputed).
+    hide_in_matrix: true,
     // Логика: если сумма признаков патологии > 0, то ремиссия не чистая (0)
     calculate: (data: Record<string, any>) => {
       const sum =

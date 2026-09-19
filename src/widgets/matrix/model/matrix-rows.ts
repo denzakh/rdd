@@ -82,25 +82,33 @@ export function buildMatrixRows(
   locale: Locale = 'ru'
 ): MatrixRowItem[] {
   const rows: MatrixRowItem[] = []
-  let fieldIndex = 0
-  let totalFields = 0
 
   const sections = scopes ?? SECTION_ORDER
-  // Первый проход — считаем поля, чтобы roving tabindex знал общее число
-  for (const section of sections) {
-    totalFields += Object.values(REGISTRY[section]).length
+  // Поля с hide_in_matrix в грид не попадают (дубли-«авто»: тип точки уже
+  // виден в заголовке колонки, интерпретация шкалы/итог ремиссии избыточны
+  // рядом с исходными значениями). В реестре/applyComputed/словаре остаются.
+  const visibleBySection = sections.map((section) =>
+    (Object.values(REGISTRY[section]) as RegistryField[]).filter((f) => !f.hide_in_matrix)
+  )
+  // Первый проход — считаем только видимые поля, чтобы roving tabindex знал общее число
+  let totalFields = 0
+  for (const fields of visibleBySection) {
+    totalFields += fields.length
   }
 
-  for (const section of sections) {
+  let fieldIndex = 0
+  sections.forEach((section, si) => {
+    const fields = visibleBySection[si] ?? []
+    if (fields.length === 0) return // пустую секцию (все поля скрыты) не показываем
     rows.push({
       kind: 'section',
       sectionId: section,
       title: sectionTitle(section, locale),
     })
-    for (const field of Object.values(REGISTRY[section]) as RegistryField[]) {
+    for (const field of fields) {
       rows.push({ kind: 'field', field, index: fieldIndex, totalFields })
       fieldIndex++
     }
-  }
+  })
   return rows
 }

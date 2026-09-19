@@ -64,6 +64,8 @@ export interface DictionaryEntry {
   storage: 'patients' | 'phases' | null
   isComputed: boolean
   isCurrentOnly: boolean
+  /** Скрыто из матрицы (hide_in_matrix), но видно в словаре/экспорте. */
+  hiddenInMatrix: boolean
   /** Версия протокола, с которой поле deprecated (docs/schema-evolution.md §6). */
   deprecatedSince: number | null
   /** Поле-замена (id), см. docs/schema-evolution.md §3.1 (`replacedBy`). */
@@ -97,6 +99,7 @@ export const buildDataDictionary = (locale: Locale = 'ru'): DictionarySection[] 
         storage: field.calculate ? null : field.scope === 'patient' ? 'patients' : 'phases',
         isComputed: Boolean(field.calculate),
         isCurrentOnly: Boolean(field.is_current_only),
+        hiddenInMatrix: Boolean(field.hide_in_matrix),
         deprecatedSince: field.deprecated_since ?? null,
         replacedBy: field.replacedBy ?? null,
       })),
