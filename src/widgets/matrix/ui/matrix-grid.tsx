@@ -422,10 +422,10 @@ export function MatrixGrid({
                 ) : isSubgroup ? (
                   <>
                     <div
-                      className="bg-muted/60 sticky left-0 z-10 flex items-center pr-3 pl-6 text-xs font-medium text-neutral-600"
+                      className="bg-muted/60 sticky left-0 z-10 flex items-center pr-3 pl-3 text-xs font-semibold text-neutral-600"
                       style={{ width: LABEL_W, minWidth: LABEL_W }}
                     >
-                      {row.title}
+                      - {row.title}
                     </div>
                     <div className="bg-muted/60 flex-1" />
                   </>

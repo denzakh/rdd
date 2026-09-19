@@ -82,6 +82,10 @@ export const THERAPY_REGISTRY = {
     label: { ru: 'Антидепрессанты (Факт)', en: 'Antidepressants (fact)' },
     ui: 'badge-readonly',
     db_type: 'BOOLEAN',
+    // Сводка по классам АД ниже: отдельная строка в матрице дублирует
+    // видимые чекбоксы, скрыта через hide_in_matrix (значение видно
+    // в словаре/экспорте через applyComputed).
+    hide_in_matrix: true,
     group: 'ad_classes',
     calculate: (row: any) =>
       row.ad_tricyclic ||

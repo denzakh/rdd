@@ -28,8 +28,9 @@ describe('matrix-rows: buildMatrixRows', () => {
     const fieldRows = rows.filter((r) => r.kind === 'field') as Array<
       Extract<(typeof rows)[number], { kind: 'field' }>
     >
-    // hide_in_matrix-поля (Тип точки, Выраженность HAM-D, Чистая ремиссия)
-    // в грид не попадают, но остаются в реестре/словаре/applyComputed.
+    // hide_in_matrix-поля (Тип точки, Выраженность HAM-D, Чистая ремиссия,
+    // Антидепрессанты (Факт)) в грид не попадают, но остаются
+    // в реестре/словаре/applyComputed.
     const visibleCount = (section: keyof typeof REGISTRY): number =>
       Object.values(REGISTRY[section]).filter((f) => !(f as RegistryField).hide_in_matrix).length
     const totalRegistryFields =
@@ -45,17 +46,18 @@ describe('matrix-rows: buildMatrixRows', () => {
     })
   })
 
-  it('hide_in_matrix: Тип точки / Выраженность HAM-D / Чистая ремиссия скрыты', () => {
+  it('hide_in_matrix: авто-дубли скрыты из грида', () => {
     const ids = buildMatrixRows()
       .filter((r) => r.kind === 'field')
       .map((r) => (r as { field: RegistryField }).field.id)
-    for (const hidden of ['phase_relative_id', 'hamd_severity', 'pure_remission']) {
+    const hiddenIds = ['phase_relative_id', 'hamd_severity', 'pure_remission', 'ad_any']
+    for (const hidden of hiddenIds) {
       expect(ids).not.toContain(hidden)
       // поле остаётся в реестре (словарь/applyComputed/экспорт его видят)
       expect((FLAT_REGISTRY as unknown as Record<string, RegistryField>)[hidden]).toBeDefined()
     }
-    // соседний computed-факт (ad_any) — остаётся видимой строкой
-    expect(ids).toContain('ad_any')
+    // исходные чекбоксы АД остаются видимой строкой
+    expect(ids).toContain('ad_tricyclic')
   })
 
   it('scopes-фильтр отбирает только указанные секции', () => {
