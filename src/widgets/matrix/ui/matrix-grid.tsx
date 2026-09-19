@@ -343,7 +343,7 @@ export function MatrixGrid({
       {/* решение 5-C: desktop-only */}
       <div
         ref={scrollRef}
-        className="bg-background relative h-full overflow-auto rounded-md border border-neutral-200"
+        className="bg-background relative h-full overflow-auto rounded-tl-md rounded-bl-md border border-neutral-200"
       >
         <div style={{ height: rowVirtualizer.getTotalSize() + HEADER_H, minWidth: gridWidth }}>
           {/* --- Заголовок (ось X, sticky top, z-20) --- */}
@@ -378,7 +378,7 @@ export function MatrixGrid({
             return (
               <div
                 key={vRow.key}
-                className="hover:bg-accent/50 absolute left-0 flex"
+                className="hover:bg-accent/50 absolute top-0 left-0 flex"
                 style={{
                   height: vRow.size,
                   width: '100%',
