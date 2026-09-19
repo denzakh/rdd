@@ -80,8 +80,8 @@ export function DistributionPie({ rows, locale, title, unit, colors }: Distribut
                 </path>
               )
             })}
-          <circle key="all" cx="100" cy="100" r="92" fill="#ffffff50"></circle>
-          <circle key="all" cx="100" cy="100" r="44" fill="#00000008"></circle>
+          <circle key="lighter" cx="100" cy="100" r="92" fill="#ffffff50"></circle>
+          <circle key="inner-border" cx="100" cy="100" r="44" fill="#00000008"></circle>
           <circle key="center" cx="100" cy="100" r="40" fill="#ffffff"></circle>
         </svg>
         <ul className="min-w-0 flex-1 space-y-2 text-sm">

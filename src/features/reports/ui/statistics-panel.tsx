@@ -95,12 +95,29 @@ function seasonRows(
   }))
 }
 
+/** Вид динамики: у фаз и интермиссий противоположный клинический смысл. */
+type DynamicsKind = 'phase' | 'intermission'
+
 /** Вывод о динамике по соотношению «первая / предпоследняя» (порог 5%). */
 const dynamics = (ratio: number | null, en: boolean): string => {
   if (ratio === null) return '—'
   if (ratio > 1.05) return en ? 'Shortening' : 'Укорочение'
   if (ratio < 0.95) return en ? 'Lengthening' : 'Удлинение'
   return en ? 'No change' : 'Без изменений'
+}
+
+/**
+ * Цвет вывода о динамике по клиническому смыслу:
+ * фазы — укорочение хорошо (зелёный), удлинение плохо (красный);
+ * интермиссии (ремиссии) — наоборот: укорочение плохо, удлинение хорошо.
+ * «Без изменений» и «—» — нейтральный серый.
+ */
+const dynamicsClass = (ratio: number | null, kind: DynamicsKind): string => {
+  if (ratio === null) return 'font-semibold text-neutral-400'
+  if (ratio <= 1.05 && ratio >= 0.95) return 'font-semibold text-neutral-600'
+  const shortening = ratio > 1.05
+  const good = kind === 'phase' ? shortening : !shortening
+  return good ? 'font-semibold text-green-700' : 'font-semibold text-red-700'
 }
 
 const monthsOrDash = (v: number | null, en: boolean): string =>
@@ -123,7 +140,7 @@ const meanPmSd = (
   const u = unit === 'mo' ? (en ? 'mo' : 'мес') : en ? 'yrs' : 'лет'
   return (
     <>
-      <b>{fmt1(mean)}</b>&nbsp;±&nbsp;{fmt1(sd)}&nbsp;{u}
+      <b className="text-[1.3em]">{fmt1(mean)}</b>&nbsp;±&nbsp;{fmt1(sd)}&nbsp;{u}
     </>
   )
 }
@@ -134,7 +151,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
   const p = data.patients
   const f = data.phases
 
-  const ratioCard = (title: string, r: StatsRatio) => (
+  const ratioCard = (title: string, r: StatsRatio, kind: DynamicsKind) => (
     <div className="space-y-2 rounded-md border border-neutral-200 p-3">
       <h4 className="text-xs font-semibold text-neutral-600">{title}</h4>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
@@ -147,7 +164,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
         </dt>
         <dd className="tabular-nums">{r.ratio === null ? '—' : fmt1(r.ratio)}</dd>
         <dt className="text-neutral-500">{en ? 'Trend' : 'Вывод о динамике'}</dt>
-        <dd className="font-semibold text-green-700">{dynamics(r.ratio, en)}</dd>
+        <dd className={dynamicsClass(r.ratio, kind)}>{dynamics(r.ratio, en)}</dd>
       </dl>
       <p className="text-xs text-neutral-500">
         {en
@@ -168,7 +185,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average age' : 'Средний возраст'}
             </h3>
-            <p className="text-2xl tabular-nums">
+            <p className="text-xl tabular-nums">
               {meanPmSd(p.averageAgeYears, p.averageAgeStddev, 'yr', en)}
             </p>
             <p className="text-xs text-neutral-500">
@@ -182,7 +199,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average age at disease onset' : 'Средний возраст начала заболевания'}
             </h3>
-            <p className="text-2xl tabular-nums">
+            <p className="text-xl tabular-nums">
               {meanPmSd(f.onsetAge.value, f.onsetAge.stddev, 'yr', en)}
             </p>
             <p className="text-xs text-neutral-500">
@@ -196,7 +213,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             <h3 className="text-xs font-semibold text-neutral-600">
               {en ? 'Average disease duration' : 'Средняя длительность заболевания'}
             </h3>
-            <p className="text-2xl tabular-nums">
+            <p className="text-xl tabular-nums">
               {meanPmSd(f.diseaseDurationMonths.value, f.diseaseDurationMonths.stddev, 'mo', en)}
             </p>
             <p className="text-xs text-neutral-500">
@@ -225,44 +242,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
           />
         </div>
       </section>
-      {/* ----- По фазам ----- */}
-      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
-        <h2 className="text-sm font-semibold">{en ? 'By phase' : 'По фазам'}</h2>
 
-        <div className="space-y-2">
-          <h3 className="text-xs font-semibold text-neutral-600">
-            {en
-              ? 'Average durations of phases and intermissions'
-              : 'Средняя длительность фаз и интермиссий'}
-          </h3>
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <dt className="text-neutral-500">{en ? 'Phase, months' : 'Фазы, мес'}</dt>
-            <dd className="tabular-nums">
-              {meanPmSd(f.avgPhaseMonths, f.stddevPhaseMonths, 'mo', en)}
-            </dd>
-            <dt className="text-neutral-500">{en ? 'Intermission, months' : 'Интермиссии, мес'}</dt>
-            <dd className="tabular-nums">
-              {meanPmSd(f.avgIntermissionMonths, f.stddevIntermissionMonths, 'mo', en)}
-            </dd>
-          </dl>
-          <p className="text-xs text-neutral-500">
-            {en
-              ? `${f.phaseRows} phases / ${f.intermissionRows} intermissions with recorded duration`
-              : `Фаз с заполненной длительностью: ${f.phaseRows}; интермиссий: ${f.intermissionRows}`}
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {ratioCard(
-            en ? 'First phase vs penultimate' : 'Первая фаза против предпоследней',
-            f.phaseRatio
-          )}
-          {ratioCard(
-            en ? 'First intermission vs penultimate' : 'Первая интермиссия против предпоследней',
-            f.intermissionRatio
-          )}
-        </div>
-      </section>
       {/* ----- Круговые диаграммы с легендами в одном блоке (сетка 2 колонки) ----- */}
       <section className="space-y-4 rounded-md border border-neutral-300 p-4">
         <h2 className="text-sm font-semibold">{en ? 'Distributions' : 'Распределения'}</h2>
@@ -317,6 +297,60 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
               title={en ? 'Predominant depression component' : 'Преобладающий компонент депрессии'}
             />
           </div>
+        </div>
+      </section>
+
+      {/* ----- По фазам ----- */}
+      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
+        <h2 className="text-sm font-semibold">
+          {en ? 'Phases and intermissions' : 'Фазы и интермиссии'}
+        </h2>
+
+        <div className="space-y-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <dl className="flex items-center gap-x-4 gap-y-1 text-sm">
+              <dt className="text-neutral-500">
+                {en ? 'Average durations' : 'Средняя длительность'}
+                &nbsp;<b className="text-black">{en ? 'phase' : 'фаз'}</b>&nbsp;
+                <span>({en ? 'months' : 'мес'})</span>
+              </dt>
+              <dd className="tabular-nums">
+                {meanPmSd(f.avgPhaseMonths, f.stddevPhaseMonths, 'mo', en)}
+              </dd>
+            </dl>
+            <dl className="flex items-center gap-x-4 gap-y-1 text-sm">
+              <dt className="text-neutral-500">
+                {en ? 'Average durations' : 'Средняя длительность'}
+                &nbsp;<b className="text-black">{en ? 'intermission' : 'интермиссий'}</b>&nbsp;
+                <span>({en ? 'months' : 'мес'})</span>
+              </dt>
+              <dd className="tabular-nums">
+                {meanPmSd(f.avgIntermissionMonths, f.stddevIntermissionMonths, 'mo', en)}
+              </dd>
+            </dl>
+          </div>
+          <p className="text-xs text-neutral-500">
+            {en
+              ? `${f.phaseRows} phases / ${f.intermissionRows} intermissions with recorded duration`
+              : `Фаз с заполненной длительностью: ${f.phaseRows}; интермиссий: ${f.intermissionRows}`}
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {ratioCard(
+            en
+              ? 'Dynamics of phases: first vs penultimate'
+              : 'Динамика фаз: первая против предпоследней',
+            f.phaseRatio,
+            'phase'
+          )}
+          {ratioCard(
+            en
+              ? 'Dynamics of intermissions: first vs penultimate'
+              : 'Динамика интермиссий: первая против предпоследней',
+            f.intermissionRatio,
+            'intermission'
+          )}
         </div>
       </section>
     </section>
