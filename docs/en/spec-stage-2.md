@@ -40,6 +40,12 @@
     `depression_severity`: mild/moderate/severe, recorded in every phase),
     `mainComponentDistribution` (predominant component). Distributions
     severity/season/component count PHASES (episodes);
+    `binaryFeatureDistributions` — all binary phase features (0/1 columns of
+    the phase registry: `db_type: 'BOOLEAN'` without computed fields and
+    patient scope) in ONE query with conditional aggregation
+    (`SUM(CASE WHEN col = 1 ...)` + `COUNT(col)`); count of PHASES with "yes"
+    and the denominator — filled phases; rendered as the yes/no table on
+    /reports;
   - `/reports` metrics (by patient) — `src/entities/patient/api/patient-queries.ts`:
     `genderDistribution` (gender), `averageAgeAtInclusion` (average age),
     `familyHistoryDistribution` (hereditary mental burden).

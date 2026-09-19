@@ -40,6 +40,11 @@
     `depression_severity`: лёгкая/умеренная/тяжёлая, заполняется в каждой фазе),
     `mainComponentDistribution` (преобладающий компонент). Распределения
     severity/season/component считаются числом ФАЗ (эпизодов);
+    `binaryFeatureDistributions` — все бинарные признаки фаз (0/1-колонки
+    реестра фаз: `db_type: 'BOOLEAN'` без вычисляемых полей и patient-scope)
+    ОДНИМ запросом с условной агрегацией (`SUM(CASE WHEN col = 1 ...)` +
+    `COUNT(col)`); число ФАЗ с «да» и знаменатель — заполненные фазы; вывод —
+    таблица «да/нет» на /reports;
   - показатели /reports (по пациентам) — `src/entities/patient/api/patient-queries.ts`:
     `genderDistribution` (пол), `averageAgeAtInclusion` (средний возраст),
     `familyHistoryDistribution` (наследственная отягощённость).

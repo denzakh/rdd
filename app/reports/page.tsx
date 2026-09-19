@@ -11,6 +11,7 @@ import {
   averageDurations,
   averageOnsetAge,
   averagePhasesPerPatient,
+  binaryFeatureDistributions,
   depressionSeverityDistribution,
   firstToPenultimateIntermissionDuration,
   firstToPenultimatePhaseDuration,
@@ -39,6 +40,7 @@ export default async function ReportsPage() {
     seasons,
     severity,
     component,
+    binaryFeatures,
   ] = await Promise.all([
     genderDistribution(db, scope),
     averageAgeAtInclusion(db, scope),
@@ -52,6 +54,7 @@ export default async function ReportsPage() {
     seasonalDistribution(db, scope),
     depressionSeverityDistribution(db, scope),
     mainComponentDistribution(db, scope),
+    binaryFeatureDistributions(db, scope),
   ])
 
   const data: StatsReport = {
@@ -79,6 +82,7 @@ export default async function ReportsPage() {
       seasons,
       severity,
       component,
+      binaryFeatures,
     },
   }
 

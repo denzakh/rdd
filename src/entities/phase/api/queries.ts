@@ -446,6 +446,72 @@ export async function mainComponentDistribution(
   return results
 }
 // ---------------------------------------------------------------------------
+// Бинарные признаки фаз (/reports): все 0/1-колонки реестра одним запросом.
+// ---------------------------------------------------------------------------
+
+/**
+ * Бинарные (0/1) колонки фаз из FLAT_REGISTRY: db_type BOOLEAN, scope фазы
+ * (или без явного scope — поля блоков status/therapy хранятся в phases),
+ * БЕЗ вычисляемых полей (pure_remission считается из чекбоксов на слое UI,
+ * физической колонки в phases нет) и не patient-scope (family_history —
+ * колонка пациентов). Пересечение с DATA_COLUMNS (whitelist) гарантирует,
+ * что имя — реальная колонка phases: конкатенация имён в SQL ниже безопасна.
+ */
+export const BINARY_PHASE_COLUMNS: string[] = Object.values(
+  FLAT_REGISTRY as unknown as Record<string, RegistryField>
+)
+  .filter((f) => f.db_type === 'BOOLEAN' && f.scope !== 'patient' && f.calculate === undefined)
+  .map((f) => f.id)
+  .filter((c) => PHASE_FIELD_IDS.has(c))
+
+/** Счётчики одного бинарного признака: число фаз с «да» и знаменатель. */
+export interface BinaryFeatureCount {
+  fieldId: string
+  /** Число фаз (эпизодов) со значением признака 1. */
+  yes: number
+  /** Число фаз с заполненным признаком (знаменатель для %; 0/1 = заполнено). */
+  total: number
+}
+
+/**
+ * Распределение всех бинарных признаков фаз ОДНИМ запросом (условная
+ * агрегация): один скан phases вместо запроса на каждое поле (~50 колонок
+ * реестра). Семантика count — ФАЗЫ (эпизоды), как у severity/season/component:
+ * каждый эпизод характеризуется своим набором признаков; «да» = 1, знаменатель
+ * — фазы с заполненным признаком (NULL не учитывается). Учитываются согласие
+ * (consent lifecycle), data_scope пользователя и исключение служебных фаз
+ * 98/99 — те же инварианты, что у остальных агрегатов. Имена колонок — из
+ * статического whitelist BINARY_PHASE_COLUMNS (конкатенация безопасна),
+ * значения — только биндинги.
+ */
+export async function binaryFeatureDistributions(
+  db: D1Database,
+  scope: DeidentifiedScope = { mode: 'all' }
+): Promise<BinaryFeatureCount[]> {
+  if (BINARY_PHASE_COLUMNS.length === 0) return []
+  const s = scopeSqlForPhases(scope)
+  const selects = BINARY_PHASE_COLUMNS.map(
+    (c) => `SUM(CASE WHEN ${c} = 1 THEN 1 END) AS ${c}_yes, COUNT(${c}) AS ${c}_total`
+  )
+  const { results } = await db
+    .prepare(
+      `SELECT ${selects.join(', ')}
+       FROM phases
+       WHERE patient_id IN (
+         SELECT p.id FROM patients p WHERE p.consent_withdrawn_at IS NULL
+       )${s.sql}${excludeSystemPhases()}`
+    )
+    .bind(...s.binds)
+    .all<Record<string, number | null>>()
+  const row = results[0] ?? {}
+  return BINARY_PHASE_COLUMNS.map((c) => ({
+    fieldId: c,
+    yes: Number(row[`${c}_yes`] ?? 0),
+    total: Number(row[`${c}_total`] ?? 0),
+  }))
+}
+
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // Слой агрегации де-идентифицированного датасета (docs/export.md).
 // ИНВАРИАНТ: де-идентификация — ЗДЕСЬ, один раз, до любой сериализации

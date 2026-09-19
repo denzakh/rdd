@@ -58,6 +58,8 @@ export interface StatsReport {
     seasons: Array<{ season: number; count: number }>
     severity: StatsValueCount[]
     component: StatsValueCount[]
+    /** Бинарные признаки фаз (все 0/1-колонки реестра): «да»/знаменатель по фазам. */
+    binaryFeatures: Array<{ fieldId: string; yes: number; total: number }>
   }
 }
 
@@ -72,6 +74,13 @@ const SEASONS: Record<number, { ru: string; en: string }> = {
 
 const pick = (t: { ru: string; en: string }, locale: Locale): string =>
   locale === 'en' ? t.en : t.ru
+
+/** Подпись поля реестра: { ru, en } или простая строка (RU-фолбэк). */
+function fieldLabel(fieldId: string, locale: Locale): string {
+  const field = FLAT[fieldId]
+  if (!field) return fieldId
+  return typeof field.label === 'string' ? field.label : pick(field.label, locale)
+}
 
 /** Подписи опций реестра (gender, main_component, depression_severity). */
 function optionRows(fieldId: string, values: StatsValueCount[], locale: Locale): DistributionRow[] {
@@ -368,6 +377,25 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             f.intermissionRatio,
             'intermission'
           )}
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xs font-semibold text-neutral-600">
+            {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
+          </h3>
+          <DistributionTableYes
+            rows={f.binaryFeatures.map((b) => ({
+              label: fieldLabel(b.fieldId, locale),
+              yes: b.yes,
+              total: b.total,
+            }))}
+            locale={locale}
+          />
+          <p className="text-xs text-neutral-500">
+            {en
+              ? 'Share of phases with the feature among phases with the attribute filled (0/1); service phases 98/99 excluded.'
+              : 'Доля фаз с признаком среди фаз с заполненным значением (0/1); служебные фазы 98/99 исключены.'}
+          </p>
         </div>
       </section>
     </section>
