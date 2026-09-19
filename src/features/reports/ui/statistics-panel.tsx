@@ -270,7 +270,7 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
         <div className="grid gap-8 gap-x-12 md:grid-cols-2">
           <div className="space-y-2">
             <h3 className="text-xs font-semibold text-neutral-600">
-              {en ? 'Gender ratio (abs, %)' : 'Соотношение полов (абс, %)'}
+              {en ? 'Gender ratio' : 'Соотношение полов'}
             </h3>
             <DistributionPie
               rows={optionRows('gender', p.gender, locale)}
