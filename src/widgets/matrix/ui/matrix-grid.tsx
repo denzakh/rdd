@@ -338,12 +338,12 @@ export function MatrixGrid({
   const gridWidth = LABEL_W + columns.length * COL_W
 
   return (
-    <div className="min-w-[1024px]">
+    <div className="h-full min-w-[1024px]">
       {' '}
       {/* решение 5-C: desktop-only */}
       <div
         ref={scrollRef}
-        className="bg-background relative max-h-[calc(100vh-120px)] overflow-auto rounded-md border border-neutral-200"
+        className="bg-background relative h-full overflow-auto rounded-md border border-neutral-200"
       >
         <div style={{ height: rowVirtualizer.getTotalSize() + HEADER_H, minWidth: gridWidth }}>
           {/* --- Заголовок (ось X, sticky top, z-20) --- */}

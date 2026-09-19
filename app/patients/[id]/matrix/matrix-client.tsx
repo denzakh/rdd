@@ -174,8 +174,8 @@ export default function MatrixClient({
   const badge = STATUS_BADGE[saveState]
 
   return (
-    <main className="mx-auto max-w-[1400px] space-y-4 p-6">
-      <header className="space-y-2">
+    <main className="mx-auto flex h-[100%] max-w-[1400px] flex-col space-y-4 p-6">
+      <div className="space-y-2">
         <h1 className="text-xl font-semibold">
           {locale === 'en' ? 'Clinical Feature Matrix' : 'Матрица клинических признаков'}—{' '}
           {patientLabel}
@@ -230,16 +230,18 @@ export default function MatrixClient({
             </>
           )}
         </div>
-      </header>
-      <MatrixGrid
-        registryFields={registryFields}
-        columns={columns}
-        data={data}
-        isReadOnly={isReadOnly}
-        locale={locale}
-        onPersist={(batch) => void handlePersist(batch)}
-        onResolveConflict={handleResolveConflict}
-      />
+      </div>
+      <div className="h-[100px] grow">
+        <MatrixGrid
+          registryFields={registryFields}
+          columns={columns}
+          data={data}
+          isReadOnly={isReadOnly}
+          locale={locale}
+          onPersist={(batch) => void handlePersist(batch)}
+          onResolveConflict={handleResolveConflict}
+        />
+      </div>
     </main>
   )
 }

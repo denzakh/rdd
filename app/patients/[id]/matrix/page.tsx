@@ -61,17 +61,19 @@ export default async function PatientMatrixPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <div>
+    <div className="flex h-[100dvh] flex-col pb-10">
       <Header displayName={user.displayName} role={user.role} />
-      <MatrixClient
-        patientId={patient.id}
-        patientLabel={locale === 'en' ? `patient #${patient.id}` : `пациент #${patient.id}`}
-        columns={columns}
-        data={data}
-        versions={versions}
-        isReadOnly={!canWrite(user)}
-        locale={locale}
-      />
+      <div className="h-[100px] grow overflow-hidden">
+        <MatrixClient
+          patientId={patient.id}
+          patientLabel={locale === 'en' ? `patient #${patient.id}` : `пациент #${patient.id}`}
+          columns={columns}
+          data={data}
+          versions={versions}
+          isReadOnly={!canWrite(user)}
+          locale={locale}
+        />
+      </div>
     </div>
   )
 }
