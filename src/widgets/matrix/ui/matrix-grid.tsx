@@ -122,13 +122,21 @@ function CellConnector({
   if (withdrawn || hidden) {
     // Колонка скрыта для записей, собранных уже под версией без этого поля
     // (§6.1), либо ячейка скрыта правилом 98/99: рендерим пустую ячейку,
-    // чтобы сохранить сетку грида.
+    // чтобы сохранить сетку грида. Фон и вертикальные границы — как у обычной
+    // ячейки той же колонки: системные колонки 98/99 без вертикальных границ
+    // (bg-neutral-100), иначе была бы лишняя divider-линия и сдвиг на 1px.
     return (
       <div
         ref={registerCellRef(row, colIdx)}
         tabIndex={-1}
         data-matrix-cell={`${row}:${colIdx}`}
-        className="flex-1 border-r border-b border-neutral-200 bg-neutral-50 outline-none"
+        className={`flex-1 border-b border-neutral-200 outline-none ${
+          col.isSystemPhase
+            ? 'bg-neutral-100'
+            : col.isCurrentStatus
+              ? 'border-l-2 border-l-amber-500 bg-neutral-50'
+              : 'border-r border-neutral-200 bg-neutral-50'
+        }`}
         style={{ minWidth: COL_W, height: ROW_H }}
       />
     )
