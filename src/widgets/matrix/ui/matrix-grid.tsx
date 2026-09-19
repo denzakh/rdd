@@ -26,7 +26,10 @@ import {
   isFieldWithdrawnForRecord,
 } from '@/shared/lib/registry/evolution-guard'
 import { validateCellValue } from '../model/validate'
-import { isFieldDisabledForPhase } from '@/shared/lib/registry/field-availability'
+import {
+  isFieldDisabledForPhase,
+  isFieldHiddenForPhase,
+} from '@/shared/lib/registry/field-availability'
 import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
 import type { Locale } from '@/shared/lib/intl'
 import { MatrixCell } from './matrix-cell'
@@ -108,14 +111,18 @@ function CellConnector({
   const value: FieldValue = isComputed ? computedValue : storeValue
   // deprecated-поле для новой записи (v >= deprecated_since): колонка не рендерится.
   const withdrawn = isFieldWithdrawnForRecord(field, recordVersion)
+  // Скрытая ячейка 98/99 (напр. «Дата начала фазы» в 99): контрол не
+  // рендерится вообще — пустое место в колонке данной фазы.
+  const hidden = isFieldHiddenForPhase(field.id, col.relativeId)
   // deprecated-поле для старой записи (v < deprecated_since): read-only + пометка.
   const deprecated = isDeprecatedForRecord(field, recordVersion)
   const disabled = isReadOnly || isComputed || disabledFor(field, col) || deprecated
   const tooltip = deprecated ? deprecatedTooltip(field, locale) : undefined
 
-  if (withdrawn) {
+  if (withdrawn || hidden) {
     // Колонка скрыта для записей, собранных уже под версией без этого поля
-    // (§6.1): рендерим пустую ячейку, чтобы сохранить сетку грида.
+    // (§6.1), либо ячейка скрыта правилом 98/99: рендерим пустую ячейку,
+    // чтобы сохранить сетку грида.
     return (
       <div
         ref={registerCellRef(row, colIdx)}

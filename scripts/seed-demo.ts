@@ -497,13 +497,24 @@ function addMonths(date: string, months: number): string {
 }
 
 /**
+ * Индексы пациентов, у чьих предпоследних фаз (98 «Поступление») выставляем
+ * тяжёлую депрессию: depression_severity=3 + высокие шкалы HAM-D/Beck.
+ * Детерминированно (без рандома), чтобы сид был воспроизводим.
+ */
+const SEVERE_PENULTIMATE_PATIENTS: ReadonlySet<number> = new Set([0, 4, 7])
+
+/**
  * Фазы пациента отражают неблагоприятное течение (см. контекст статьи):
  * каждая следующая депрессивная фаза длиннее предыдущей (удлинение),
  * а интермиссии, наоборот, укорачиваются — в реальной выборке первая
  * ремиссия 101,1 ± 119,5 мес против 55,3 ± 87,7 в последней. Тяжесть
  * депрессии (depression_severity — клинический признак, не шкала)
- * нарастает от фазы к фазе и заполняется во ВСЕХ фазах; шкалы
- * (hamd_total/beck_total/часы/MMSE, is_current_only) — только в 98/99.
+ * нарастает от фазы к фазе; шкалы (hamd_total/beck_total/часы/MMSE,
+ * is_current_only) — только в 98/99.
+ * У пациентов из SEVERE_PENULTIMATE_PATIENTS предпоследняя фаза (98) —
+ * тяжёлая (depression_severity=3, HAM-D/Beck высокие).
+ * Заблокированные/скрытые поля 98/99 (см. field-availability) в сид
+ * не заполняются (NULL) — как и в UI, ввод туда закрыт.
  * На последней фазе (99 «Выписка») интермиссия ещё не наступила
  * (NULL — текущее состояние).
  */
@@ -543,18 +554,51 @@ function phasesFor(patientIndex: number): PhaseInput[] {
     const relativeId = relativeIds[i]
     if (relativeId === undefined) throw new Error(`Нет relativeId для фазы ${i}`)
     const isOrdinary = relativeId < PHASE_RELATIVE_ADMISSION
+    const isAdmission = relativeId === PHASE_RELATIVE_ADMISSION
+    const isDischarge = relativeId === PHASE_RELATIVE_DISCHARGE
     // Доля неполных ремиссий растёт с течением заболевания (с 45% до 66%).
     const partialRemission = i >= 1 || patientIndex % 2 === 0
-    const hamd = 16 + patientIndex * 3 + i * 2
-    const beck = 20 + patientIndex * 2 + i * 2
+    // Предпоследняя фаза (98) у 3 пациентов — тяжёлая: высокие шкалы.
+    const severePenultimate = isAdmission && SEVERE_PENULTIMATE_PATIENTS.has(patientIndex)
+    const hamd = severePenultimate ? 30 + (patientIndex % 3) : 16 + patientIndex * 3 + i * 2
+    const beck = severePenultimate ? 42 + (patientIndex % 3) * 2 : 20 + patientIndex * 2 + i * 2
     const mmse =
       30 - (symptoms.cognitive_impair ? 3 : 0) - (symptoms.orientation === 0 ? 3 : 0) - i * 2
+
+    // Заблокированные/скрытые поля 98/99 (field-availability) не заполняем:
+    // UI их не показывает/блокирует, сервер savePhaseCells их отклоняет.
+    // 98: скрыт ad_efficacy, заблокирована вся ремиссия.
+    // 99: скрыты phase_start_date + ad_efficacy, заблокированы весь контроль
+    // фазы, onset_trigger/main_component/depression_severity, вся терапия
+    // и вся ремиссия.
+    const blockedInPhase =
+      isAdmission || isDischarge
+        ? {
+            ...(isDischarge
+              ? {
+                  phase_duration_months: null,
+                  intermission_duration: null,
+                  onset_trigger: null,
+                  main_component: null,
+                  depression_severity: null,
+                }
+              : {}),
+            ad_efficacy: null,
+            subdepression_const: null,
+            affective_lability_rem: null,
+            anxiety_lability_rem: null,
+            unfavorable_env: null,
+            pain_in_remission: null,
+            treatment_in_remission: null,
+            prophylaxis_type: null,
+          }
+        : {}
 
     phases.push({
       patient_id: 0,
       phase_relative_id: relativeId,
-      phase_start_date: startDate,
-      ad_efficacy: (patientIndex % 3) + 1,
+      phase_start_date: isDischarge ? null : startDate,
+      ad_efficacy: isAdmission || isDischarge ? null : (patientIndex % 3) + 1,
       ...symptoms,
       // Картина ремиссии после текущей фазы (src/shared/config/registry/remission.ts).
       subdepression_const: partialRemission ? 1 : 0,
@@ -567,14 +611,22 @@ function phasesFor(patientIndex: number): PhaseInput[] {
       // Удлинение фаз и укорочение интермиссий (durations выше).
       phase_duration_months: d.phase,
       intermission_duration: d.intermission,
-      // Тяжесть депрессии — клинический признак: во всех фазах, растёт к 98/99.
-      depression_severity: Math.min(3, 1 + Math.floor(i / Math.max(1, Math.ceil(total / 3)))),
+      // Тяжесть депрессии: в 99 заблокирована (NULL); в 98 у 3 пациентов
+      // тяжёлая (3), иначе нарастает от фазы к фазе.
+      depression_severity: isDischarge
+        ? null
+        : severePenultimate
+          ? 3
+          : Math.min(3, 1 + Math.floor(i / Math.max(1, Math.ceil(total / 3)))),
       // Шкалы (is_current_only) — только в 98/99; в обычных фазах NULL.
       // hamd_severity — вычисляемое поле (calculate по hamd_total), в БД не хранится.
       hamd_total: isOrdinary ? null : hamd,
       beck_total: isOrdinary ? null : beck,
       mmse_total: isOrdinary ? null : mmse,
       clock_drawing_test: isOrdinary ? null : Math.max(0, 10 - i),
+      // Поверх — NULL по заблокированным/скрытым полям 98/99 (после spread,
+      // чтобы ...symptoms и значения выше их не затерли).
+      ...blockedInPhase,
     })
 
     startDate = addMonths(startDate, d.phase + (d.intermission ?? 0))

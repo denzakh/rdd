@@ -10,7 +10,10 @@ import { revalidatePath } from 'next/cache'
 import { requireUser, canWrite, getDb, createAuditRepository, type PhaseRow } from '@/shared/api'
 import { createPatientRepository } from '@/entities/patient'
 import { createPhaseRepository, DATA_COLUMNS, isSystemPhaseRelativeId } from '@/entities/phase'
-import { isFieldDisabledForPhase } from '@/shared/lib/registry/field-availability'
+import {
+  isFieldDisabledForPhase,
+  isFieldHiddenForPhase,
+} from '@/shared/lib/registry/field-availability'
 import { phaseSchema } from '@/shared/lib/registry'
 
 /** Значение ячейки (string | number | boolean | null) — без импорта из widgets. */
@@ -68,11 +71,15 @@ export async function savePhaseCells(
   }
 
   // Фаза 99 — вторая контрольная точка фазы 98, часть полей в 98/99
-  // заблокирована от ввода (см. field-availability): прямой вызов API
+  // заблокирована/скрыта от ввода (см. field-availability): прямой вызов API
   // не должен обходить UI-блокировку.
   const blockedFields = cells
     .map((c) => c.fieldId)
-    .filter((fieldId) => isFieldDisabledForPhase(fieldId, existing.phase_relative_id))
+    .filter(
+      (fieldId) =>
+        isFieldDisabledForPhase(fieldId, existing.phase_relative_id) ||
+        isFieldHiddenForPhase(fieldId, existing.phase_relative_id)
+    )
   if (blockedFields.length > 0) {
     return {
       ok: false,

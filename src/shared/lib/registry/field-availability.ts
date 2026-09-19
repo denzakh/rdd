@@ -16,11 +16,17 @@ export const PHASE_RELATIVE_DISCHARGE = 99
  * - 99: заблокирован весь блок «Контроль фазы», поля «Совпадение начала
  *   обострения» (onset_trigger), «Преобладающий компонент депрессии»
  *   (main_component), «Тяжесть депрессии» (depression_severity), весь блок
- *   «Фармакотерапия», весь блок «Ремиссия».
- * - 98: заблокирован весь блок «Ремиссия».
+ *   «Фармакотерапия», весь блок «Ремиссия». Скрыты целиком (ячейка
+ *   не рендерится): «Дата начала фазы» (phase_start_date) и
+ *   «Эффективность АД» (ad_efficacy, будет определяться по шкалам).
+ * - 98: заблокирован весь блок «Ремиссия». Скрыто целиком:
+ *   «Эффективность АД» (ad_efficacy, будет определяться по шкалам).
  *
- * Блокировка — это `disabled` (read-only отображение ячейки), а не скрытие
- * строки: сетка и история остаются видимыми, ввод невозможен.
+ * Разница «скрыто» vs «заблокировано»:
+ * - скрыто (`isFieldHiddenForPhase`) — ячейка не рендерится вообще (пустое
+ *   место в колонке данной фазы);
+ * - заблокировано (`isFieldDisabledForPhase`) — read-only отображение ячейки.
+ * Сетка и история остаются видимыми, ввод невозможен.
  * Используется и в UI (`matrix-grid`), и на сервере (`savePhaseCells`),
  * чтобы прямой вызов API не обходил запрет.
  */
@@ -57,4 +63,20 @@ export function isFieldDisabledForPhase(
     return REMISSION_FIELD_IDS.has(fieldId)
   }
   return false
+}
+
+/**
+ * Скрыта ли ячейка целиком в колонке с данным `phase_relative_id`
+ * (место ячейки остаётся пустым, контрол не рендерится).
+ * - 99: «Дата начала фазы» (phase_start_date), «Эффективность АД» (ad_efficacy).
+ * - 98: «Эффективность АД» (ad_efficacy).
+ */
+export function isFieldHiddenForPhase(
+  fieldId: string,
+  relativeId: number | null | undefined
+): boolean {
+  if (fieldId === 'ad_efficacy') {
+    return relativeId === PHASE_RELATIVE_ADMISSION || relativeId === PHASE_RELATIVE_DISCHARGE
+  }
+  return relativeId === PHASE_RELATIVE_DISCHARGE && fieldId === 'phase_start_date'
 }

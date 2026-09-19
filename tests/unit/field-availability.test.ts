@@ -4,6 +4,7 @@ import {
   PHASE_RELATIVE_ADMISSION,
   PHASE_RELATIVE_DISCHARGE,
   isFieldDisabledForPhase,
+  isFieldHiddenForPhase,
 } from '@/shared/lib/registry/field-availability'
 
 /**
@@ -38,8 +39,19 @@ describe('field-availability: блокировки фаз 98/99', () => {
     expect(isFieldDisabledForPhase('beck_total', PHASE_RELATIVE_DISCHARGE)).toBe(false)
   })
 
-  it('фаза 98: заблокирована только «Ремиссия», «Фармакотерапия» доступна', () => {
+  it('фаза 99: скрыты «Дата начала фазы» и «Эффективность АД»', () => {
+    expect(isFieldHiddenForPhase('phase_start_date', PHASE_RELATIVE_DISCHARGE)).toBe(true)
+    expect(isFieldHiddenForPhase('ad_efficacy', PHASE_RELATIVE_DISCHARGE)).toBe(true)
+    // Остальные поля фазы 99 не скрыты (они заблокированы через disabled)
+    expect(isFieldHiddenForPhase('phase_duration_months', PHASE_RELATIVE_DISCHARGE)).toBe(false)
+    expect(isFieldHiddenForPhase('orientation', PHASE_RELATIVE_DISCHARGE)).toBe(false)
+  })
+
+  it('фаза 98: «Эффективность АД» скрыта, «Ремиссия» заблокирована', () => {
+    expect(isFieldHiddenForPhase('ad_efficacy', PHASE_RELATIVE_ADMISSION)).toBe(true)
+    expect(isFieldHiddenForPhase('phase_start_date', PHASE_RELATIVE_ADMISSION)).toBe(false)
     for (const fieldId of Object.keys(REGISTRY.therapy)) {
+      if (fieldId === 'ad_efficacy') continue // скрыто, а не disabled
       expect(isFieldDisabledForPhase(fieldId, PHASE_RELATIVE_ADMISSION)).toBe(false)
     }
     for (const fieldId of Object.keys(REGISTRY.remission)) {
@@ -54,12 +66,14 @@ describe('field-availability: блокировки фаз 98/99', () => {
     expect(isFieldDisabledForPhase('depression_severity', PHASE_RELATIVE_ADMISSION)).toBe(false)
   })
 
-  it('обычные фазы и неизвестный relativeId — ничего не блокируем', () => {
+  it('обычные фазы и неизвестный relativeId — ничего не блокируем и не скрываем', () => {
     for (const rel of [1, 2, 3, 97, undefined, null]) {
       expect(isFieldDisabledForPhase('phase_start_date', rel)).toBe(false)
       expect(isFieldDisabledForPhase('onset_trigger', rel)).toBe(false)
       expect(isFieldDisabledForPhase('beta_blockers', rel)).toBe(false)
       expect(isFieldDisabledForPhase('subdepression_const', rel)).toBe(false)
+      expect(isFieldHiddenForPhase('phase_start_date', rel)).toBe(false)
+      expect(isFieldHiddenForPhase('ad_efficacy', rel)).toBe(false)
     }
   })
 })
