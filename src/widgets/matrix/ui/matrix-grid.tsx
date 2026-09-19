@@ -26,6 +26,7 @@ import {
   isFieldWithdrawnForRecord,
 } from '@/shared/lib/registry/evolution-guard'
 import { validateCellValue } from '../model/validate'
+import { isFieldDisabledForPhase } from '@/shared/lib/registry/field-availability'
 import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
 import type { Locale } from '@/shared/lib/intl'
 import { MatrixCell } from './matrix-cell'
@@ -55,9 +56,12 @@ const HEADER_H = 48
 const LABEL_W = 320 // ширина sticky-колонки (§1.2 спеки)
 const COL_W = 150
 
-/** Колонка 98: поля is_current_only доступны только в текущем статусе. */
+/** Блокировки фаз 98/99 + is_current_only (см. field-availability). */
 function disabledFor(field: RegistryField, col: MatrixColumn): boolean {
-  return Boolean(field.is_current_only && !col.isCurrentStatus)
+  if (field.is_current_only && !col.isCurrentStatus) return true
+  // Фаза 99 — вторая контрольная точка фазы 98: часть полей заблокирована;
+  // в фазе 98 заблокированы терапия и ремиссия (см. field-availability).
+  return isFieldDisabledForPhase(field.id, col.relativeId)
 }
 
 /**

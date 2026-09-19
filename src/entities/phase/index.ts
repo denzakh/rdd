@@ -9,6 +9,7 @@ export {
   type PhaseRepository,
   type PhaseInput,
 } from './api/phase-repo'
+export { isFieldDisabledForPhase } from './api/field-availability'
 export {
   countByField,
   phaseDurationsByOrder,
