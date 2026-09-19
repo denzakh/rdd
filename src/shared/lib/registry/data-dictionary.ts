@@ -1,4 +1,4 @@
-import { REGISTRY } from '@/shared/config/registry'
+import { REGISTRY, THERAPY_GROUPS } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { DB_TYPE_TO_SQL } from './d1-schema'
 import { fieldLabel, optionLabel, type Locale } from '../intl'
@@ -70,12 +70,25 @@ export interface DictionaryEntry {
   deprecatedSince: number | null
   /** Поле-замена (id), см. docs/schema-evolution.md §3.1 (`replacedBy`). */
   replacedBy: string | null
+  /** Локализованный заголовок подгруппы (`group`), null — поле без подгруппы. */
+  group: string | null
 }
 
 export interface DictionarySection {
   key: string
   title: string
   entries: DictionaryEntry[]
+}
+
+/**
+ * Словари подгрупп по секциям реестра (для колонки «Подгруппа» словаря).
+ * Единственный источник правды — словари рядом с блоками реестра
+ * (`THERAPY_GROUPS` и т.п.), как и в матрице (`SECTION_GROUPS`).
+ */
+const SECTION_GROUPS: Partial<
+  Record<keyof typeof REGISTRY, Record<string, { ru: string; en: string }>>
+> = {
+  therapy: THERAPY_GROUPS,
 }
 
 /**
@@ -86,22 +99,33 @@ export interface DictionarySection {
  */
 export const buildDataDictionary = (locale: Locale = 'ru'): DictionarySection[] =>
   (Object.entries(REGISTRY) as [keyof typeof REGISTRY, Record<string, RegistryField>][]).map(
-    ([key, fields]) => ({
-      key,
-      title: locale === 'en' ? (SECTION_TITLES[key]?.en ?? key) : (SECTION_TITLES[key]?.ru ?? key),
-      entries: Object.values(fields).map((field) => ({
-        id: field.id,
-        label: fieldLabel(field, locale),
-        ui: field.ui,
-        dbType: field.db_type ?? '— (вычисляемое)',
-        sqlType: field.db_type ? DB_TYPE_TO_SQL[field.db_type] : '—',
-        allowed: allowedValues(field, locale),
-        storage: field.calculate ? null : field.scope === 'patient' ? 'patients' : 'phases',
-        isComputed: Boolean(field.calculate),
-        isCurrentOnly: Boolean(field.is_current_only),
-        hiddenInMatrix: Boolean(field.hide_in_matrix),
-        deprecatedSince: field.deprecated_since ?? null,
-        replacedBy: field.replacedBy ?? null,
-      })),
-    })
+    ([key, fields]) => {
+      const groups = SECTION_GROUPS[key]
+      const groupTitle = (id: string | undefined): string | null => {
+        if (id === undefined || !groups) return null
+        const t = groups[id]
+        if (!t) return id
+        return locale === 'en' ? (t.en ?? t.ru) : (t.ru ?? t.en)
+      }
+      return {
+        key,
+        title:
+          locale === 'en' ? (SECTION_TITLES[key]?.en ?? key) : (SECTION_TITLES[key]?.ru ?? key),
+        entries: Object.values(fields).map((field) => ({
+          id: field.id,
+          label: fieldLabel(field, locale),
+          ui: field.ui,
+          dbType: field.db_type ?? '— (вычисляемое)',
+          sqlType: field.db_type ? DB_TYPE_TO_SQL[field.db_type] : '—',
+          allowed: allowedValues(field, locale),
+          storage: field.calculate ? null : field.scope === 'patient' ? 'patients' : 'phases',
+          isComputed: Boolean(field.calculate),
+          isCurrentOnly: Boolean(field.is_current_only),
+          hiddenInMatrix: Boolean(field.hide_in_matrix),
+          deprecatedSince: field.deprecated_since ?? null,
+          replacedBy: field.replacedBy ?? null,
+          group: groupTitle(field.group),
+        })),
+      }
+    }
   )

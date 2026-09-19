@@ -59,6 +59,18 @@ const HEADER_H = 48
 const LABEL_W = 320 // ширина sticky-колонки (§1.2 спеки)
 const COL_W = 150
 
+/**
+ * Ближайшая строка-поле от `from` в направлении `step` (+1/-1).
+ * Используется roving-фокусом, чтобы «проскакивать» section/subheader-строки.
+ * Возвращает -1, если поля в этом направлении нет.
+ */
+function nextFieldRow(rows: { kind: string }[], from: number, step: 1 | -1): number {
+  for (let i = from + step; i >= 0 && i < rows.length; i += step) {
+    if (rows[i].kind === 'field') return i
+  }
+  return -1
+}
+
 /** Блокировки фаз 98/99 + is_current_only (см. field-availability). */
 function disabledFor(field: RegistryField, col: MatrixColumn): boolean {
   if (field.is_current_only && !col.isCurrentStatus) return true
@@ -230,7 +242,7 @@ export function MatrixGrid({
     if (versionByPhase.size < columns.length) return rows // не все фазы имеют версию — не фильтруем
     const versions = columns.map((col) => versionByPhase.get(col.id) as number)
     return rows.filter((r) => {
-      if (r.kind === 'section') return true
+      if (r.kind === 'section' || r.kind === 'subgroup') return true
       return !isFieldRowHiddenForVersions(r.field, versions)
     })
   }, [rows, columns, versionByPhase])
@@ -270,7 +282,14 @@ export function MatrixGrid({
 
   const moveFocus = useCallback(
     (row: number, col: number) => {
-      const r = Math.max(0, Math.min(visibleRows.length - 1, row))
+      // subheader-строки (kind: 'subgroup') не содержат ячеек —
+      // фокус «проскакивает» их к ближайшему полю в направлении движения.
+      let r = Math.max(0, Math.min(visibleRows.length - 1, row))
+      if (visibleRows[r] && visibleRows[r].kind !== 'field') {
+        const forward = row > (activeRef.current[0] ?? -1) || row >= r
+        r = forward ? nextFieldRow(visibleRows, r, 1) : nextFieldRow(visibleRows, r, -1)
+        if (r === -1) r = Math.max(0, Math.min(visibleRows.length - 1, row))
+      }
       const c = Math.max(0, Math.min(columns.length - 1, col))
       activeRef.current = [r, c]
       rowVirtualizer.scrollToIndex(r, { align: 'auto' })
@@ -279,7 +298,7 @@ export function MatrixGrid({
       })
       forceRender((n) => n + 1) // обновить roving tabindex
     },
-    [visibleRows.length, columns.length, rowVirtualizer]
+    [visibleRows, columns.length, rowVirtualizer]
   )
 
   const handleRowKeyDown = useCallback(
@@ -375,6 +394,7 @@ export function MatrixGrid({
           {rowVirtualizer.getVirtualItems().map((vRow) => {
             const row = visibleRows[vRow.index]
             const isSection = row.kind === 'section'
+            const isSubgroup = row.kind === 'subgroup'
             return (
               <div
                 key={vRow.key}
@@ -385,7 +405,9 @@ export function MatrixGrid({
                   minWidth: gridWidth,
                   transform: `translateY(${vRow.start + HEADER_H}px)`,
                 }}
-                onKeyDown={isSection ? undefined : (e) => handleRowKeyDown(e, vRow.index)}
+                onKeyDown={
+                  isSection || isSubgroup ? undefined : (e) => handleRowKeyDown(e, vRow.index)
+                }
               >
                 {isSection ? (
                   <>
@@ -396,6 +418,16 @@ export function MatrixGrid({
                       {row.title}
                     </div>
                     <div className="bg-muted flex-1" />
+                  </>
+                ) : isSubgroup ? (
+                  <>
+                    <div
+                      className="bg-muted/60 sticky left-0 z-10 flex items-center pr-3 pl-6 text-xs font-medium text-neutral-600"
+                      style={{ width: LABEL_W, minWidth: LABEL_W }}
+                    >
+                      {row.title}
+                    </div>
+                    <div className="bg-muted/60 flex-1" />
                   </>
                 ) : (
                   <>

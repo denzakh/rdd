@@ -41,6 +41,9 @@ export default async function DataDictionaryPage() {
                   <tr className="bg-neutral-100 text-left">
                     <th className="border-b border-neutral-300 px-3 py-2">{dict.colField}</th>
                     <th className="border-b border-neutral-300 px-3 py-2">{dict.colName}</th>
+                    <th className="border-b border-neutral-300 px-3 py-2">
+                      {locale === 'en' ? 'Group' : 'Подгруппа'}
+                    </th>
                     <th className="border-b border-neutral-300 px-3 py-2">{dict.colType}</th>
                     <th className="border-b border-neutral-300 px-3 py-2">{dict.colAllowed}</th>
                     <th className="border-b border-neutral-300 px-3 py-2">{dict.colStorage}</th>
@@ -80,6 +83,9 @@ export default async function DataDictionaryPage() {
                       <td className="border-b border-neutral-200 px-3 py-2 font-mono text-xs">
                         {e.dbType}
                         {e.dbType !== e.sqlType && ` / ${e.sqlType}`}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2 text-xs">
+                        {e.group ?? '—'}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-xs">{e.allowed}</td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-xs">

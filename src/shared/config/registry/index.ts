@@ -2,7 +2,7 @@ import { PATIENT_REGISTRY } from './patient'
 import { PHASE_CONTROL_REGISTRY } from './phase'
 import { REMISSION_REGISTRY } from './remission'
 import { MENTAL_STATUS_REGISTRY } from './status'
-import { THERAPY_REGISTRY } from './therapy'
+import { THERAPY_REGISTRY, THERAPY_GROUPS } from './therapy'
 import { DIAGNOSTIC_SCALES_REGISTRY } from './scales'
 
 // Группированный объект для UI и логики разделов
@@ -24,5 +24,8 @@ export const FLAT_REGISTRY = {
   ...THERAPY_REGISTRY,
   ...DIAGNOSTIC_SCALES_REGISTRY,
 } as const
+
+// Словарь подгрупп фармакотерапии (subheader в матрице, группировка словаря)
+export { THERAPY_GROUPS }
 
 export type AppRegistry = typeof REGISTRY

@@ -1,4 +1,4 @@
-import { REGISTRY, FLAT_REGISTRY } from '@/shared/config'
+import { REGISTRY, FLAT_REGISTRY, THERAPY_GROUPS } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
 import { fieldLabel as pickFieldLabel, type Locale } from '@/shared/lib/intl'
 import type { MatrixRowItem, MatrixScope } from './types'
@@ -24,9 +24,36 @@ const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> 
   diagnostic: { ru: 'Шкалы', en: 'Scales' },
 }
 
+/**
+ * Словари подгрупп по секциям (ключи секций REGISTRY → словарь подгрупп).
+ * Заполняется только у секций с логической группировкой полей; секция без
+ * записи рендерится плоским списком (subheader-строки не выводятся).
+ */
+const SECTION_GROUPS: Partial<
+  Record<keyof typeof REGISTRY, Record<string, { ru: string; en: string }>>
+> = {
+  therapy: THERAPY_GROUPS,
+}
+
 /** Заголовок секции под локаль (RU-фолбэк). */
 export function sectionTitle(section: keyof typeof REGISTRY, locale: Locale = 'ru'): string {
   const t = SECTION_TITLES[section]
+  return locale === 'en' ? (t.en ?? t.ru) : (t.ru ?? t.en)
+}
+
+/**
+ * Заголовок подгруппы секции под локаль (RU-фолбэк). Единственный источник
+ * правды — словарь подгрупп рядом с блоком реестра (`THERAPY_GROUPS` и т.п.).
+ * Если у секции нет словаря подгрупп или id неизвестен — падает на сам id.
+ */
+export function sectionGroupTitle(
+  section: keyof typeof REGISTRY,
+  groupId: string,
+  locale: Locale = 'ru'
+): string {
+  const groups = SECTION_GROUPS[section]
+  const t = groups?.[groupId]
+  if (!t) return groupId
   return locale === 'en' ? (t.en ?? t.ru) : (t.ru ?? t.en)
 }
 
@@ -105,7 +132,19 @@ export function buildMatrixRows(
       sectionId: section,
       title: sectionTitle(section, locale),
     })
+    let lastGroup: string | undefined
     for (const field of fields) {
+      // Подгруппа секции: subheader-строка при смене group (Вариант A).
+      // Поля без group идут сразу после заголовка секции, без subheader.
+      if (field.group !== undefined && field.group !== lastGroup) {
+        rows.push({
+          kind: 'subgroup',
+          sectionId: section,
+          groupId: field.group,
+          title: sectionGroupTitle(section, field.group, locale),
+        })
+      }
+      lastGroup = field.group
       rows.push({ kind: 'field', field, index: fieldIndex, totalFields })
       fieldIndex++
     }

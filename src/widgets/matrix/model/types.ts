@@ -1,4 +1,4 @@
-import type { RegistryField } from '@/shared/config'
+import type { AppRegistry, RegistryField } from '@/shared/config'
 
 /** Значение ячейки (решение 6 спеки: union вместо `any`). */
 export type FieldValue = string | number | boolean | null
@@ -19,9 +19,14 @@ export interface MatrixColumn {
   isCurrentStatus?: boolean
 }
 
-export type MatrixScope = Exclude<RegistryField['scope'], undefined | 'patient'>
+/**
+ * Секция реестра для scopes-фильтра матрицы (все секции, кроме `patient` —
+ * паспорт в матрицу фаз не входит).
+ */
+export type MatrixScope = Exclude<keyof AppRegistry, 'patient'>
 
 /** Элемент виртуализированного списка строк. */
 export type MatrixRowItem =
   | { kind: 'section'; sectionId: string; title: string }
+  | { kind: 'subgroup'; sectionId: string; groupId: string; title: string }
   | { kind: 'field'; field: RegistryField; index: number; totalFields: number }

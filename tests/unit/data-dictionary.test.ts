@@ -39,6 +39,36 @@ describe('buildDataDictionary', () => {
       expect(e.replacedBy).toBeNull()
     }
   })
+
+  it('группы: therapy-поля имеют подгруппу, поля других секций — null', () => {
+    const therapy = sections.find((s) => s.key === 'therapy')!
+    // Все 34 поля фармакотерапии снабжены group (THERAPY_GROUPS)
+    for (const e of therapy.entries) {
+      expect(e.group, e.id).not.toBeNull()
+    }
+    expect(therapy.entries.find((e) => e.id === 'beta_blockers')!.group).toBe('Депрессогенный фон')
+    expect(therapy.entries.find((e) => e.id === 'vitamins')!.group).toBe('Соматическая поддержка')
+    expect(therapy.entries.find((e) => e.id === 'ad_snri')!.group).toBe('Антидепрессанты: классы')
+    expect(therapy.entries.find((e) => e.id === 'ad_route')!.group).toBe(
+      'Курс АД: доза, путь, эффект'
+    )
+    expect(therapy.entries.find((e) => e.id === 'hypnotics')!.group).toBe(
+      'Нейролептики и транквилизаторы'
+    )
+    // Секции без словаря подгрупп — group null у всех полей
+    const patient = sections.find((s) => s.key === 'patient')!
+    for (const e of patient.entries) {
+      expect(e.group, e.id).toBeNull()
+    }
+  })
+
+  it('группы: en-локаль возвращает en-заголовки подгрупп', () => {
+    const enTherapy = buildDataDictionary('en').find((s) => s.key === 'therapy')!
+    expect(enTherapy.entries.find((e) => e.id === 'beta_blockers')!.group).toBe(
+      'Depressogenic background'
+    )
+    expect(enTherapy.entries.find((e) => e.id === 'ad_snri')!.group).toBe('Antidepressant classes')
+  })
 })
 
 describe('i18n: registry labels + dictionaries (docs/en/i18n.md)', () => {

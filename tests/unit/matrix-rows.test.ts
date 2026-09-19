@@ -52,7 +52,7 @@ describe('matrix-rows: buildMatrixRows', () => {
     for (const hidden of ['phase_relative_id', 'hamd_severity', 'pure_remission']) {
       expect(ids).not.toContain(hidden)
       // поле остаётся в реестре (словарь/applyComputed/экспорт его видят)
-      expect((FLAT_REGISTRY as Record<string, RegistryField>)[hidden]).toBeDefined()
+      expect((FLAT_REGISTRY as unknown as Record<string, RegistryField>)[hidden]).toBeDefined()
     }
     // соседний computed-факт (ad_any) — остаётся видимой строкой
     expect(ids).toContain('ad_any')
@@ -65,6 +65,54 @@ describe('matrix-rows: buildMatrixRows', () => {
       (f) => !(f as RegistryField).hide_in_matrix
     ).length
     expect(rows).toHaveLength(1 + visiblePhase)
+  })
+
+  it('секция без подгрупп рендерится плоским списком (subheader-строк нет)', () => {
+    const rows = buildMatrixRows(['phase'])
+    expect(rows.some((r) => r.kind === 'subgroup')).toBe(false)
+  })
+
+  it('терапия: 5 subheader-строк в порядке THERAPY_GROUPS, поля идут после своей подгруппы', () => {
+    const rows = buildMatrixRows(['therapy'])
+    const subs = rows.filter((r) => r.kind === 'subgroup') as Array<
+      Extract<(typeof rows)[number], { kind: 'subgroup' }>
+    >
+    expect(subs.map((s) => s.title)).toEqual([
+      'Депрессогенный фон',
+      'Соматическая поддержка',
+      'Антидепрессанты: классы',
+      'Курс АД: доза, путь, эффект',
+      'Нейролептики и транквилизаторы',
+    ])
+    // beta_blockers — первое поле после «Депрессогенный фон», vitamins — после «Соматическая поддержка»
+    const firstFieldIdx = (id: string) =>
+      rows.findIndex((r) => r.kind === 'field' && r.field.id === id)
+    const subIdx = (title: string) =>
+      rows.findIndex((r) => r.kind === 'subgroup' && r.title === title)
+    expect(firstFieldIdx('beta_blockers')).toBeGreaterThan(subIdx('Депрессогенный фон'))
+    expect(firstFieldIdx('vitamins')).toBeGreaterThan(subIdx('Соматическая поддержка'))
+    expect(firstFieldIdx('ad_tricyclic')).toBeGreaterThan(subIdx('Антидепрессанты: классы'))
+    expect(firstFieldIdx('ad_dose_level')).toBeGreaterThan(subIdx('Курс АД: доза, путь, эффект'))
+    expect(firstFieldIdx('nl_typical')).toBeGreaterThan(subIdx('Нейролептики и транквилизаторы'))
+  })
+
+  it('subheader-строки не влияют на field-индексы (index/totalFields считаются по полям)', () => {
+    const rows = buildMatrixRows()
+    const fieldRows = rows.filter((r) => r.kind === 'field')
+    const totalFields = fieldRows.length
+    fieldRows.forEach((r, i) => {
+      expect(r.index).toBe(i)
+      expect(r.totalFields).toBe(totalFields)
+    })
+  })
+
+  it('EN-локаль: заголовки подгрупп локализованы', () => {
+    const rows = buildMatrixRows(['therapy'], 'en')
+    const subs = rows.filter((r) => r.kind === 'subgroup') as Array<{
+      title: string
+    }>
+    expect(subs[0].title).toBe('Depressogenic background')
+    expect(subs[4].title).toBe('Antipsychotics & tranquilizers')
   })
 })
 
