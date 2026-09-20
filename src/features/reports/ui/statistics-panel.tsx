@@ -372,7 +372,11 @@ export function StatisticsPanel({ data, locale }: { data: StatsReport; locale: L
             'intermission'
           )}
         </div>
-
+      </section>
+      <section className="space-y-4 rounded-md border border-neutral-300 p-4">
+        <h2 className="text-sm font-semibold">
+          {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
+        </h2>
         <BinaryFeaturesSection counts={f.binaryFeatures} locale={locale} />
       </section>
     </section>

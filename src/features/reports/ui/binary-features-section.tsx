@@ -109,28 +109,22 @@ export function BinaryFeaturesSection({
     // пустой scope) — заглушка, как у остальных таблиц панели.
     return (
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-neutral-600">
-          {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
-        </h3>
         <p className="text-xs text-neutral-500">{en ? 'No data' : 'Нет данных'}</p>
       </div>
     )
   }
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold text-neutral-600">
-        {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
-      </h3>
       {/* Masonry через CSS-колонки (Tailwind v4): таблицы разной высоты
           укладываются плотно, без JS; break-inside-avoid не даёт разрывать
           карточку между колонками. Порядок блоков — колонками сверху вниз. */}
-      <div className="columns-1 gap-4 lg:columns-2 xl:columns-3">
+      <div className="columns-1 gap-4 lg:columns-2">
         {groups.map((g) => (
           <div
             key={g.title}
             className="mb-4 inline-block w-full break-inside-avoid space-y-1 rounded-md border border-neutral-200 p-3"
           >
-            <h4 className="text-xs font-medium text-neutral-600">{g.title}</h4>
+            <h3 className="mb-1.5 text-xs font-semibold text-neutral-600">{g.title}</h3>
             <DistributionTableYes rows={g.rows} locale={locale} />
           </div>
         ))}

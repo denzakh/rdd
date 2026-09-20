@@ -53,9 +53,9 @@ export function DistributionTableYes({ rows, locale }: DistributionTableYesProps
     <table className="w-full text-sm">
       <thead>
         <tr className="text-left text-xs text-neutral-500">
-          <th className="py-1 pl-0">{en ? 'Feature' : 'Признак'}</th>
-          <th className="py-1 text-right"></th>
-          <th className="py-1 text-right"></th>
+          <th className="pl-0"></th>
+          <th className="text-right"></th>
+          <th className="text-right"></th>
         </tr>
       </thead>
       <tbody>
