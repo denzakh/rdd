@@ -1,7 +1,7 @@
 'use server'
 
 /**
- * Серверная сессия приложения (слой shared, docs/spec-stage-2.md):
+ * Серверная сессия приложения (слой shared, docs/ru/spec-stage-2.md):
  * чтение cookie → валидация в D1. Используется из server components
  * и server actions; features импортируют отсюда (без кросс-импортов).
  */
@@ -34,7 +34,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser()
   if (!user) redirect('/login')
-  // Принудительная смена пароля (docs/spec-stage-3.md §4)
+  // Принудительная смена пароля (docs/ru/spec-stage-3.md §4)
   if (user.mustChangePassword) {
     const path = await currentPath()
     if (path !== CHANGE_PASSWORD_PATH && !path.startsWith('/invite/')) {

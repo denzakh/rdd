@@ -1,4 +1,4 @@
--- 0004_auth_v15.sql — Auth v1.5 (docs/spec-stage-3.md).
+-- 0004_auth_v15.sql — Auth v1.5 (docs/ru/spec-stage-3.md).
 -- Ручная миграция (вне реестра). Rate-limit входа + инвайты.
 
 ALTER TABLE users ADD COLUMN failed_attempts INTEGER NOT NULL DEFAULT 0;

@@ -1,7 +1,7 @@
 'use server'
 
 /**
- * Server Actions матрицы (docs/spec-stage-1.md).
+ * Server Actions матрицы (docs/ru/spec-stage-1.md).
  * Авторизация: requireUser() + canWrite() в каждом действии.
  * Валидация: whitelist DATA_COLUMNS + Zod по полю реестра (to-zod).
  * Конкурентность: CAS через phase-repo.updateWithVersion, аудит — в том же db.batch.
@@ -9,11 +9,13 @@
 import { revalidatePath } from 'next/cache'
 import { requireUser, canWrite, getDb, createAuditRepository, type PhaseRow } from '@/shared/api'
 import { createPatientRepository } from '@/entities/patient'
-import { createPhaseRepository, DATA_COLUMNS, isSystemPhaseRelativeId } from '@/entities/phase'
 import {
+  createPhaseRepository,
+  DATA_COLUMNS,
   isFieldDisabledForPhase,
   isFieldHiddenForPhase,
-} from '@/shared/lib/registry/field-availability'
+  isSystemPhaseRelativeId,
+} from '@/entities/phase'
 import { phaseSchema } from '@/shared/lib/registry'
 
 /** Значение ячейки (string | number | boolean | null) — без импорта из widgets. */

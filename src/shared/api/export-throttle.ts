@@ -1,5 +1,5 @@
 /**
- * Троттлинг экспорта (docs/export.md §2, миграция 0007_export_throttle.sql).
+ * Троттлинг экспорта (docs/ru/export.md §2, миграция 0007_export_throttle.sql).
  *
  * exportDeidentified — самый дорогой Server Action (полная выборка
  * patients+phases, де-идентификация в памяти): флуд им бьёт

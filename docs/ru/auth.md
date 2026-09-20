@@ -57,7 +57,7 @@
   7 дней доступа, дальше сессия принудительно инвалидируется при валидации.
 - Истёкшие сессии удаляются при валидации; `purgeExpiredSessions` вызывается при
   логине. `destroySession` идемпотентен (logout).
-- Cookie ставится в `loginAction` (`src/features/auth/actions.ts`), maxAge = TTL.
+- Cookie ставится в `loginAction` (`src/features/auth/api/actions.ts`), maxAge = TTL.
 
 ## 6. Вход/выход (src/features/auth)
 
@@ -66,8 +66,9 @@
   неверного пароля — существование учетки не раскрывается.
 - `logoutAction` удаляет сессию из БД и cookie, redirect на `/login`.
 - Форма — `ui/login-form.tsx` на `useActionState` (React 19); страница `app/login/page.tsx`.
-- `session.ts` (features/auth): `getCurrentUser()` (null без редиректа) и
-  `requireUser()` (redirect `/login`) — только server-окружение (next/headers).
+- `getCurrentUser()` (null без редиректа) и `requireUser()` (redirect `/login`) живут в
+  `src/shared/api/session-server.ts` — сессия это инфраструктура, а не фича (серверные
+  helpers `features/auth` только реэкспортируют их) — только server-окружение (next/headers).
 
 ## 7. Защита маршрутов (src/middleware.ts)
 
@@ -81,15 +82,16 @@
 Защищённые страницы — серверные обёртки: например
 `app/patients/[id]/matrix/page.tsx` вызывает `requireUser()` и рендерит клиентский
 `matrix-client.tsx` + меню пользователя (`UserMenu`: имя, роль, переключатель языка,
-кнопка «Выйти» через `<form action={logoutAction}>`). Старый демо-маршрут `/matrix`
-теперь только редиректит на `/patients` (см. `./spec-stage-2.md` §1 реш.4).
+кнопка «Выйти» через `<form action={logoutAction}>`). Демо-маршрут `/matrix` удалён
+(этап 2, `./spec-stage-2.md` §1 реш. 4): матрица живёт на `/patients/[id]/matrix`,
+нечисловой/отсутствующий `id` редиректит на `/patients`.
 
 ## 8. Роли
 
 - `admin` — управление пользователями (`/admin/users`, этап 3), доступ ко всему;
 - `clinician` — чтение и запись клинических данных (по умолчанию);
 - `readonly` — только чтение; проверка `canWrite(user)` (session-repo) обязательна
-  в каждом Server Action мутаций (`src/features/matrix/actions.ts`, admin-UI).
+  в каждом Server Action мутаций (`src/features/matrix/api/actions.ts`, admin-UI).
 
 ## Row-level access: привязка «чья карта» (migrations/0005_data_scope.sql)
 

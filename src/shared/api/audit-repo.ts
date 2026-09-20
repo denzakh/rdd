@@ -1,9 +1,9 @@
 /**
  * Запись журнала аудита (migrations/0002_audit.sql, 0006_audit_hash_chain.sql,
- * docs/matrix.md §6.6). Значения сериализуются в JSON-строки — TEXT-колонка
+ * docs/ru/matrix.md §6.6). Значения сериализуются в JSON-строки — TEXT-колонка
  * принимает все варианты FieldValue.
  *
- * Целостность (hash-chain, docs/threat-model.md §2 R): каждая запись содержит
+ * Целостность (hash-chain, docs/ru/threat-model.md §2 R): каждая запись содержит
  * prev_hash = entry_hash предыдущей записи (SHA-256 от канонического payload,
  * включающего содержимое записи) и собственный entry_hash. Подмена/удаление
  * любой записи ломает цепочку и детектируется verifyChain(). Доверенный

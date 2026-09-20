@@ -9,7 +9,7 @@ import type { MatrixColumn, MatrixData, FieldValue } from '@/widgets/matrix'
 import MatrixClient from './matrix-client'
 
 /**
- * Матрица пациента (docs/spec-stage-2.md §4): серверная загрузка фаз из D1,
+ * Матрица пациента (docs/ru/spec-stage-2.md §4): серверная загрузка фаз из D1,
  * маппинг PhaseRow[] → MatrixData + токены версий CAS, isReadOnly по роли.
  */
 const SKIP_COLUMNS = new Set(['id', 'patient_id', 'updated_at'])

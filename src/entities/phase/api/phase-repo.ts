@@ -3,7 +3,7 @@ import { createAuditRepository, type AuditEntry } from '@/shared/api'
 import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 
 /**
- * Репозиторий фаз (перенос из shared/api, docs/spec-stage-2.md §3).
+ * Репозиторий фаз (перенос из shared/api, docs/ru/spec-stage-2.md §3).
  */
 
 /**
@@ -64,7 +64,7 @@ export interface PhaseRepository {
   findById(id: number): Promise<PhaseRow | null>
   update(id: number, patch: Partial<PhaseInput>): Promise<void>
   /**
-   * Оптимистичная блокировка (docs/matrix.md §6.2): UPDATE выполняется
+   * Оптимистичная блокировка (docs/ru/matrix.md §6.2): UPDATE выполняется
    * с `WHERE updated_at = baseVersion`. Аудит пишется в том же db.batch.
    * Возвращает `applied: false` и актуальную строку при конфликте (409).
    */
@@ -80,8 +80,8 @@ export interface PhaseRepository {
 /**
  * Колонки фаз, кроме системных (id, patient_id, phase_order_id).
  * Генерируется из текущей схемы; при изменениях синхронизируйте с rows.ts.
- * Экспортируется как whitelist для Server Actions (docs/spec-stage-1.md §2.2)
- * и для валидации fieldId в агрегатах (docs/spec-stage-2.md §3).
+ * Экспортируется как whitelist для Server Actions (docs/ru/spec-stage-1.md §2.2)
+ * и для валидации fieldId в агрегатах (docs/ru/spec-stage-2.md §3).
  */
 export const DATA_COLUMNS: Array<keyof PhaseRow> = [
   'phase_start_date',
@@ -203,7 +203,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
       const orderId = await nextOrderId(db, input.patient_id)
       const relativeId =
         input.phase_relative_id ?? (await nextPhaseRelativeId(db, input.patient_id))
-      // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4).
+      // registry_version — метка протокола на момент сбора (docs/ru/schema-evolution.md §4).
       const registryVersion =
         (input as Record<string, unknown>).registry_version ?? REGISTRY_CURRENT_VERSION
       const values = [
@@ -260,7 +260,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
     },
 
     async update(id, patch) {
-      // registry_version immutable (docs/schema-evolution.md §4).
+      // registry_version immutable (docs/ru/schema-evolution.md §4).
       const { registry_version: _rv, ...rest } = patch as Record<string, unknown>
       const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
       const keys = Object.keys(rest).filter((k) => allowed.has(k))
@@ -273,7 +273,7 @@ export function createPhaseRepository(db: D1Database): PhaseRepository {
     },
 
     async updateWithVersion(id, patch, baseVersion, actorId) {
-      // registry_version immutable (docs/schema-evolution.md §4).
+      // registry_version immutable (docs/ru/schema-evolution.md §4).
       const { registry_version: _rv2, ...restPatch } = patch as Record<string, unknown>
       const allowed = new Set<string>(['phase_order_id', ...DATA_COLUMNS])
       const keys = Object.keys(restPatch).filter((k) => allowed.has(k))

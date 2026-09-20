@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Клиент матрицы с реальным персистом (docs/spec-stage-1.md §3–4).
+ * Клиент матрицы с реальным персистом (docs/ru/spec-stage-1.md §3–4).
  * onPersist → savePhaseCells (CAS), 409 → markConflict по ячейкам,
  * resolveConflict('mine') → переотправка с токеном версии сервера.
  */

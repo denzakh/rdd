@@ -1,7 +1,7 @@
 'use server'
 
 /**
- * Server Action экспорта де-идентифицированного датасета (docs/export.md).
+ * Server Action экспорта де-идентифицированного датасета (docs/ru/export.md).
  * Де-идентификация — в getDeidentifiedDataset (queries.ts), один раз,
  * до сериализации. Здесь — только auth/scope + троттлинг + тонкий выбор адаптера.
  */
@@ -31,7 +31,7 @@ const toBase64 = (bytes: Uint8Array): string => Buffer.from(bytes).toString('bas
  * Экспорт де-идентифицированного датасета для R/Python (без UI-аналитики).
  * Доступен admin/clinician/readonly (только чтение своих scope-данных).
  * Троттлинг: 1 экспорт / EXPORT_THROTTLE_SECONDS на пользователя
- * (docs/export.md §2) — самая дорогая операция, флуд бьёт по D1.
+ * (docs/ru/export.md §2) — самая дорогая операция, флуд бьёт по D1.
  */
 export async function exportDeidentified(format: ExportFormat): Promise<ExportResult> {
   if (format !== 'csv' && format !== 'json' && format !== 'xlsx') {

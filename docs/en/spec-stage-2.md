@@ -8,12 +8,12 @@
 
 ## 1. Fixed decisions
 
-| #   | Problem                     | Solution                                                                                                                         |
-| --- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Where repositories live     | Move domain repos from `shared/api` to `entities/*/api`; `shared/api` remains infrastructure only (db, session-repo, audit-repo) |
-| 2   | Navigation between patients | Server Components + App Router: `/patients`, `/patients/[id]/matrix`; reuse of `requireUser()`                                   |
-| 3   | Aggregates                  | SQL over the registry columns (`gen:d1`-schema) — a static class `src/entities/phase/api/queries.ts`                             |
-| 4   | Demo page `/matrix`         | Becomes `/patients/[id]/matrix`; without an id — redirect to the patient list                                                    |
+| #   | Problem                     | Solution                                                                                                                            |
+| --- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Where repositories live     | Move domain repos from `shared/api` to `entities/*/api`; `shared/api` remains infrastructure only (db, session-repo, audit-repo)    |
+| 2   | Navigation between patients | Server Components + App Router: `/patients`, `/patients/[id]/matrix`; reuse of `requireUser()`                                      |
+| 3   | Aggregates                  | SQL over the registry columns (`gen:d1`-schema) — a static class `src/entities/phase/api/queries.ts`                                |
+| 4   | Demo page `/matrix`         | Implemented: the route is removed, the matrix is at `/patients/[id]/matrix`; a non-numeric/missing id redirects to the patient list |
 
 ## 2. `entities/patient` layer
 

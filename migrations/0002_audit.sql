@@ -1,5 +1,5 @@
 -- 0002_audit.sql — версионирование фаз + системный журнал аудита
--- (docs/matrix.md §6.2, §6.6). Вне реестра (не генерируется gen:d1).
+-- (docs/ru/matrix.md §6.2, §6.6). Вне реестра (не генерируется gen:d1).
 -- Журнал append-only: UPDATE/DELETE запрещены логикой.
 
 ALTER TABLE phases ADD COLUMN updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));

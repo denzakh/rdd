@@ -1,5 +1,5 @@
 -- 0006_audit_hash_chain.sql — целостность audit_log: hash-chain + DB-триггеры
--- (docs/threat-model.md §2 R, docs/matrix.md §6.6). Вне реестра (не gen:d1).
+-- (docs/ru/threat-model.md §2 R, docs/ru/matrix.md §6.6). Вне реестра (не gen:d1).
 -- Ранее append-only обеспечивался только логикой приложения; доверенный оператор
 -- с прямым доступом к БД мог отредактировать журнал (repudiation). Теперь:
 --  1) колонки prev_hash/entry_hash — каждая запись хэширует предыдущую (SHA-256);

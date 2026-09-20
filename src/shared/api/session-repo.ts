@@ -7,7 +7,7 @@
  * - TTL 12 часов (смена в клинике), sliding renewal при половине срока;
  * - абсолютный потолок SESSION_ABSOLUTE_TTL_DAYS (7 дней с момента логина):
  *   containment при краже токена — sliding renewal не может продлить сессию
- *   за пределы потолка (docs/auth.md).
+ *   за пределы потолка (docs/ru/auth.md).
  *
  * Только server-окружение (getDb() → Cloudflare binding).
  */
@@ -176,7 +176,7 @@ export async function findUserByEmail(
   return { ...toUserWithSecurity(row), passwordHash: row.password_hash }
 }
 
-// --- rate-limit входа (docs/spec-stage-3.md §3) ---
+// --- rate-limit входа (docs/ru/spec-stage-3.md §3) ---
 
 export const MAX_FAILED_ATTEMPTS = 5
 export const LOCK_MINUTES = 15

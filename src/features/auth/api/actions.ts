@@ -38,7 +38,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   const db = await getDb()
   const user = await findUserByEmail(db, email)
 
-  // Rate-limit (docs/spec-stage-3.md §3): заблокированная учётка отклоняется
+  // Rate-limit (docs/ru/spec-stage-3.md §3): заблокированная учётка отклоняется
   // до проверки пароля. Одинаковая задержка сохранена.
   if (user && isLocked(user)) {
     await new Promise((r) => setTimeout(r, 400))
@@ -79,7 +79,7 @@ export async function logoutAction(): Promise<void> {
   redirect('/login')
 }
 
-// --- смена пароля (docs/spec-stage-3.md §4) ---
+// --- смена пароля (docs/ru/spec-stage-3.md §4) ---
 
 export interface ChangePasswordState {
   error?: string

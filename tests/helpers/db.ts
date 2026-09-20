@@ -1,5 +1,5 @@
 /**
- * Хелпер интеграционных тестов (docs/spec-stage-4.md §3):
+ * Хелпер интеграционных тестов (docs/ru/spec-stage-4.md §3):
  * локальная D1 через getPlatformProxy (тот же механизм, что у opennext
  * и scripts/test-db.ts). Миграции накатываются до тестов командой
  * `tsx scripts/ensure-local-db.ts` (часть npm run test:db / test:integration).

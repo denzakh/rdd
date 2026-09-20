@@ -29,6 +29,7 @@
 ## 3. Integration tests (local D1)
 
 - Helper `tests/helpers/db.ts`: `getPlatformProxy` + applying migrations (order as in `db-restart.ts`).
+- **Environment requirement:** the aggregate cases (`reports-*`, `consent-filter`, `patient-repo`) query data **across the whole local DB** (`{ mode: 'all' }`) and assert exact values, so they assume a fresh database: run `npm run db:restart` before `npm run test:db`. Demo data from `npm run seed:demo` inflates the counters and breaks such checks (CI uses an empty DB, so it does not show up there).
 - Cases: `phase-repo` (create/nextOrderId/update/updateWithVersion: applied and conflict), `audit-repo`
   (insertBatch, queries), `session-repo` (create/validate/sliding renewal/delete expired),
   `patient-repo` CRUD. Script — `npm run test:db:watch` / `vitest tests/integration`.

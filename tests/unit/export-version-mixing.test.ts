@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getDeidentifiedDataset } from '@/entities/phase/api/queries'
 
 /**
- * docs/schema-evolution.md §9, критерий 4 / export.md §3: выгрузка несёт
+ * docs/ru/schema-evolution.md §9, критерий 4 / export.md §3: выгрузка несёт
  * registry_version ДЛЯ КАЖДОЙ строки; смешение кодов разных версий одной шкалы
  * без метки — недопустимо. Проверяем на синтетических данных с двумя версиями:
  * версии не «сливаются», а остаются различимы по строкам + в meta.registryVersions.
@@ -28,7 +28,7 @@ const makeDb = (rows: PrepareAllRow[]) =>
     }),
   }) as unknown as D1Database
 
-describe('export: registry_version не смешивается (docs/schema-evolution.md §9 п.4)', () => {
+describe('export: registry_version не смешивается (docs/ru/schema-evolution.md §9 п.4)', () => {
   it('две версии в одной выгрузке: метка на строке + registryVersions', async () => {
     const db = makeDb([
       {

@@ -5,7 +5,7 @@ import { DATA_COLUMNS } from '@/entities/phase/api/phase-repo'
 
 /**
  * Runtime-смоук синхронности типов строк, реестра и желаемой D1-схемы
- * (docs/spec-stage-4.md §2, строка rows.ts).
+ * (docs/ru/spec-stage-4.md §2, строка rows.ts).
  */
 describe('rows.ts: синхронность строк, реестра и схемы', () => {
   it('PhaseRow: DATA_COLUMNS — подмножество ключей типа', () => {

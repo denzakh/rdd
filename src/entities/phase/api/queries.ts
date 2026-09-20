@@ -4,7 +4,7 @@ import type { DeidentifiedDataset, DeidentifiedRow } from '@/shared/lib/export'
 import { DATA_COLUMNS, PHASE_RELATIVE_ADMISSION } from './phase-repo'
 
 /**
- * Агрегаты по фазам (docs/spec-stage-2.md §3).
+ * Агрегаты по фазам (docs/ru/spec-stage-2.md §3).
  * Имя колонки (fieldId) валидируется по whitelist DATA_COLUMNS — защита от
  * SQL-инъекции через имя колонки; значения — только биндинги.
  *
@@ -513,7 +513,7 @@ export async function binaryFeatureDistributions(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// Слой агрегации де-идентифицированного датасета (docs/export.md).
+// Слой агрегации де-идентифицированного датасета (docs/ru/export.md).
 // ИНВАРИАНТ: де-идентификация — ЗДЕСЬ, один раз, до любой сериализации
 // (csv/json/xlsx). Сериализаторы получают нейтральные TS-объекты и PII
 // не фильтруют: новый формат не может забыть маскирование.
@@ -629,7 +629,7 @@ export async function getDeidentifiedDataset(
       ageAtPhaseStart === null || Number.isNaN(ageAtPhaseStart)
         ? null
         : Math.max(0, ageAtPhaseStart)
-    // Метка версии протокола на строке (docs/schema-evolution.md §6): NOT NULL в схеме.
+    // Метка версии протокола на строке (docs/ru/schema-evolution.md §6): NOT NULL в схеме.
     row.registry_version = (r.registry_version as number | null) ?? 1
     for (const c of PATIENT_EXPORT_COLUMNS) row[c] = (r[c] as number | null) ?? null
     row.phase_order_id = r.phase_order_id

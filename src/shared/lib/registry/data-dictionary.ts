@@ -66,9 +66,9 @@ export interface DictionaryEntry {
   isCurrentOnly: boolean
   /** Скрыто из матрицы (hide_in_matrix), но видно в словаре/экспорте. */
   hiddenInMatrix: boolean
-  /** Версия протокола, с которой поле deprecated (docs/schema-evolution.md §6). */
+  /** Версия протокола, с которой поле deprecated (docs/ru/schema-evolution.md §6). */
   deprecatedSince: number | null
-  /** Поле-замена (id), см. docs/schema-evolution.md §3.1 (`replacedBy`). */
+  /** Поле-замена (id), см. docs/ru/schema-evolution.md §3.1 (`replacedBy`). */
   replacedBy: string | null
   /** Локализованный заголовок подгруппы (`group`), null — поле без подгруппы. */
   group: string | null

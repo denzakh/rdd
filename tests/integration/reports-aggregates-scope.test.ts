@@ -5,7 +5,7 @@ import type { DeidentifiedScope } from '@/entities/phase'
 import { cleanupPatient, disposeTestDb, getTestDb } from '../helpers/db'
 
 /**
- * docs/export.md §3: агрегаты /reports (countByField / phaseDurationsByOrder /
+ * docs/ru/export.md §3: агрегаты /reports (countByField / phaseDurationsByOrder /
  * efficacyByMainComponent) уважают data_scope пользователя — тот же row-level
  * access, что и у списков пациентов.
  */
@@ -38,7 +38,7 @@ async function addPhase(db: D1Database, patientId: number, mainComponent: number
 const countOf = (rows: Array<{ value: number; count: number }>, v: number): number =>
   rows.find((r) => r.value === v)?.count ?? 0
 
-describe('агрегаты /reports: data_scope (docs/export.md §3)', () => {
+describe('агрегаты /reports: data_scope (docs/ru/export.md §3)', () => {
   it('data_scope фильтрует агрегаты: all / site / fail-closed для site без центра', async () => {
     const db = await getTestDb()
     const admin = createPatientRepository(db, PATIENT_SCOPE_ALL)

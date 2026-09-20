@@ -9,7 +9,7 @@ import {
 } from '@/shared/lib/registry/d1-schema'
 
 /**
- * Версионность протокола в baseline (docs/schema-evolution.md §4).
+ * Версионность протокола в baseline (docs/ru/schema-evolution.md §4).
  * Отдельной миграции 000N нет: registry_versions + patients/phases.registry_version
  * генерируются в 0001_init.sql и применяются только через ресет БД (db:restart).
  */

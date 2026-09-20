@@ -32,21 +32,21 @@ npm run dev                 # http://localhost:3000
 
 ## Команды
 
-| Команда                | Назначение                                                            |
-| ---------------------- | --------------------------------------------------------------------- |
-| `npm run dev`          | dev-сервер Next (локальная D1 через `getPlatformProxy`)               |
-| `npm run dev:cf`       | dev в Cloudflare-рантайме (worker.js)                                 |
-| `npm run build`        | прод-сборка                                                           |
-| `npm run gen:d1`       | генерация миграций D1 из реестра полей (`src/shared/config/registry`) |
-| `npm run db:restart`   | полный ресет локальной БД (baseline + ручные миграции 0002–0007)      |
-| `npm run db:migrate:*` | применить миграции (`--local` / `--remote`)                           |
-| `npm run user:create`  | создать пользователя (интерактив/флаги; первый — admin)               |
-| `npm run seed:demo`    | демо-данные                                                           |
-| `npm run test`         | unit-тесты (Vitest)                                                   |
-| `npm run test:db`      | интеграционные тесты на локальной D1                                  |
-| `npm run lint`         | ESLint                                                                |
-| `npm run steiger`      | проверка слоёв FSD                                                    |
-| `npm run deploy`       | деплой в Cloudflare                                                   |
+| Команда                | Назначение                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `npm run dev`          | dev-сервер Next (локальная D1; bindings через `initOpenNextCloudflareForDev`) |
+| `npm run dev:cf`       | dev в Cloudflare-рантайме (worker.js)                                         |
+| `npm run build`        | прод-сборка                                                                   |
+| `npm run gen:d1`       | генерация миграций D1 из реестра полей (`src/shared/config/registry`)         |
+| `npm run db:restart`   | полный ресет локальной БД (baseline + ручные миграции 0002–0007)              |
+| `npm run db:migrate:*` | применить миграции (`--local` / `--remote`)                                   |
+| `npm run user:create`  | создать пользователя (интерактив/флаги; первый — admin)                       |
+| `npm run seed:demo`    | демо-данные                                                                   |
+| `npm run test`         | unit-тесты (Vitest)                                                           |
+| `npm run test:db`      | интеграционные тесты на локальной D1                                          |
+| `npm run lint`         | ESLint                                                                        |
+| `npm run steiger`      | проверка слоёв FSD                                                            |
+| `npm run deploy`       | деплой в Cloudflare                                                           |
 
 ## Аутентификация и роли
 

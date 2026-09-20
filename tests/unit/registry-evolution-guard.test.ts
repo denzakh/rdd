@@ -16,7 +16,7 @@ import {
 } from '@/shared/lib/registry/evolution-guard'
 
 /**
- * Guard-тест на diff реестра (docs/schema-evolution.md §3.1, §9 п.3).
+ * Guard-тест на diff реестра (docs/ru/schema-evolution.md §3.1, §9 п.3).
  *
  * Ловит оба breaking-случая §3: (а) у select-поля исчезла опция из options,
  * (б) сузился диапазон min/max — без соответствующего увеличения
@@ -154,7 +154,7 @@ describe('registry evolution guard: fieldSnapshot нормализует отс�
   })
 })
 
-describe('registry evolution guard: isDeprecatedForRecord / isEditable (docs/schema-evolution.md §6.1)', () => {
+describe('registry evolution guard: isDeprecatedForRecord / isEditable (docs/ru/schema-evolution.md §6.1)', () => {
   const deprecated: RegistryField = {
     id: 'ad_efficacy',
     label: 'Эффективность АД',

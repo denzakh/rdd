@@ -1,8 +1,8 @@
 # Stage 1 spec: Real matrix data mutations (./spec-stage-1.md)
 
 **Status:** spec · **Dependencies:** auth (done), matrix-widget (done), phase-repo (done)
-**FSD layer:** `src/features/matrix` (new) + rework of `app/matrix/`
-**Goal:** remove the demo mock from `app/matrix/matrix-demo.tsx` — data is read from D1 via
+**FSD layer:** `src/features/matrix` (new) + `app/patients/[id]/matrix/` (the former demo route)
+**Goal:** remove the demo mock (was `app/matrix/matrix-demo.tsx`, result — `app/patients/[id]/matrix/matrix-client.tsx`) — data is read from D1 via
 `phase-repo.listByPatient`, changes are written by Server Actions with CAS, validation and audit.
 
 ---
@@ -17,7 +17,7 @@
 | 4   | Mutation authorization    | `requireUser()` + `canWrite(user)` in every action (readonly — denial)                        |
 | 5   | Audit                     | Inside `updateWithVersion` (a single `db.batch`), `actorId` = `SessionUser.id`                |
 
-## 2. Action contracts (`src/features/matrix/actions.ts`)
+## 2. Action contracts (`src/features/matrix/api/actions.ts`)
 
 ```typescript
 'use server'
@@ -58,11 +58,11 @@ Requirements for `savePhaseCells`:
 
 ## 3. Client integration
 
-- `app/matrix/page.tsx` (server): `requireUser()`, load patient and phases
+- `app/patients/[id]/matrix/page.tsx` (server): `requireUser()`, load patient and phases
   (`patientRepo`, `phaseRepo.listByPatient`), map `PhaseRow[]` → `MatrixData`
   (keys — `phase_order_id`-columns: anamnestic phases, 98, 99) and pass
   `baseVersion` (by `updated_at` of each row) to the client component.
-- `matrix-demo.tsx` → `matrix-client.tsx`: `onPersist` calls `savePhaseCells`
+- `matrix-demo.tsx` → `matrix-client.tsx` (moved to `app/patients/[id]/matrix/`): `onPersist` calls `savePhaseCells`
   with the accumulated batch; load/error state — a corner toast, input blocking
   is not required (the dirty queue continues).
 - `canWrite` denial (role readonly): the grid renders with `isReadOnly` immediately from the prop of the
@@ -85,7 +85,7 @@ Requirements for `savePhaseCells`:
 
 ## 6. Acceptance criteria
 
-1. `/matrix` (or `/patients/[id]`) without mock: data from D1, cell input → after the 300 ms debounce a write to the DB, a `audit_log` row with a non-empty `actor_id`.
+1. `/patients/[id]/matrix` without mock: data from D1, cell input → after the 300 ms debounce a write to the DB, a `audit_log` row with a non-empty `actor_id`.
 2. Two browser windows: changing one cell in the second window → in the first — conflict highlighting, both resolutions work, no data lost.
 3. Role `readonly`: cells are not editable, a direct action call returns `readonly`.
 4. `npm run lint`, `npx tsc --noEmit` — no errors.

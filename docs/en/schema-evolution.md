@@ -1,7 +1,7 @@
 # Spec: Protocol versioning and schema evolution (./schema-evolution.md)
 
 **Status:** spec · **Dependencies:** registry core (done), gen:d1 diff-generator (done)
-**FSD layer:** `src/shared/config/registry`, `src/shared/lib/registry/*`, migration `000N_registry_versions.sql`
+**FSD layer:** `src/shared/config/registry`, `src/shared/lib/registry/*`; protocol versioning lives in the generated baseline `0001_init.sql` (there is no separate `000N` migration)
 
 ---
 
@@ -81,7 +81,7 @@ to regenerate the baseline on every harmless `ADD COLUMN`), but does not lose pr
 it is `deprecated_since` relative to the snapshot, not the mere fact that the file is stale,
 that signals "this breaking edit was explicitly declared".
 
-## 4. Data schema (migration `000N_registry_versions.sql`, manual — like `0002_audit.sql`/`0003_auth.sql`)
+## 4. Data schema (in the generated baseline `0001_init.sql` — registry columns rendered by `gen:d1`; the manual `0002_audit.sql`…`0007_export_throttle.sql` live outside the registry)
 
 ```sql
 CREATE TABLE registry_versions (
@@ -102,8 +102,10 @@ ALTER TABLE phases   ADD COLUMN registry_version INTEGER NOT NULL DEFAULT 1
   the moment. This is a direct continuation of the CAS/audit principle
   (matrix.md §6.2, §6.6): data carries the context mark in which it was collected,
   rather than being adjusted to the current schema state.
-- Added to `MANUAL_MIGRATIONS` (`scripts/db-restart.ts`), applied after the baseline —
-  the same order as `0002`/`0003` (auth.md §10).
+- The table and columns live in the baseline `0001_init.sql`, which `gen:d1` renders from the
+  registry (`src/shared/lib/registry/d1-schema.ts`: `REGISTRY_VERSIONS_SEED` + the system column
+  `registry_version`), so there is no separate manual versioning migration —
+  it is applied on DB reset (`npm run db:restart`, auth.md §10).
 
 ## 5. Breaking change of `options` (re-encoding)
 
@@ -114,8 +116,9 @@ edit itself, not by a global rule:
    `deprecated_since`) — data is not rewritten, both columns are readable separately
    taking the record's `registry_version` into account. The preferred path for clinical scales.
 2. **Explicit value migration** with a re-encoding map
-   (`{ old_code: new_code }` in the registry edit itself, applied by the script
-   `scripts/migrate-registry-values.ts` only to records with `registry_version < N`) —
+   (`{ old_code: new_code }` in the registry edit itself, applied by a one-off script
+   only to records with `registry_version < N`; the tool script itself is **not implemented** yet —
+   the path is fixed, but the demo never needed it) —
    allowed for purely technical edits (a typo in encoding), **forbidden** for
    changes to a scale's clinical meaning (only path 1 is suitable there).
 

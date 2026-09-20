@@ -57,7 +57,7 @@ only by the admin. Key stack constraints:
   7 days of access, after which the session is forcibly invalidated at validation.
 - Expired sessions are removed at validation; `purgeExpiredSessions` is called on
   login. `destroySession` is idempotent (logout).
-- The cookie is set in `loginAction` (`src/features/auth/actions.ts`), maxAge = TTL.
+- The cookie is set in `loginAction` (`src/features/auth/api/actions.ts`), maxAge = TTL.
 
 ## 6. Login/logout (src/features/auth)
 
@@ -66,8 +66,9 @@ only by the admin. Key stack constraints:
   a wrong password — account existence is not revealed.
 - `logoutAction` deletes the session from the DB and the cookie, redirects to `/login`.
 - The form — `ui/login-form.tsx` on `useActionState` (React 19); page `app/login/page.tsx`.
-- `session.ts` (features/auth): `getCurrentUser()` (null without redirect) and
-  `requireUser()` (redirect `/login`) — server-only environment (next/headers).
+- `getCurrentUser()` (null without redirect) and `requireUser()` (redirect `/login`) live in
+  `src/shared/api/session-server.ts` — the session is infrastructure, not a feature (the
+  server helpers in `features/auth` only re-export them) — server-only environment (next/headers).
 
 ## 7. Route protection (src/middleware.ts)
 
@@ -81,15 +82,16 @@ Two-level model:
 Protected pages — server wrappers: e.g.
 `app/patients/[id]/matrix/page.tsx` calls `requireUser()` and renders the client
 `matrix-client.tsx` + user menu (`UserMenu`: name, role, locale switcher,
-"Log out" button via `<form action={logoutAction}>`). The old demo route `/matrix`
-now only redirects to `/patients` (see `./spec-stage-2.md` §1 decision 4).
+"Log out" button via `<form action={logoutAction}>`). The demo route `/matrix` was removed
+(stage 2, `./spec-stage-2.md` §1 decision 4): the matrix lives at `/patients/[id]/matrix`,
+a non-numeric/missing `id` redirects to `/patients`.
 
 ## 8. Roles
 
 - `admin` — user management (`/admin/users`, stage 3), access to everything;
 - `clinician` — read and write of clinical data (default);
 - `readonly` — read-only; `canWrite(user)` check (session-repo) is mandatory
-  in every mutation Server Action (`src/features/matrix/actions.ts`, admin-UI).
+  in every mutation Server Action (`src/features/matrix/api/actions.ts`, admin-UI).
 
 ## Row-level access: "whose card" binding (migrations/0005_data_scope.sql)
 

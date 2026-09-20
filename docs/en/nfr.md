@@ -33,12 +33,12 @@ Cloudflare itself is highly available, but no SLA is measured here
 
 Sources: `ru/matrix.md` §2, §5.1.
 
-| Metric                 | Budget                                  | How verified                                              |
-| ---------------------- | --------------------------------------- | --------------------------------------------------------- |
-| First grid render      | ≤ 300 ms on reference dataset           | React Profiler / Chrome Performance                       |
-| Rerender on cell input | Exactly 1 cell; row/neighbors untouched | render-counters in integration tests (230 rows × 10 cols) |
-| Grid scroll            | No dropped frames (60 fps)              | Chrome Performance                                        |
-| Input/persist debounce | 300 ms (dirty-cell batch)               | unit tests matrix-store (fake timers)                     |
+| Metric                 | Budget                                  | How verified                                                                                                                                                                     |
+| ---------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First grid render      | ≤ 300 ms on reference dataset           | React Profiler / Chrome Performance                                                                                                                                              |
+| Rerender on cell input | Exactly 1 cell; row/neighbors untouched | Now — unit tests of zustand selectors (`tests/unit/matrix-store.test.ts`); render-counters on the reference dataset (230 rows × 10 cols) are a target, not automated in the demo |
+| Grid scroll            | No dropped frames (60 fps)              | Chrome Performance                                                                                                                                                               |
+| Input/persist debounce | 300 ms (dirty-cell batch)               | unit tests matrix-store (fake timers)                                                                                                                                            |
 
 ### 3.2. Network & paging
 

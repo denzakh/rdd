@@ -10,7 +10,7 @@ import {
 import { UserMenu } from '@/features/auth'
 
 /**
- * Admin-UI пользователей (docs/spec-stage-3.md §5).
+ * Admin-UI пользователей (docs/ru/spec-stage-3.md §5).
  * Проверка роли — на сервере; non-admin получает redirect, а не скрытие UI.
  */
 export default async function AdminUsersPage() {

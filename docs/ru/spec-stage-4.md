@@ -29,6 +29,7 @@
 ## 3. Интеграционные тесты (локальная D1)
 
 - Хелпер `tests/helpers/db.ts`: `getPlatformProxy` + применение миграций (порядок как в `db-restart.ts`).
+- **Требование к окружению:** агрегатные кейсы (`reports-*`, `consent-filter`, `patient-repo`) считают данные **по всей локальной БД** (`{ mode: 'all' }`) и сверяют точные значения, поэтому предполагают свежую базу: `npm run db:restart` перед `npm run test:db`. Демо-данные из `npm run seed:demo` завышают счётчики и ломают такие проверки (в CI база пустая — там это не проявляется).
 - Кейсы: `phase-repo` (create/nextOrderId/update/updateWithVersion: applied и конфликт), `audit-repo`
   (insertBatch, выборки), `session-repo` (создание/валидация/sliding renewal/удаление истёкших),
   `patient-repo` CRUD. Скрипт — `npm run test:db:watch` / `vitest tests/integration`.

@@ -1,7 +1,7 @@
 # Спецификация: Версионирование протокола и эволюция схемы (./schema-evolution.md)
 
 **Статус:** спека · **Зависимости:** registry core (готово), gen:d1 diff-генератор (готово)
-**Слой FSD:** `src/shared/config/registry`, `src/shared/lib/registry/*`, миграция `000N_registry_versions.sql`
+**Слой FSD:** `src/shared/config/registry`, `src/shared/lib/registry/*`; версионность протокола — в генерируемом baseline `0001_init.sql` (отдельной `000N`-миграции нет)
 
 ---
 
@@ -81,7 +81,7 @@ breaking-правках, когда `deprecated_since` действительн�
 именно `deprecated_since` относительно снапшота, а не сам факт устаревания файла,
 является сигналом «эта breaking-правка была продекларирована явно».
 
-## 4. Схема данных (миграция `000N_registry_versions.sql`, ручная — как `0002_audit.sql`/`0003_auth.sql`)
+## 4. Схема данных (в генерируемом baseline `0001_init.sql` — реестр-колонки, добавляемые `gen:d1`; ручные `0002_audit.sql`…`0007_export_throttle.sql` лежат вне реестра)
 
 ```sql
 CREATE TABLE registry_versions (
@@ -101,8 +101,10 @@ ALTER TABLE phases   ADD COLUMN registry_version INTEGER NOT NULL DEFAULT 1
   меняется задним числом — так же, как `updated_at` не переписывает историю, а фиксирует
   момент. Это прямое продолжение принципа CAS/аудита (matrix.md §6.2, §6.6): данные несут
   метку контекста, в котором были собраны, а не подгоняются под текущее состояние схемы.
-- Добавление в `MANUAL_MIGRATIONS` (`scripts/db-restart.ts`), применяется после baseline —
-  тот же порядок, что у `0002`/`0003` (auth.md §10).
+- Таблица и колонки живут в baseline `0001_init.sql`, который `gen:d1` рендерит из реестра
+  (`src/shared/lib/registry/d1-schema.ts`: `REGISTRY_VERSIONS_SEED` + системная колонка
+  `registry_version`), поэтому отдельной ручной миграции под версионность нет —
+  она применяется при ресете БД (`npm run db:restart`, auth.md §10).
 
 ## 5. Изменение `options` breaking-типа (перекодирование)
 
@@ -113,8 +115,9 @@ ALTER TABLE phases   ADD COLUMN registry_version INTEGER NOT NULL DEFAULT 1
    `deprecated_since`) — данные не переписываются, обе колонки читаемы по отдельности
    с учётом `registry_version` записи. Предпочтительный путь для клинических шкал.
 2. **Явная миграция значений** с картой перекодирования
-   (`{ old_code: new_code }` в самой правке реестра, применяется скриптом
-   `scripts/migrate-registry-values.ts` только к записям с `registry_version < N`) —
+   (`{ old_code: new_code }` в самой правке реестра, применяется одноразовым скриптом
+   только к записям с `registry_version < N`; сам скрипт-инструмент пока **не реализован** —
+   путь зафиксирован, но в демо потребности не возникало) —
    допустимо для чисто технических правок (опечатка в кодировании), **запрещено** для
    изменений клинического смысла шкалы (там годится только путь 1).
 

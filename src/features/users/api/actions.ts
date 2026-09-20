@@ -1,7 +1,7 @@
 'use server'
 
 /**
- * Server Actions управления пользователями (docs/spec-stage-3.md §5–6).
+ * Server Actions управления пользователями (docs/ru/spec-stage-3.md §5–6).
  * Каждое действие: requireUser() + проверка role=admin НА СЕРВЕРЕ
  * + запись в audit_log. Self-защита: нельзя понизить/заблокировать
  * последнего admin (в т.ч. себя).
@@ -221,7 +221,7 @@ export async function resetPasswordAction(
   return { password }
 }
 
-// --- инвайты (docs/spec-stage-3.md §6) ---
+// --- инвайты (docs/ru/spec-stage-3.md §6) ---
 
 export interface CreateInviteState {
   error?: string
@@ -295,7 +295,7 @@ export async function acceptInviteAction(
     passwordHash: await hashPassword(password),
   })
   // used_at + аудит — одним батчем с уже созданным пользователем
-  // (hash-chain достраивается через insertStatements, docs/threat-model.md §2 R)
+  // (hash-chain достраивается через insertStatements, docs/ru/threat-model.md §2 R)
   await db.batch([
     markInviteUsedStatement(db, invite.id),
     ...(await createAuditRepository(db).insertStatements([

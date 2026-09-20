@@ -26,7 +26,7 @@ export const PHASE_CONTROL_REGISTRY = {
     scope: 'phase',
     // Помогаем врачу: для 98/99 можно предлагать текущую дату
     // PII: абсолютная дата — в экспорт не попадает, заменяется
-    // diffMonths от даты включения (см. docs/export.md).
+    // diffMonths от даты включения (см. docs/ru/export.md).
     pii: true,
   },
 

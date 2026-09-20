@@ -3,7 +3,7 @@ import { buildDataDictionary } from '@/shared/lib/registry'
 import { getDict, getLocale } from '@/shared/lib/intl'
 
 /**
- * Автогенерируемый Data Dictionary (docs/data-dictionary.md).
+ * Автогенерируемый Data Dictionary (docs/ru/data-dictionary.md).
  * Единственный источник правды — реестр полей src/shared/config/registry:
  * страница не содержит ручных описаний и всегда синхронна с реестром и D1-схемой.
  */

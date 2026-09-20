@@ -68,7 +68,7 @@ export function fieldLabel(field: RegistryField, locale: Locale = 'ru'): string 
 }
 
 /**
- * Текст тултипа для deprecated-поля старой записи (docs/schema-evolution.md
+ * Текст тултипа для deprecated-поля старой записи (docs/ru/schema-evolution.md
  * §6.1): «Устарело с версии N» + подсказка «См. вместо: <label replacedBy>».
  * Версия задаётся сверху (читается `field.deprecated_since`), label поля-замены
  * резолвится по реестру, при отсутствии — падает на id. Не-deprecated — undefined.
@@ -90,7 +90,7 @@ export function deprecatedTooltip(field: RegistryField, locale: Locale = 'ru'): 
 }
 
 /**
- * Скрыть ли колонку deprecated-поля целиком (docs/schema-evolution.md §6.1):
+ * Скрыть ли колонку deprecated-поля целиком (docs/ru/schema-evolution.md §6.1):
  * если ВСЕ версии записей текущего грида уже >= deprecated_since (поле не
  * входит в протокол для всех фаз) — строка не рендерится. Если хотя бы одна
  * запись старше — строка остаётся (доступ к старым данным), а withdrawn-ячейки

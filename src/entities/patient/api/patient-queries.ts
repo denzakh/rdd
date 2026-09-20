@@ -1,5 +1,5 @@
 /**
- * Агрегаты по пациентам для /reports (docs/spec-stage-2.md §3).
+ * Агрегаты по пациентам для /reports (docs/ru/spec-stage-2.md §3).
  *
  * Все запросы уважают:
  *  - правило согласия (consent lifecycle): пациент с consent_withdrawn_at

@@ -41,7 +41,7 @@ unauthenticated users to `/login` (middleware + `requireUser()`).
 
 | Command                | Purpose                                                                   |
 | ---------------------- | ------------------------------------------------------------------------- |
-| `npm run dev`          | Next dev server (local D1 via `getPlatformProxy`)                         |
+| `npm run dev`          | Next dev server (local D1; bindings via `initOpenNextCloudflareForDev`)   |
 | `npm run dev:cf`       | dev in Cloudflare runtime (worker.js)                                     |
 | `npm run build`        | production build                                                          |
 | `npm run gen:d1`       | generate D1 migrations from field registry (`src/shared/config/registry`) |

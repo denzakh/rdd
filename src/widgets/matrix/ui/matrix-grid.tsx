@@ -45,7 +45,7 @@ export interface MatrixGridProps {
   /** Персист батча dirty-ячеек (вызывается вне React, с дебаунсом 300ms). */
   onPersist?: (batch: DirtyCommit[]) => void
   /**
-   * Перехват разрешения конфликта (docs/spec-stage-1.md §4): по умолчанию —
+   * Перехват разрешения конфликта (docs/ru/spec-stage-1.md §4): по умолчанию —
    * локальный resolveConflict стора; клиент может дополнительно переотправить
    * «своё» значение с токеном версии сервера.
    */
@@ -187,7 +187,7 @@ function CellConnector({
 }
 
 /**
- * Виджет «Матрица» (docs/matrix.md).
+ * Виджет «Матрица» (docs/ru/matrix.md).
  * Решения: 1-A (sticky-ячейка внутри виртуализированного ряда),
  * 2-C (zustand), 3-A (мемоизация), 4-A (declarative focus), 5-C (desktop-only).
  */
@@ -222,7 +222,7 @@ export function MatrixGrid({
   }, [registryFields])
 
   // registry_version каждой фазы — ось deprecation (§6.1). Версия неизменяема
-  // (docs/schema-evolution.md §4), поэтому достаточно read-only карты из data.
+  // (docs/ru/schema-evolution.md §4), поэтому достаточно read-only карты из data.
   const versionByPhase = useMemo(() => {
     const m = new Map<string, number>()
     for (const col of columns) {

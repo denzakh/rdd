@@ -2,7 +2,7 @@ import type { PatientRow, SessionUser } from '@/shared/api'
 import { PATIENT_CONSENT_COLUMNS, REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 
 /**
- * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).
+ * Репозиторий пациентов (перенос из shared/api, docs/ru/spec-stage-2.md §2).
  * Доменная сущность слоя entities; shared/api остаётся только инфраструктурой.
  */
 
@@ -142,7 +142,7 @@ export function createPatientRepository(
   return {
     async create(input) {
       // Присваиваем site/врача только если они заданы во входе (иначе NULL).
-      // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4):
+      // registry_version — метка протокола на момент сбора (docs/ru/schema-evolution.md §4):
       // проставляется один раз при создании, из REGISTRY_CURRENT_VERSION.
       // Согласие фиксируется в момент включения пациента (docs/ru/consent.md §1):
       // дата подписания — сегодня, версия ИС — из формы регистрации либо текущая.
@@ -220,7 +220,7 @@ export function createPatientRepository(
 
     async update(id, patch) {
       // registry_version immutable: метка сбора не меняется задним числом
-      // (docs/schema-evolution.md §4) — ключ отбрасывается из патча.
+      // (docs/ru/schema-evolution.md §4) — ключ отбрасывается из патча.
       const { registry_version: _ignored, ...rest } = patch as Record<string, unknown>
       const keys = Object.keys(rest) as StoredColumn[]
       if (keys.length === 0) return

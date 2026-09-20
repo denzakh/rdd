@@ -1,5 +1,5 @@
 /**
- * Демо-данные (docs/spec-stage-2.md §5).
+ * Демо-данные (docs/ru/spec-stage-2.md §5).
  *
  * Запуск:
  *   npm run seed:demo          — локальная БД (getPlatformProxy, .wrangler/state)

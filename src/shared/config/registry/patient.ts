@@ -10,7 +10,7 @@ export const PATIENT_REGISTRY = {
     defaultValue: 'current_date',
     scope: 'patient',
     // PII: абсолютная дата — в экспорт не попадает, заменяется
-    // относительными интервалами diffMonths (см. docs/export.md).
+    // относительными интервалами diffMonths (см. docs/ru/export.md).
     pii: true,
   },
   birth_year: {

@@ -21,7 +21,7 @@ export type PatientRow = {
   family_history: number | null
   personality_type: number | null
   /**
-   * Версия протокола CRF на момент сбора записи (docs/schema-evolution.md §4).
+   * Версия протокола CRF на момент сбора записи (docs/ru/schema-evolution.md §4).
    * Проставляется один раз при создании, задним числом не меняется.
    * Генерируется в baseline 0001 (ресет БД), отдельной миграции нет.
    */
@@ -56,7 +56,7 @@ export type PhaseRow = {
    * Nullable в БД — у старых записей (до миграции 0008) значения может не быть.
    */
   phase_relative_id: number | null
-  /** Версия протокола CRF на момент сбора фазы (docs/schema-evolution.md §4). */
+  /** Версия протокола CRF на момент сбора фазы (docs/ru/schema-evolution.md §4). */
   registry_version: number
   phase_start_date: string | null
   phase_duration_months: number | null
@@ -133,7 +133,7 @@ export type PhaseRow = {
   beck_total: number | null
   clock_drawing_test: number | null
   mmse_total: number | null
-  /** Токен версии для CAS (migrations/0002_audit.sql, docs/matrix.md §6.2). */
+  /** Токен версии для CAS (migrations/0002_audit.sql, docs/ru/matrix.md §6.2). */
   updated_at?: string | null
 }
 

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getDb } from '@/shared/api/db'
 import { findValidInvite, InviteAcceptForm } from '@/features/users'
 
-/** Приём инвайта (docs/spec-stage-3.md §6): доступен без сессии. */
+/** Приём инвайта (docs/ru/spec-stage-3.md §6): доступен без сессии. */
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const invite = await findValidInvite(await getDb(), token)

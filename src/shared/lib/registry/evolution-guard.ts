@@ -4,7 +4,7 @@ import { canWrite, type SessionUser } from '@/shared/api/session-repo'
 import { REGISTRY_CURRENT_VERSION } from './d1-schema'
 
 /**
- * Guard-логика эволюции реестра (docs/schema-evolution.md §3.1, §9).
+ * Guard-логика эволюции реестра (docs/ru/schema-evolution.md §3.1, §9).
  *
  * Breaking-правка (исчезновение опции select-поля / сужение диапазона min|max)
  * обязана сопровождаться ЯВНЫМ увеличением `deprecated_since` относительно
@@ -74,7 +74,7 @@ export const snapshotFromRegistry = (): RegistryEvolutionSnapshot => {
  * - (в) граница появилась там, где её раньше не было: `min`/`max` был
  *   `undefined` (открытая сторона, `[x, +∞)`), а стал конкретным числом
  *   (закрытая, `[x, N]`) — это тоже сужение, только с открытой стороны
- *   (docs/schema-evolution.md §3.1). Для min и max по отдельности.
+ *   (docs/ru/schema-evolution.md §3.1). Для min и max по отдельности.
  *
  * Новые опции, расширение диапазона и снятие границы (число → undefined) —
  * forward-compatible (§3) и не классифицируются как breaking.
@@ -135,7 +135,7 @@ export function findUntrackedBreakingChanges(
 
 /**
  * Поле выведено из употребления для записи с данной версией протокола
- * (docs/schema-evolution.md §6.1). Record «новый» относительно deprecation:
+ * (docs/ru/schema-evolution.md §6.1). Record «новый» относительно deprecation:
  * `registry_version ≥ deprecated_since` — поле уже не в протоколе, в гриде
  * ячейка/колонка для такой записи не рендерится.
  *
@@ -168,7 +168,7 @@ export const isDeprecatedForRecord = (
 
 /**
  * Редактируемость ячейки: вторая независимая ось поверх ролевой проверки
- * `canWrite` (docs/schema-evolution.md §6.1, auth.md §8), не замена ей.
+ * `canWrite` (docs/ru/schema-evolution.md §6.1, auth.md §8), не замена ей.
  * Readonly-роль видит все ячейки read-only; deprecated-поле — read-only даже
  * у admin. Обе причины приводят к `false` независимо друг от друга.
  */

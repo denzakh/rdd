@@ -3,7 +3,7 @@ import { FLAT_REGISTRY } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 
 /**
- * Реестр как источник PII-меток (docs/export.md §3): прямые идентификаторы
+ * Реестр как источник PII-меток (docs/ru/export.md §3): прямые идентификаторы
  * обязаны нести pii:true, чтобы слой агрегации исключал их автоматически.
  */
 describe('export: pii-метки реестра', () => {

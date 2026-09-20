@@ -2,7 +2,7 @@
 
 /**
  * Форма паспортной части пациента: поля рендерятся из REGISTRY.patient
- * по field.ui (docs/spec-stage-2.md §4). Отправка через useActionState
+ * по field.ui (docs/ru/spec-stage-2.md §4). Отправка через useActionState
  * → savePatientAction (создание или обновление, если передан patient).
  */
 import { useActionState } from 'react'

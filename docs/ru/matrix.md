@@ -379,7 +379,7 @@ CREATE UNIQUE INDEX idx_audit_prev_hash ON audit_log (prev_hash) WHERE prev_hash
 - Значения — JSON-строки (`JSON.stringify(FieldValue)`); PII в лог не дублируется (только id).
 - **Атомарность:** запись данных + аудит — один `db.batch([...])`; CAS-результат проверяется после batch, при неуспехе — отдельное событие `conflict_received`/без аудита записи.
 - Репозиторий: `src/shared/api/audit-repo.ts` (`insertBatch`, `listByPhase`, `listByPatient`).
-- Зависимость: ~~без аутентификации `actor_id` пуст~~ — **auth реализован** (миграция `0003_auth.sql`): сессии в D1 (`session-repo.ts`), вход через `features/auth`, `actor_id = SessionUser.id` из `requireUser()`/`getCurrentUser()`. ~~Записи матрицы — демо (mock)~~ — **реальные мутации реализованы** (этап 1, `./spec-stage-1.md`): Server Actions (`src/features/matrix/actions.ts`) вызывают `phase-repo.updateWithVersion` с `actorId = user.id`, аудит пишется в том же `db.batch`.
+- Зависимость: ~~без аутентификации `actor_id` пуст~~ — **auth реализован** (миграция `0003_auth.sql`): сессии в D1 (`session-repo.ts`), вход через `features/auth`, `actor_id = SessionUser.id` из `requireUser()`/`getCurrentUser()`. ~~Записи матрицы — демо (mock)~~ — **реальные мутации реализованы** (этап 1, `./spec-stage-1.md`): Server Actions (`src/features/matrix/api/actions.ts`) вызывают `phase-repo.updateWithVersion` с `actorId = user.id`, аудит пишется в том же `db.batch`.
 
 ### 6.7. Порог эскалации: polling → push-обновления
 

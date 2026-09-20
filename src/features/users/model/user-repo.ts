@@ -1,5 +1,5 @@
 /**
- * Репозиторий пользователей (admin-UI, docs/spec-stage-3.md §5).
+ * Репозиторий пользователей (admin-UI, docs/ru/spec-stage-3.md §5).
  * Все мутации пишут запись в audit_log (patient_id = 0 — не клиническое событие).
  * Только server-окружение (getDb() → Cloudflare binding).
  */
@@ -74,9 +74,9 @@ export function auditUserEntry(
 }
 
 /**
- * Запись мутации пользователя в audit_log (docs/spec-stage-3.md §5, §7.5).
+ * Запись мутации пользователя в audit_log (docs/ru/spec-stage-3.md §5, §7.5).
  * Пишется через createAuditRepository — с hash-chain целостностью
- * (migrations/0006_audit_hash_chain.sql, docs/threat-model.md §2 R).
+ * (migrations/0006_audit_hash_chain.sql, docs/ru/threat-model.md §2 R).
  */
 export async function auditUser(
   db: D1Database,

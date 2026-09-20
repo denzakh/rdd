@@ -13,7 +13,7 @@
 | 1   | Где живут репозитории      | Перенести доменные репо из `shared/api` в `entities/*/api`; `shared/api` остаётся только инфраструктура (db, session-repo, audit-repo) |
 | 2   | Навигация между пациентами | Server Components + App Router: `/patients`, `/patients/[id]/matrix`; переиспользование `requireUser()`                                |
 | 3   | Агрегаты                   | SQL по колонкам реестра (`gen:d1`-схема) — статический класс `src/entities/phase/api/queries.ts`                                       |
-| 4   | Демо-страница `/matrix`    | Становится `/patients/[id]/matrix`; без id — редирект на список пациентов                                                              |
+| 4   | Демо-страница `/matrix`    | Реализовано: маршрут удалён, матрица на `/patients/[id]/matrix`; нечисловой/отсутствующий id — редирект на список пациентов            |
 
 ## 2. Слой `entities/patient`
 

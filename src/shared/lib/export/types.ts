@@ -1,5 +1,5 @@
 /**
- * Нейтральные типы де-идентифицированного датасета (docs/export.md).
+ * Нейтральные типы де-идентифицированного датасета (docs/ru/export.md).
  * Живут в shared, чтобы слой сериализации (shared/lib/export) не импортировал
  * entities (FSD: shared не может зависеть от верхних слоёв). Слой агрегации
  * (entities/phase/api/queries.ts) импортирует их отсюда и наполняет.
@@ -10,7 +10,7 @@ export interface DeidentifiedRow {
   /** Sequence-номер исследования (1..N), заменяет patients.id. */
   seq_id: number
   /**
-   * Версия протокола CRF на момент сбора фазы (docs/schema-evolution.md §4, §6).
+   * Версия протокола CRF на момент сбора фазы (docs/ru/schema-evolution.md §4, §6).
    * Обязательное поле для биостатистика: без метки смешение кодов разных
    * версий одной шкалы в одной колонке даёт незаметный стат. артефакт.
    */
@@ -46,7 +46,7 @@ export interface DeidentifiedDataset {
     exportedAt: string
     patients: number
     rowsTotal: number
-    /** Версии протокола, представленные в выгрузке (docs/schema-evolution.md §6). */
+    /** Версии протокола, представленные в выгрузке (docs/ru/schema-evolution.md §6). */
     registryVersions: number[]
   }
 }

@@ -35,7 +35,7 @@ export const DB_TYPE_TO_SQL: Record<DbType, string> = {
 const PATIENT_SYSTEM_COLUMNS: TableColumn[] = [{ name: 'id', sqlType: 'INTEGER' }]
 
 /**
- * Актуальная версия протокола CRF (docs/schema-evolution.md §4).
+ * Актуальная версия протокола CRF (docs/ru/schema-evolution.md §4).
  * Новые записи patients/phases «замораживаются» под этой версией на дату
  * сбора; исторические данные не переписываются. При breaking-правке реестра
  * версия инкрементируется вручную вместе с записью в registry_versions.
@@ -111,7 +111,7 @@ const toColumns = (table: TableId): TableColumn[] => {
   // Колонки согласия — системные метаданные пациентов, вне реестра
   if (onlyPatient) columns.push(...PATIENT_CONSENT_COLUMNS)
 
-  // Метка версии протокола (docs/schema-evolution.md §4): системная колонка
+  // Метка версии протокола (docs/ru/schema-evolution.md §4): системная колонка
   // обеих таблиц. Генерируется в baseline, а не отдельной миграцией —
   // схема эволюционирует только через ресет БД (db:restart).
   columns.push(...REGISTRY_VERSION_COLUMNS)
@@ -140,7 +140,7 @@ const EXTRA: Record<TableId, Record<string, string>> = {
 }
 
 /**
- * DDL журнала версий протокола (docs/schema-evolution.md §4).
+ * DDL журнала версий протокола (docs/ru/schema-evolution.md §4).
  * Таблица статична (не из реестра): генерируется в baseline вместе
  * с patients/phases. Отдельной миграции нет — только ресет БД.
  */
@@ -341,7 +341,7 @@ export const computeDelta = (
 export const renderOpSql = (op: SchemaOp): string => {
   switch (op.kind) {
     case 'add':
-      // registry_version — системная NOT NULL-колонка с DEFAULT (docs/schema-evolution.md §4).
+      // registry_version — системная NOT NULL-колонка с DEFAULT (docs/ru/schema-evolution.md §4).
       if (op.column.name === 'registry_version') {
         return (
           `ALTER TABLE ${op.table} ADD COLUMN "registry_version" INTEGER NOT NULL ` +
@@ -369,7 +369,7 @@ export const generateD1Schema = (desired = buildDesiredTables()): string => {
   return [
     `-- Авто-генерация D1-схемы из src/shared/config/registry (единый источник правды).`,
     `-- Не редактировать вручную: правьте реестр и запустите "npm run gen:d1".`,
-    `-- Версионность протокола (docs/schema-evolution.md §4): таблица registry_versions`,
+    `-- Версионность протокола (docs/ru/schema-evolution.md §4): таблица registry_versions`,
     `-- и колонки patients/phases.registry_version генерируются в baseline.`,
     `-- Отдельной миграции нет — эволюция схемы только через ресет БД (npm run db:restart).`,
     ``,

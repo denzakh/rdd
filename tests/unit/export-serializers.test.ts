@@ -3,7 +3,7 @@ import type { DeidentifiedDataset, DeidentifiedRow } from '@/entities/phase/api/
 import { toCsv, toJson, toXlsx } from '@/shared/lib/export'
 
 /**
- * Слой сериализации (docs/export.md §1): тонкие адаптеры поверх одного
+ * Слой сериализации (docs/ru/export.md §1): тонкие адаптеры поверх одного
  * нейтрального датасета. PII здесь уже нет — инвариант проверяется тем,
  * что вход собирается без запретных ключей, а адаптеры их не добавляют.
  */

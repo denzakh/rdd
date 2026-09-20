@@ -1,7 +1,7 @@
 'use server'
 
 /**
- * Server Actions пациентов (docs/spec-stage-2.md §4).
+ * Server Actions пациентов (docs/ru/spec-stage-2.md §4).
  * Валидация — Zod по пациентским полям реестра; право записи — canWrite.
  */
 import { revalidatePath } from 'next/cache'

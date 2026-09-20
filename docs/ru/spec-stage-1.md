@@ -1,8 +1,8 @@
 # Спека этапа 1: Реальные мутации данных матрицы (./spec-stage-1.md)
 
 **Статус:** спека · **Зависимости:** auth (готово), matrix-widget (готово), phase-repo (готово)
-**Слой FSD:** `src/features/matrix` (новый) + доработка `app/matrix/`
-**Цель:** убрать демо-mock из `app/matrix/matrix-demo.tsx` — данные читаются из D1 через
+**Слой FSD:** `src/features/matrix` (новый) + `app/patients/[id]/matrix/` (бывший демо-маршрут)
+**Цель:** убрать демо-mock (был `app/matrix/matrix-demo.tsx`, итог — `app/patients/[id]/matrix/matrix-client.tsx`) — данные читаются из D1 через
 `phase-repo.listByPatient`, изменения пишутся Server Actions с CAS, валидацией и аудитом.
 
 ---
@@ -17,7 +17,7 @@
 | 4   | Авторизация мутаций       | `requireUser()` + `canWrite(user)` в каждом action (readonly — отказ)                        |
 | 5   | Аудит                     | Внутри `updateWithVersion` (один `db.batch`), `actorId` = `SessionUser.id`                   |
 
-## 2. Контракты действий (`src/features/matrix/actions.ts`)
+## 2. Контракты действий (`src/features/matrix/api/actions.ts`)
 
 ```typescript
 'use server'
@@ -58,11 +58,11 @@ export async function deletePhase(patientId: number, phaseId: number): Promise<A
 
 ## 3. Клиентская интеграция
 
-- `app/matrix/page.tsx` (server): `requireUser()`, загрузка пациента и фаз
+- `app/patients/[id]/matrix/page.tsx` (server): `requireUser()`, загрузка пациента и фаз
   (`patientRepo`, `phaseRepo.listByPatient`), маппинг `PhaseRow[]` → `MatrixData`
   (ключи — `phase_order_id`-колонки: анамнестические фазы, 98, 99) и передача
   `baseVersion` (по `updated_at` каждой строки) в клиентский компонент.
-- `matrix-demo.tsx` → `matrix-client.tsx`: `onPersist` вызывает `savePhaseCells`
+- `matrix-demo.tsx` → `matrix-client.tsx` (переехал в `app/patients/[id]/matrix/`): `onPersist` вызывает `savePhaseCells`
   с накопленным батчем; состояние загрузки/ошибки — тост в углу, блокировка ввода
   не требуется (очередь dirty продолжается).
 - Отказ `canWrite` (роль readonly): грид рендерится с `isReadOnly` сразу по пропу из
@@ -85,7 +85,7 @@ export async function deletePhase(patientId: number, phaseId: number): Promise<A
 
 ## 6. Критерии приёмки
 
-1. `/matrix` (или `/patients/[id]`) без mock: данные из D1, ввод ячейки → через 300 мс дебаунса запись в БД, строка в `audit_log` с непустым `actor_id`.
+1. `/patients/[id]/matrix` без mock: данные из D1, ввод ячейки → через 300 мс дебаунса запись в БД, строка в `audit_log` с непустым `actor_id`.
 2. Два окна браузера: изменение одной ячейки во втором окне → в первом — конфликт-подсветка, оба разрешения работают, данные не теряются.
 3. Роль `readonly`: ячейки не редактируются, прямой вызов action возвращает `readonly`.
 4. `npm run lint`, `npx tsc --noEmit` — без ошибок.

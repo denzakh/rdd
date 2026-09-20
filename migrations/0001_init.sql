@@ -1,6 +1,6 @@
 -- Авто-генерация D1-схемы из src/shared/config/registry (единый источник правды).
 -- Не редактировать вручную: правьте реестр и запустите "npm run gen:d1".
--- Версионность протокола (docs/schema-evolution.md §4): таблица registry_versions
+-- Версионность протокола (docs/ru/schema-evolution.md §4): таблица registry_versions
 -- и колонки patients/phases.registry_version генерируются в baseline.
 -- Отдельной миграции нет — эволюция схемы только через ресет БД (npm run db:restart).
 
