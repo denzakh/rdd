@@ -70,7 +70,9 @@ rate-limit: флуд экспорта не должен блокировать �
   `entities/patient/api/patient-queries.ts`) уважают тот же `data_scope`
   пользователя, что и списки (row-level access);
 - согласие: `consent_withdrawn_at IS NOT NULL` — исключены из выборки
-  (данные не удаляются); scope пользователя уважается.
+  (данные не удаляются); scope пользователя уважается. Версия и дата согласия
+  (`consent_version`, `consent_date`) в выгрузку **не входят** — решение,
+  что сознательно не делаем и пороги эскалации: [consent.md](./consent.md).
 - **версионность протокола** (./schema-evolution.md §6): каждая строка несёт
   `registry_version` (метка CRF на момент сбора фазы), `columns` включают
   `registry_version` сразу после `seq_id`, а `meta.registryVersions` — список

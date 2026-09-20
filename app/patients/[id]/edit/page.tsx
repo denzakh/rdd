@@ -3,7 +3,11 @@ import { notFound } from 'next/navigation'
 import { requireUser, Header } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
 import { getDb } from '@/shared/api/db'
-import { createPatientRepository, patientScopeFor } from '@/entities/patient'
+import {
+  createPatientRepository,
+  patientScopeFor,
+  CONSENT_CURRENT_VERSION,
+} from '@/entities/patient'
 import { PatientForm } from '@/features/patients'
 
 /** Редактирование паспортной части пациента. */
@@ -36,7 +40,10 @@ export default async function EditPatientPage({ params }: { params: Promise<{ id
             ← к карточке
           </Link>
         </div>
-        <PatientForm patient={patient as unknown as Record<string, unknown>} />
+        <PatientForm
+          patient={patient as unknown as Record<string, unknown>}
+          defaultConsentVersion={CONSENT_CURRENT_VERSION}
+        />
       </main>
     </div>
   )

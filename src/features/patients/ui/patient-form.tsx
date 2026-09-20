@@ -24,7 +24,14 @@ function ruLabel(field: RegistryField): string {
   return fieldLabel(field, 'ru')
 }
 
-export function PatientForm({ patient }: { patient?: Record<string, unknown> | undefined }) {
+export function PatientForm({
+  patient,
+  defaultConsentVersion,
+}: {
+  patient?: Record<string, unknown> | undefined
+  /** Версия формы ИС по умолчанию для новой карточки (CONSENT_CURRENT_VERSION). */
+  defaultConsentVersion: string
+}) {
   const [state, formAction, pending] = useActionState<PatientActionState, FormData>(
     savePatientAction,
     {}
@@ -48,6 +55,22 @@ export function PatientForm({ patient }: { patient?: Record<string, unknown> | u
             />
           </label>
         ))}
+
+      {/* Версия формы ИС — не поле реестра, но фиксируется вместе с карточкой
+          (docs/ru/consent.md §1). При новой редакции текста согласия врач
+          увеличивает версию — старая подпись остаётся в аудите. */}
+      <label className="block text-sm">
+        <span className="mb-0.5 block text-neutral-600">Версия согласия (ИС)</span>
+        <input
+          type="text"
+          name="consent_version"
+          defaultValue={String(patient?.consent_version ?? defaultConsentVersion)}
+          className="h-8 w-full rounded border border-neutral-300 px-2 text-sm"
+        />
+        <span className="mt-0.5 block text-xs text-neutral-500">
+          Дата согласия ставится автоматически при создании карточки.
+        </span>
+      </label>
 
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
 

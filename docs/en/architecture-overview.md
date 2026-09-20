@@ -140,8 +140,11 @@ input→persist debounce 300 ms with CAS version token.
 
 Not a production system for real patients. Deliberately out of scope:
 
-- **Regulation & compliance.** HIPAA / 152-FZ / GDPR-like, consents, DPAs — not
-  implemented. Demo data is synthetic; no real PII in the system.
+- **Regulation & compliance.** HIPAA / 152-FZ / GDPR-like, legally binding patient
+  consents, DPAs — not implemented. The system only records the informed-consent date
+  and form version at study inclusion ([consent.md](./consent.md)); consent text,
+  e-signature and scan storage are out of scope. Demo data is synthetic; no real PII
+  in the system.
 - **Encryption at rest & environments.** D1 platform encryption only; no BYOK/KMS contour.
 - **Backup / DR.** Manual migrations only; no PITR/recovery plan.
 - **Retention & erasure.** No storage policies / right-to-be-forgotten; append-only

@@ -1,5 +1,5 @@
 import type { PatientRow, SessionUser } from '@/shared/api'
-import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
+import { PATIENT_CONSENT_COLUMNS, REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
 
 /**
  * Репозиторий пациентов (перенос из shared/api, docs/spec-stage-2.md §2).
@@ -84,11 +84,25 @@ const STORED_COLUMNS = Object.freeze([
 type StoredColumn = (typeof STORED_COLUMNS)[number]
 
 /**
+ * Колонки согласия, записываемые при СОЗДАНИИ карточки (docs/ru/consent.md §1):
+ * дата подписания фиксируется автоматически, версия ИС — значением из формы
+ * регистрации. `consent_withdrawn_at` сюда НЕ входит: отзыв управляется только
+ * signConsent/withdrawConsent.
+ */
+const CONSENT_INSERT_COLUMNS: readonly string[] = PATIENT_CONSENT_COLUMNS.map((c) => c.name).filter(
+  (name) => name !== 'consent_withdrawn_at'
+)
+
+/** Сегодняшняя дата (ISO, день) — дата фиксации согласия по умолчанию. */
+const todayIsoDate = (): string => new Date().toISOString().slice(0, 10)
+
+/**
  * Текущая версия формы информированного согласия (consent lifecycle).
  * При изменении текста согласия увеличьте версию — старые подписи
- * останутся со своей версией в consent_version.
+ * останутся со своей версией в consent_version. Управление версией, что
+ * сознательно НЕ делаем и варианты эскалации — docs/ru/consent.md.
  */
-export const CONSENT_CURRENT_VERSION = 'v1'
+export const CONSENT_CURRENT_VERSION = '1'
 
 export interface ConsentInput {
   version?: string
@@ -118,7 +132,7 @@ export function createPatientRepository(
   // Колонки создания: хранимые поля реестра + системные site_id/assigned_clinician_id.
   const ASSIGN_COLUMNS = ['site_id', 'assigned_clinician_id'] as const
   const insertColumns = (): string[] => {
-    const base: string[] = [...STORED_COLUMNS]
+    const base: string[] = [...STORED_COLUMNS, ...CONSENT_INSERT_COLUMNS]
     for (const c of ASSIGN_COLUMNS) base.push(c)
     return base
   }
@@ -130,13 +144,21 @@ export function createPatientRepository(
       // Присваиваем site/врача только если они заданы во входе (иначе NULL).
       // registry_version — метка протокола на момент сбора (docs/schema-evolution.md §4):
       // проставляется один раз при создании, из REGISTRY_CURRENT_VERSION.
-      const record = input as Record<string, unknown>
+      // Согласие фиксируется в момент включения пациента (docs/ru/consent.md §1):
+      // дата подписания — сегодня, версия ИС — из формы регистрации либо текущая.
+      const inputRecord = input as unknown as Record<string, unknown>
+      const record: Record<string, unknown> = {
+        ...inputRecord,
+        consent_version:
+          (inputRecord.consent_version as string | null | undefined) ?? CONSENT_CURRENT_VERSION,
+        consent_date: (inputRecord.consent_date as string | null | undefined) ?? todayIsoDate(),
+      }
       const columns: string[] = ['registry_version']
       const values: unknown[] = [
         (record.registry_version as number | null) ?? REGISTRY_CURRENT_VERSION,
       ]
       for (const c of insertColumns()) {
-        const v = (record as Record<string, unknown>)[c] ?? null
+        const v = record[c] ?? null
         if (v === null && !(ASSIGN_COLUMNS as readonly string[]).includes(c)) continue
         columns.push(c)
         values.push(v)
@@ -220,11 +242,7 @@ export function createPatientRepository(
            SET consent_version = ?, consent_date = ?, consent_withdrawn_at = NULL
            WHERE id = ?`
         )
-        .bind(
-          consent?.version ?? CONSENT_CURRENT_VERSION,
-          consent?.date ?? new Date().toISOString().slice(0, 10),
-          id
-        )
+        .bind(consent?.version ?? CONSENT_CURRENT_VERSION, consent?.date ?? todayIsoDate(), id)
         .run()
       return res.meta.changes > 0
     },

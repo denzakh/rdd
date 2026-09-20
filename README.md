@@ -88,6 +88,8 @@ originals). Start with the entry point.
 - `docs/en/threat-model.md` — STRIDE threat model mapped to the security summary
 - `docs/en/nfr.md` — non-functional requirements: Availability, RTO/RPO, performance budgets
 - `docs/en/i18n.md` — localization strategy (problem → options → decision → escalation threshold)
+- `docs/en/consent.md` — patient consent: date/version fixed at inclusion, consent text
+  out of scope, escalation thresholds
 - `docs/ru/` — the same set as Russian originals (`i18n.md` exists only in EN)
 
 ## i18n status

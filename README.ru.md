@@ -78,6 +78,8 @@ npm run dev                 # http://localhost:3000
   Экспорт несёт `registry_version` на строке + `meta.registryVersions`;
   `/data-dictionary` помечает `deprecated_since`-поля
 - `docs/ru/roadmap.md` — план этапов (спеки `spec-stage-1..4.md`, все реализованы)
+- `docs/ru/consent.md` — согласие пациента: дата и версия формы ИС фиксируются при
+  включении, текст согласия вне системы, пороги эскалации
 - `docs/ru/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
 - `docs/ru/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
 - `docs/en/` — тот же набор на английском (`i18n.md` есть только в EN)

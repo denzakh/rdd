@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest'
-import { createPatientRepository } from '@/entities/patient'
+import { CONSENT_CURRENT_VERSION, createPatientRepository } from '@/entities/patient'
 import { countByField, efficacyByMainComponent, phaseDurationsByOrder } from '@/entities/phase'
 import { cleanupPatient, disposeTestDb, getTestDb } from '../helpers/db'
 /**
@@ -97,12 +97,37 @@ describe('consent: данные с отозванным согласием ис�
     expect(await patients.signConsent(patientId)).toBe(true)
     const restored = await patients.findById(patientId)
     expect(restored?.consent_withdrawn_at).toBeNull()
-    expect(restored?.consent_version).toBe('v1')
+    expect(restored?.consent_version).toBe('1')
 
     // несуществующий пациент
     expect(await patients.signConsent(999999)).toBe(false)
     expect(await patients.withdrawConsent(999999)).toBe(false)
 
     await cleanupPatient(db, patientId)
+  })
+
+  it('create: согласие фиксируется автоматически — дата сегодня, версия текущая', async () => {
+    const db = await getTestDb()
+    const patients = createPatientRepository(db)
+    const patientId = await patients.create(patientInput)
+
+    const created = await patients.findById(patientId)
+    expect(created?.consent_version).toBe(CONSENT_CURRENT_VERSION)
+    expect(created?.consent_date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(created?.consent_withdrawn_at).toBeNull()
+
+    // Версию можно поменять при новой редакции текста ИС (docs/ru/consent.md §1),
+    // дата согласия при этом не перезаписывается.
+    await patients.update(patientId, { consent_version: '2' })
+    const edited = await patients.findById(patientId)
+    expect(edited?.consent_version).toBe('2')
+    expect(edited?.consent_date).toBe(created?.consent_date)
+
+    // Явный null во входе не отменяет фиксацию согласия — подставляется версия по умолчанию.
+    const explicitNull = await patients.create({ ...patientInput, consent_version: null })
+    expect((await patients.findById(explicitNull))?.consent_version).toBe(CONSENT_CURRENT_VERSION)
+
+    await cleanupPatient(db, patientId)
+    await cleanupPatient(db, explicitNull)
   })
 })

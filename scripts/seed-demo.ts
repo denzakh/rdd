@@ -644,6 +644,8 @@ function phasesFor(patientIndex: number): PhaseInput[] {
 
 const D1_NAME = 'rdd'
 const REGISTRY_VERSION = 1 // REGISTRY_CURRENT_VERSION (src/shared/lib/registry)
+// Версия формы ИС демо-данных (CONSENT_CURRENT_VERSION, docs/ru/consent.md §1).
+const CONSENT_VERSION = '1'
 
 const sqlValue = (v: unknown): string => {
   if (v === null || v === undefined) return 'NULL'
@@ -712,9 +714,15 @@ function buildSeedSql(firstPatientId: number): string {
   for (const [i, input] of PATIENTS.entries()) {
     const id = firstPatientId + i
     const record = input as Record<string, unknown>
-    const patientValues = [REGISTRY_VERSION, ...patientColumns.map((c) => record[c] ?? null)]
+    // Согласие демо-данных: версия текущая, дата = дата включения (consent.md §1).
+    const patientValues = [
+      REGISTRY_VERSION,
+      ...patientColumns.map((c) => record[c] ?? null),
+      CONSENT_VERSION,
+      record.study_entry_date ?? null,
+    ]
     stmts.push(
-      `INSERT INTO patients (registry_version, ${patientColumns.join(', ')}) ` +
+      `INSERT INTO patients (registry_version, ${patientColumns.join(', ')}, consent_version, consent_date) ` +
         `VALUES (${patientValues.map(sqlValue).join(', ')});`
     )
     for (const [order, phase] of phasesFor(i).entries()) {
@@ -779,7 +787,9 @@ async function main() {
       console.log(`⚠ В базе уже ${existing} пациент(ов) — добавляю демо-данные поверх.`)
     }
     for (const [i, input] of PATIENTS.entries()) {
-      const id = await patients.create(input)
+      // Дата согласия демо-данных = дата включения; версию подставит репозиторий
+      // (CONSENT_CURRENT_VERSION, docs/ru/consent.md §1).
+      const id = await patients.create({ ...input, consent_date: input.study_entry_date ?? null })
       const patientPhases = phasesFor(i)
       for (const p of patientPhases) {
         await phases.create({ ...p, patient_id: id })

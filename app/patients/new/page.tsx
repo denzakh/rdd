@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireUser, Header } from '@/features/auth'
 import { canWrite } from '@/shared/api/session-repo'
+import { CONSENT_CURRENT_VERSION } from '@/entities/patient'
 import { PatientForm } from '@/features/patients'
 
 /** Создание пациента: паспортная часть из реестра. */
@@ -25,7 +26,7 @@ export default async function NewPatientPage() {
             ← к списку
           </Link>
         </div>
-        <PatientForm />
+        <PatientForm defaultConsentVersion={CONSENT_CURRENT_VERSION} />
       </main>
     </div>
   )

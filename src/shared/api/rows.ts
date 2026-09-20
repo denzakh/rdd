@@ -28,8 +28,10 @@ export type PatientRow = {
   registry_version: number
   /**
    * Жизненный цикл согласия (системные колонки, не реестр):
-   * consent_withdrawn_at != null → данные пациента исключаются
-   * из отчётов/экспорта (queries.ts), физически не удаляются.
+   * consent_version/consent_date фиксируются при создании карточки (версия —
+   * значением из формы регистрации); consent_withdrawn_at != null → данные
+   * пациента исключаются из отчётов/экспорта (queries.ts), физически не
+   * удаляются. Решение и пороги эскалации — docs/ru/consent.md.
    */
   consent_version?: string | null
   consent_date?: string | null

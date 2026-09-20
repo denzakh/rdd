@@ -70,7 +70,9 @@ to duplicate the masking — a classic hole.
   and `entities/patient/api/patient-queries.ts`)
   respect the same `data_scope` as the lists (row-level access);
 - consent: `consent_withdrawn_at IS NOT NULL` — excluded from the query
-  (data is not deleted); the user's scope is respected.
+  (data is not deleted); the user's scope is respected. Consent version and date
+  (`consent_version`, `consent_date`) are **not** part of the dump — decision,
+  deliberately-not-done list and escalation thresholds: [consent.md](./consent.md).
 - **protocol versioning** (./schema-evolution.md §6): each row carries
   `registry_version` (the CRF mark at the time of phase collection), `columns` include
   `registry_version` right after `seq_id`, and `meta.registryVersions` — the list of

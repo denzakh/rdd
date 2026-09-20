@@ -3,6 +3,7 @@ export {
   buildDesiredTables,
   computeDelta,
   generateD1Schema,
+  PATIENT_CONSENT_COLUMNS,
   REGISTRY_CURRENT_VERSION,
   REGISTRY_VERSION_COLUMNS,
   REGISTRY_VERSIONS_DDL,

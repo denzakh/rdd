@@ -79,25 +79,31 @@ export async function savePatientAction(
       fieldErrors: parsed.error.issues.map((i) => String(i.path[0])),
     }
   }
-  const input = parsed.data as unknown as PatientInput
+  // Версия формы ИС — отдельное текстовое поле формы (не поле реестра,
+  // docs/ru/consent.md §1). Пустое значение → версия по умолчанию при
+  // создании карточки; при обновлении пустое поле версию не трогает.
+  const consentVersion = String(formData.get('consent_version') ?? '').trim()
+  const input: PatientInput = consentVersion
+    ? { ...(parsed.data as unknown as PatientInput), consent_version: consentVersion }
+    : (parsed.data as unknown as PatientInput)
 
   const db = await getDb()
   const repo = createPatientRepository(db, patientScopeFor(user))
   if (id === null) {
     // Привязка "чья карта" (row-level access): карта наследует центр создателя
     // и назначается на него (admin со scope 'all' остаётся без привязки).
-    const input = {
-      ...(parsed.data as unknown as PatientInput),
+    const createInput = {
+      ...input,
       site_id: user.siteId,
       assigned_clinician_id: user.dataScope === 'all' ? null : user.id,
     }
-    const newId = await repo.create(input)
+    const newId = await repo.create(createInput)
     await createAuditRepository(db).insert({
       actorId: user.id,
       patientId: newId,
       fieldId: 'patient',
       action: 'update',
-      newValue: input,
+      newValue: createInput,
     })
     // Стартовые фазы нового пациента: 1, 2, 98 (Поступление), 99 (Выписка).
     // Пустые, по умолчанию открывают матрицу с 4 колонками.
