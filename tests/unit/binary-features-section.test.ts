@@ -89,12 +89,14 @@ describe('buildBinaryGroups: группировка как в матрице', (
 describe('BinaryFeaturesSection: рендер таблиц /reports', () => {
   it('рендер: заголовки групп + строки признаков с процентами', () => {
     const html = renderToStaticMarkup(BinaryFeaturesSection({ counts: sample, locale: 'ru' }))
-    expect(html).toContain('Бинарные признаки фаз')
-    // Masonry-раскладка: CSS-колонки, карточки не разрываются между колонками.
-    expect(html).toContain('columns-1')
-    expect(html).toContain('lg:columns-2')
+    // Заголовок секции («Бинарные признаки фаз») рендерит StatisticsPanel,
+    // сама секция его не дублирует — иначе на /reports было бы два заголовка.
+    expect(html).not.toContain('Бинарные признаки фаз')
+    // Masonry-раскладка: CSS-колонки (две от lg), карточки не разрываются
+    // между колонками; заголовок группы — h3 внутри карточки.
+    expect(html).toContain('columns-1 gap-4 lg:columns-2')
     expect(html).toContain('break-inside-avoid')
-    expect(html).toContain('Психический статус')
+    expect(html).toMatch(/<h3[^>]*>Психический статус<\/h3>/)
     expect(html).toContain('Депрессогенный фон')
     expect(html).toContain('Тоска')
     expect(html).toContain('30%')
@@ -104,7 +106,8 @@ describe('BinaryFeaturesSection: рендер таблиц /reports', () => {
 
   it('нет ни одной группы с данными — заглушка «Нет данных»', () => {
     const html = renderToStaticMarkup(BinaryFeaturesSection({ counts: [], locale: 'en' }))
-    expect(html).toContain('Binary phase features')
     expect(html).toContain('No data')
+    // Заголовок блока — за панелью (StatisticsPanel), внутри секции только заглушка.
+    expect(html).not.toContain('Binary phase features')
   })
 })

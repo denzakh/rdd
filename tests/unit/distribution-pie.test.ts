@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 
 import { buildSlices, DistributionPie } from '@/features/reports/ui/distribution-pie'
 import type { DistributionRow } from '@/features/reports/ui/distribution-table'
-import { GENDER_COLORS, SEASON_COLORS } from '@/features/reports/ui/colors'
+import { DEFAULT_COLORS, GENDER_COLORS, SEASON_COLORS } from '@/features/reports/ui/colors'
 
 /** Начало/конец дуги из path: «M 100 100 L x1 y1 A … x2 y2 Z». */
 function endpoints(path: string): { start: [number, number]; end: [number, number] } {
@@ -85,7 +85,7 @@ describe('buildSlices: секторная диаграмма /reports', () => {
     expect(slice.color).toBe('#2563eb')
   })
 
-  it('каждому значению соответствует свой hex-цвет', () => {
+  it('каждому значению соответствует свой hex-цвет палитры', () => {
     const slices = buildSlices(
       [
         { value: 1, label: 'Лёгкая', count: 1 },
@@ -94,7 +94,16 @@ describe('buildSlices: секторная диаграмма /reports', () => {
       ],
       3
     )
-    expect(slices.map((s) => s.color)).toEqual(['#16a34a', '#fbbf24', '#dc2626'])
+    // Палитра по умолчанию берётся из colors.ts (green-300 / amber-400 / red-400),
+    // чтобы пересмотр оттенков не ломал семантический тест.
+    expect(slices.map((s) => s.color)).toEqual([
+      DEFAULT_COLORS[1],
+      DEFAULT_COLORS[2],
+      DEFAULT_COLORS[3],
+    ])
+    // Значения палитры — hex (заливка не зависит от JIT-сканера Tailwind) и различны.
+    for (const slice of slices) expect(slice.color).toMatch(/^#[0-9a-f]{6}$/i)
+    expect(new Set(slices.map((s) => s.color)).size).toBe(slices.length)
   })
 
   it('рендер: сектора получают цветной fill, а не чёрный по умолчанию', () => {
@@ -108,9 +117,9 @@ describe('buildSlices: секторная диаграмма /reports', () => {
       DistributionPie({ rows, locale: 'ru', title: 'Тяжесть депрессии', unit: 'phases' })
     )
 
-    expect(html).toContain('fill="#16a34a"')
-    expect(html).toContain('fill="#fbbf24"')
-    expect(html).toContain('fill="#dc2626"')
+    expect(html).toContain(`fill="${DEFAULT_COLORS[1]}"`)
+    expect(html).toContain(`fill="${DEFAULT_COLORS[2]}"`)
+    expect(html).toContain(`fill="${DEFAULT_COLORS[3]}"`)
     expect(html).not.toContain('fill="black"')
     expect(html).toContain('Тяжёлая: 1 (25%)')
   })
@@ -126,7 +135,7 @@ describe('buildSlices: секторная диаграмма /reports', () => {
     )
 
     expect(html).toContain('<circle')
-    expect(html).toContain('fill="#16a34a"')
+    expect(html).toContain(`fill="${DEFAULT_COLORS[1]}"`)
     expect(html).toContain('Мужской: 5 (100%)')
   })
 

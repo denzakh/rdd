@@ -65,7 +65,11 @@ describe('DistributionTableYes: рендер таблицы «да/нет»-пр
       })
     )
 
-    expect(html).toContain('Feature')
+    // Шапка таблицы без текстовых подписей (колонки: признак / % / абс. число
+    // «да»), поэтому подписи «Feature»/«Признак» в разметке больше нет.
+    expect(html).not.toContain('Feature')
+    expect(html).toContain('<th class="pl-0"></th>')
+    expect(html).toContain('Hereditary mental burden')
     expect(html).toContain('25%')
   })
 
