@@ -99,3 +99,5 @@ npm run dev                 # http://localhost:3000
 
 - CI: GitHub Actions — lint + tsc + steiger + unit/интеграционные тесты.
 - Деплой ручной: `npm run deploy` (или `npm run preview` для локального CF-рантайма).
+- Целевые ресурсы Cloudflare (`wrangler.jsonc`): воркер `rdd`, кастомный домен
+  `rdd.ux42.studio`, D1-база `rdd` (binding `DB`); секреты не требуются.

@@ -107,3 +107,5 @@ originals). Start with the entry point.
 
 - CI: GitHub Actions — lint + tsc + steiger + unit/integration tests.
 - Manual deploy: `npm run deploy` (or `npm run preview` for local CF runtime).
+- Cloudflare targets (`wrangler.jsonc`): worker `rdd`, custom domain `rdd.ux42.studio`,
+  D1 database `rdd` (binding `DB`); no secrets required.

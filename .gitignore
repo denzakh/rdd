@@ -36,7 +36,7 @@ yarn-error.log*
 
 # vercel
 .vercel
-.vscode\
+.vscode
 
 # typescript
 *.tsbuildinfo
@@ -51,10 +51,6 @@ next-env.d.ts
 
 
 !.dev.vars.example
-
-# Figma Make export artifacts
-/UX42 Den (Copy).zip
-
 
 
 # сгенерированный базовый DDL-референс из реестра

@@ -1,26 +1,22 @@
 /**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
+ * Конфигурация Wrangler проекта RDD (Cloudflare Workers + D1).
+ * Документация: https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * Секреты не требуются: код читает только биндинг `DB` (см. docs/ru/spec-stage-4.md).
+ * Локальные биндинги для `npm run dev` строятся из этого файла через `getPlatformProxy`
+ * в `.wrangler/state` (см. src/shared/api/db.ts, docs/ru/rdd-v1.md).
+ *
+ * Важно: `services[].service` обязан совпадать с `name` (self-reference для кэша OpenNext).
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ux42next",
+  "name": "rdd",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-03-01",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "r2_buckets": [
-    {
-      "binding": "MY_BUCKET", // Имя переменной в коде
-      "bucket_name": "ux42-assets", // Реальное имя в Cloudflare
-    },
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
-      "binding": "DB",
+      "binding": "DB", // имя биндинга в коде: env.DB
       "database_name": "rdd",
       "database_id": "5a15f362-da8d-4696-b703-9d97ecec0ec1",
       "migrations_dir": "migrations",
@@ -28,7 +24,9 @@
   ],
   "routes": [
     {
-      "pattern": "ux42.studio",
+      // Прод-домен проекта (зона ux42.studio в том же аккаунте Cloudflare).
+      // Убрать блок — воркер останется доступен на rdd.<account>.workers.dev.
+      "pattern": "rdd.ux42.studio",
       "custom_domain": true,
     },
   ],
@@ -36,38 +34,24 @@
     "binding": "ASSETS",
     "directory": ".open-next/assets",
   },
-  "images": {
-    // Enable image optimization
-    // see https://opennext.js.org/cloudflare/howtos/image
-    "binding": "IMAGES",
-  },
   "services": [
     {
-      // Self-reference service binding, the service name must match the worker name
-      // see https://opennext.js.org/cloudflare/caching
+      // Self-reference service binding; имя сервиса ДОЛЖНО совпадать с "name" выше.
+      // https://opennext.js.org/cloudflare/caching
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "ux42next",
+      "service": "rdd",
     },
   ],
   "observability": {
     "enabled": true,
   },
   /**
-   * Smart Placement
-   * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+   * Отличия от прежнего конфига (он был копией проекта ux42next):
+   * - убраны "r2_buckets" (MY_BUCKET → ux42-assets): кодом не используется,
+   *   остаётся заделом под сканы согласий (docs/ru/consent.md §3);
+   * - убран "images" (IMAGES): не задействован — подключён кастомный loader (image-loader.ts);
+   * - убран флаг "global_fetch_strictly_public": он нужен только для same-zone global fetch
+   *   (например next/og), в проекте не используется;
+   * - "placement" (Smart Placement) остаётся отключённым.
    */
-  // "placement": {  "mode": "smart" }
-  /**
-   * Bindings
-   * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-   * databases, object storage, AI inference, real-time communication and more.
-   * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-   */
-  /**
-   * Environment Variables
-   * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-   * Note: Use secrets to store sensitive data.
-   * https://developers.cloudflare.com/workers/configuration/secrets/
-   */
-  // "vars": {  "MY_VARIABLE": "production_value" }
 }

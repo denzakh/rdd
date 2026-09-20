@@ -1,20 +1,6 @@
 import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
-  /* config options here */
-  images: {
-    loader: 'custom',
-    loaderFile: './image-loader.ts',
-    deviceSizes: [828, 1920],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'assets.ux42.studio',
-        pathname: '/**',
-      },
-    ],
-  },
-}
+const nextConfig: NextConfig = {/* config options here */}
 
 export default nextConfig
 
