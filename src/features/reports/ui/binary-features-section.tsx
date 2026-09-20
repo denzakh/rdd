@@ -38,7 +38,9 @@ export interface BinaryGroup {
 /**
  * Группировка бинарных признаков по секциям реестра; фармакотерапия —
  * дополнительно по подгруппам THERAPY_GROUPS в порядке `order` (как
- * subheader-строки матрицы). Пустые группы (нет полей) пропускаются.
+ * subheader-строки матрицы). Пропускаются: пустые группы (нет полей) и
+ * группы без заполненных данных (все знаменатели = 0 — признак нигде
+ * не вводился в рамках scope; блок «Нет данных» шумит на странице).
  */
 export function buildBinaryGroups(counts: BinaryFeatureCountView[], locale: Locale): BinaryGroup[] {
   const en = locale === 'en'
@@ -69,17 +71,20 @@ export function buildBinaryGroups(counts: BinaryFeatureCountView[], locale: Loca
       // Подгруппы фармакотерапии — порядок THERAPY_GROUPS (order), как в матрице.
       const ordered = Object.entries(THERAPY_GROUPS).sort((a, b) => a[1].order - b[1].order)
       for (const [groupId, title] of ordered) {
-        const inGroup = fields.filter((f) => f.group === groupId)
-        if (inGroup.length === 0) continue
-        groups.push({ title: en ? title.en : title.ru, rows: inGroup.map(rowOf) })
+        const rows = fields.filter((f) => f.group === groupId).map(rowOf)
+        // Блок без заполненных данных (все знаменатели = 0) не показываем.
+        if (rows.length === 0 || !rows.some((r) => r.total > 0)) continue
+        groups.push({ title: en ? title.en : title.ru, rows })
       }
       // Поля без подгруппы (теоретический случай) — плоской таблицей секции.
-      const ungrouped = fields.filter((f) => f.group === undefined)
-      if (ungrouped.length > 0) {
-        groups.push({ title: groupTitle(section), rows: ungrouped.map(rowOf) })
+      const ungrouped = fields.filter((f) => f.group === undefined).map(rowOf)
+      if (ungrouped.length > 0 && ungrouped.some((r) => r.total > 0)) {
+        groups.push({ title: groupTitle(section), rows: ungrouped })
       }
     } else {
-      groups.push({ title: groupTitle(section), rows: fields.map(rowOf) })
+      const rows = fields.map(rowOf)
+      if (!rows.some((r) => r.total > 0)) continue
+      groups.push({ title: groupTitle(section), rows })
     }
   }
   return groups
@@ -99,15 +104,32 @@ export function BinaryFeaturesSection({
 }) {
   const en = locale === 'en'
   const groups = buildBinaryGroups(counts, locale)
-  if (groups.length === 0) return null
+  if (groups.length === 0) {
+    // Нет ни одной группы с заполненными данными (например, у пользователя
+    // пустой scope) — заглушка, как у остальных таблиц панели.
+    return (
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-neutral-600">
+          {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
+        </h3>
+        <p className="text-xs text-neutral-500">{en ? 'No data' : 'Нет данных'}</p>
+      </div>
+    )
+  }
   return (
     <div className="space-y-2">
       <h3 className="text-xs font-semibold text-neutral-600">
         {en ? 'Binary phase features' : 'Бинарные признаки фаз'}
       </h3>
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Masonry через CSS-колонки (Tailwind v4): таблицы разной высоты
+          укладываются плотно, без JS; break-inside-avoid не даёт разрывать
+          карточку между колонками. Порядок блоков — колонками сверху вниз. */}
+      <div className="columns-1 gap-4 lg:columns-2 xl:columns-3">
         {groups.map((g) => (
-          <div key={g.title} className="space-y-1 rounded-md border border-neutral-200 p-3">
+          <div
+            key={g.title}
+            className="mb-4 inline-block w-full break-inside-avoid space-y-1 rounded-md border border-neutral-200 p-3"
+          >
             <h4 className="text-xs font-medium text-neutral-600">{g.title}</h4>
             <DistributionTableYes rows={g.rows} locale={locale} />
           </div>
