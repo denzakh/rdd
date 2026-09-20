@@ -475,6 +475,171 @@ const SYMPTOM_PROFILES: Partial<PhaseInput>[] = [
   },
 ]
 
+// ---------- фармакотерапия (src/shared/config/registry/therapy.ts) ----------
+
+/**
+ * Основной класс АД по пациентам — по одному значению на запись PATIENTS
+ * (11 демо-пациентов), чтобы распределение классов было разным.
+ */
+const AD_CLASS_BY_PATIENT: readonly string[] = [
+  'ad_serotonergic',
+  'ad_snri',
+  'ad_serotonergic',
+  'ad_tricyclic',
+  'ad_snri',
+  'ad_tetracyclic',
+  'ad_serotonergic',
+  'ad_atypical_mech',
+  'ad_maoi',
+  'ad_snri',
+  'ad_other_noradr',
+]
+
+/** Смещение по списку классов для второго АД комбинированного курса. */
+const SECOND_AD_CLASS_SHIFT = 3
+
+/**
+ * Классы АД — чекбоксы подгруппы «Антидепрессанты: классы» (therapy.ts).
+ * Не назначенным классам выставляем явный 0 (как в симптоматике), чтобы
+ * у таблиц «да/нет» на /reports был знаменатель, а не пустые ячейки.
+ */
+const AD_CLASS_IDS: readonly string[] = [
+  'ad_tricyclic',
+  'ad_tetracyclic',
+  'ad_other_noradr',
+  'ad_serotonergic',
+  'ad_snri',
+  'ad_maoi',
+  'ad_atypical_mech',
+  'ad_transitional',
+]
+
+/**
+ * Пациенты с резистентностью: если эффект фазы недостаточный (efficacy < 4),
+ * со 2-й фазы выставляем смену препарата (ad_switch) с причиной
+ * «Резистентность» (switch_reason = 1).
+ */
+const RESISTANT_PATIENTS: ReadonlySet<number> = new Set([4, 9])
+
+/** Контекст одной фазы для расчёта терапии (см. therapyFor). */
+type TherapyContext = {
+  /** Индекс пациента в PATIENTS (детерминированный выбор препаратов). */
+  patientIndex: number
+  /** Индекс фазы у пациента: 0 — первая обычная фаза. */
+  phaseIndex: number
+  /** Фаза 98 «Поступление»: «Эффективность АД» в ней скрыта (не заполняем). */
+  isAdmission?: boolean
+  symptoms: Partial<PhaseInput>
+  /** Картина ремиссии после фазы (см. phasesFor): частичная ли она. */
+  partialRemission: boolean
+  /** Тяжёлая депрессия в фазе перед 98 / в самой 98 (SEVERE_DEPRESSION_PATIENTS). */
+  severeBeforeAdmission: boolean
+  severeAdmission: boolean
+  /** Длительность фазы в месяцах: курс АД в днях ≈ 30 × месяцы. */
+  phaseDurationMonths: number
+  /** Тип профилактики в ремиссии: 0 — нет, 1 — АД, 2/3 — нормотимики. */
+  prophylaxisType: number
+}
+
+/**
+ * Терапия фазы: назначения блока «Фармакотерапия» в каждой обычной фазе и в
+ * 98 «Поступление» (в 99 блок заблокирован — терапия не заполняется).
+ *
+ * Модель детерминированная (без рандома, как и симптоматика) и связана с
+ * клинической картиной, чтобы матрица, /reports (бинарные признаки,
+ * эффективность АД по компоненту) и экспорт были неоднородными:
+ * - класс АД — свой у каждого пациента (AD_CLASS_BY_PATIENT); с 3-й фазы
+ *   части пациентов добавляется второй класс (комбинированный курс);
+ * - дозы нарастают от фазы к фазе (1 → 3), при тяжёлой депрессии сразу
+ *   высокие (3) и парентеральный путь (route = 4 — сочетание внутрь + парент.);
+ * - «Эффективность АД» — производная картины ремиссии после фазы
+ *   (полная — 4, частичная — 3, у резистентных — 2, ухудшение перед 98 — 1);
+ * - нейролептики — при психотической симптоматике, транквилизаторы и
+ *   гипнотики — при тревоге/возбуждении/нарушениях сна, ноотропы и
+ *   сосудистые — при когнитивном снижении и в пожилом возрасте,
+ *   нормотимики — когда в ремиссии выбрана профилактика нормотимиками;
+ * - фаза 99 («Выписка»): блок «Фармакотерапия» заблокирован
+ *   (isFieldDisabledForPhase) — NULL, как и в UI; в 98 скрыта только
+ *   «Эффективность АД» (isFieldHiddenForPhase).
+ */
+function therapyFor(ctx: TherapyContext): Partial<PhaseInput> {
+  const { patientIndex, phaseIndex, symptoms, partialRemission, prophylaxisType } = ctx
+  const patient = PATIENTS[patientIndex % PATIENTS.length]
+  const elderly = (patient?.birth_year ?? 1970) <= 1960
+  const severe = ctx.severeBeforeAdmission || ctx.severeAdmission
+  const psychotic = symptoms.delusions !== 0 || symptoms.hallucinations === 1
+  const agitated = symptoms.motor_agitation === 1 || symptoms.restlessness === 1
+  const anxious = symptoms.anxiety_obj === 1
+  const insomniac = symptoms.sleep_worsening === 1
+  const resistant = RESISTANT_PATIENTS.has(patientIndex)
+
+  // Курс АД: основной класс — по пациенту, с 3-й фазы у части пациентов
+  // добавляется второй класс (комбинированная терапия).
+  const primaryAd = AD_CLASS_BY_PATIENT[patientIndex % AD_CLASS_BY_PATIENT.length]
+  if (!primaryAd) throw new Error(`Нет класса АД для индекса ${patientIndex}`)
+  const comboAd =
+    phaseIndex >= 2 && patientIndex % 3 === 0
+      ? AD_CLASS_BY_PATIENT[(patientIndex + SECOND_AD_CLASS_SHIFT) % AD_CLASS_BY_PATIENT.length]
+      : undefined
+
+  // «Эффективность АД» — производная картины ремиссии после фазы:
+  // у резистентных частичная ремиссия достигается лишь минимальным эффектом (2).
+  const efficacy = ctx.severeBeforeAdmission ? 1 : partialRemission ? (resistant ? 2 : 3) : 4
+  // Смена препарата — только когда эффект недостаточный (полная ремиссия = 4).
+  const switched = resistant && phaseIndex >= 1 && efficacy < 4
+
+  // Транквилизаторы/гипнотики — при тревоге, возбуждении и плохом сне.
+  const onTranquilizers = agitated || anxious || insomniac
+
+  // Все классы АД: назначенные — 1, остальные — явный 0.
+  const adClasses: Record<string, number> = Object.fromEntries(AD_CLASS_IDS.map((id) => [id, 0]))
+  adClasses[primaryAd] = 1
+  if (comboAd) adClasses[comboAd] = 1
+
+  return {
+    ...adClasses,
+    // Дозы нарастают от фазы к фазе (1 → 3); при тяжёлой депрессии — сразу 3.
+    ad_dose_level: severe ? 3 : Math.min(3, 1 + phaseIndex),
+    // Способ введения: 1 — внутрь, 4 — сочетание внутрь + парентерально.
+    ad_route: severe ? 4 : 1,
+    // Курс АД длится всю фазу; «дней до улучшения» нет, если эффекта нет
+    // (efficacy < 3) и в 98, где эффективность ещё не оценивается.
+    total_days: Math.round(ctx.phaseDurationMonths * 30),
+    days_to_improvement:
+      ctx.isAdmission || efficacy < 3 ? null : 14 + (patientIndex % 5) + phaseIndex * 2,
+    ad_efficacy: ctx.isAdmission ? null : efficacy,
+    ad_switch: switched ? 1 : 0,
+    // 1 — «Резистентность»; вне смены препарата поле не заполняем (NULL).
+    switch_reason: switched ? 1 : null,
+    // Депрессогенный фон: сопутствующая соматическая терапия при болевом
+    // синдроме и в пожилом возрасте (АГ/ИБС).
+    beta_blockers: (elderly || symptoms.physical_pain === 1) && patientIndex % 2 === 0 ? 1 : 0,
+    ca_blockers: elderly ? 1 : 0,
+    other_depressogenic: elderly && patientIndex % 4 === 1 ? 1 : 0,
+    // Соматическая поддержка.
+    vitamins: symptoms.fatigue === 1 ? 1 : 0,
+    vascular_drugs: elderly || symptoms.cognitive_impair === 1 ? 1 : 0,
+    nootropics: symptoms.cognitive_impair === 1 ? 1 : 0,
+    // Нормотимики — та же профилактика, что выбрана в блоке «Ремиссия».
+    mood_stabilizers: prophylaxisType >= 2 ? 1 : 0,
+    // Нейролептики — при психотической симптоматике (бред, галлюцинации).
+    nl_typical: psychotic && patientIndex % 2 === 0 ? 1 : 0,
+    nl_atypical: psychotic && patientIndex % 2 === 1 ? 1 : 0,
+    nl_dose_level: psychotic ? (agitated ? 3 : 2) : 0,
+    // Транквилизаторы и гипнотики; доза 0 («Нет») — если не назначались.
+    trank_benzodiazep: agitated ? 1 : 0,
+    trank_barbiturates: agitated && patientIndex % 4 === 0 ? 1 : 0,
+    trank_other_chem: agitated && patientIndex % 3 === 0 ? 1 : 0,
+    trank_herbal: anxious && !agitated ? 1 : 0,
+    hypnotics: insomniac ? 1 : 0,
+    trank_dose_level: !onTranquilizers ? 0 : agitated ? 3 : anxious ? 2 : 1,
+    // Способ введения (Транк): 1 — внутрь, 2 — в/м (при возбуждении).
+    trank_route: !onTranquilizers ? 0 : agitated && severe ? 2 : 1,
+    // trank_efficacy в реестре без «нет» (1..4) — заполняем только при назначении.
+    trank_efficacy: onTranquilizers ? 2 + (patientIndex % 3) : null,
+  }
+}
+
 /**
  * Всего фаз на пациента — 4, 5 или 6: обычные с № (2–4) плюс служебные
  * 98 «Поступление» и 99 «Выписка». Количество разное у разных пациентов,
@@ -519,11 +684,19 @@ const SEVERE_DEPRESSION_PATIENTS: ReadonlySet<number> = new Set([0, 4, 7])
  * не заполняются (NULL) — как и в UI, ввод туда закрыт.
  * На последней фазе (99 «Выписка») интермиссия ещё не наступила
  * (NULL — текущее состояние).
+ * Терапия фазы — therapyFor() (блок «Фармакотерапия»): в 99 не заполняется
+ * (заблокирована через field-availability), в 98 скрыта только «Эффективность
+ * АД» (ad_efficacy = NULL).
  */
 function phasesFor(patientIndex: number): PhaseInput[] {
   const symptoms = SYMPTOM_PROFILES[patientIndex % SYMPTOM_PROFILES.length]
   if (!symptoms) throw new Error(`Нет симптом-профиля для индекса ${patientIndex}`)
   const total = phaseCountFor(patientIndex)
+  // Лечение в интермиссии и тип профилактики — свойство пациента, а не фазы:
+  // у пациента 9 противорецидивная терапия не назначена (0 — «нет»); тип
+  // профилактики 2/3 включает в терапию фаз нормотимики (mood_stabilizers).
+  const treatmentInRemission = patientIndex !== 9
+  const prophylaxisType = treatmentInRemission ? (patientIndex % 3) + 1 : 0
   // Всего фаз = обычные (1..N) + служебные 98 и 99.
   const ordinaryCount = Math.max(2, total - 2)
   const relativeIds = [
@@ -600,11 +773,26 @@ function phasesFor(patientIndex: number): PhaseInput[] {
           }
         : {}
 
+    // Терапия фазы: в 99 весь блок заблокирован (field-availability) — NULL.
+    const therapy = isDischarge
+      ? {}
+      : therapyFor({
+          patientIndex,
+          phaseIndex: i,
+          isAdmission,
+          symptoms,
+          partialRemission,
+          severeBeforeAdmission,
+          severeAdmission,
+          phaseDurationMonths: d.phase,
+          prophylaxisType,
+        })
+
     phases.push({
       patient_id: 0,
       phase_relative_id: relativeId,
       phase_start_date: isDischarge ? null : startDate,
-      ad_efficacy: isAdmission || isDischarge ? null : (patientIndex % 3) + 1,
+      ...therapy,
       ...symptoms,
       // Картина ремиссии после текущей фазы (src/shared/config/registry/remission.ts).
       subdepression_const: partialRemission ? 1 : 0,
@@ -612,8 +800,8 @@ function phasesFor(patientIndex: number): PhaseInput[] {
       anxiety_lability_rem: patientIndex % 3 === 1 ? 1 : 0,
       unfavorable_env: patientIndex % 4 === 0 ? 1 : 0,
       pain_in_remission: symptoms.physical_pain ? 1 : 0,
-      treatment_in_remission: patientIndex === 9 ? 0 : 1,
-      prophylaxis_type: patientIndex === 9 ? 0 : (patientIndex % 3) + 1,
+      treatment_in_remission: treatmentInRemission ? 1 : 0,
+      prophylaxis_type: prophylaxisType,
       // Удлинение фаз и укорочение интермиссий (durations выше).
       phase_duration_months: d.phase,
       intermission_duration: d.intermission,
