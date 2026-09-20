@@ -109,7 +109,7 @@
   <text x="570" y="809" font-size="11.5" fill="#D6E4F5" text-anchor="middle">[Container: JavaScript / React]</text>
   <text x="440" y="833" font-size="12" fill="#ffffff">RSC-гидратация, zustand (гранулярные</text>
   <text x="440" y="851" font-size="12" fill="#ffffff">подписки на ячейку), виртуализация</text>
-  <text x="440" y="869" font-size="12" fill="#ffffff">матрицы; обновления — polling 30–60 с</text>
+  <text x="440" y="869" font-size="12" fill="#ffffff">матрицы; конфликты — CAS (409)</text>
 
   <!-- Граница системы -->
   <rect x="770" y="730" width="750" height="940" rx="10" fill="#FCFCFC" stroke="#666666" stroke-width="1.6" stroke-dasharray="8 6"/>

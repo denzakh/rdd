@@ -42,10 +42,10 @@ Sources: `ru/matrix.md` §2, §5.1.
 
 ### 3.2. Network & paging
 
-| Metric             | Budget                                                      | Rationale                                                                                                        |
-| ------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Patient list load  | ≤ 1 s TTI on reference dataset (20–50 paging, SSR)          | Next.js App Router, D1 in one region                                                                             |
-| Collaboration sync | Polling 30–60 s (deliberate v1 trade-off, no WebSocket/SSE) | No data loss possible (CAS); polling only affects conflict-discovery speed. Push threshold — `ru/matrix.md` §6.7 |
+| Metric             | Budget                                                                    | Rationale                                                                                     |
+| ------------------ | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Patient list load  | ≤ 1 s TTI on reference dataset (20–50 paging, SSR)                        | Next.js App Router, D1 in one region                                                          |
+| Collaboration sync | **Not implemented** (v1: others' edits surface only on write — CAS → 409) | Design option — polling 30–60 s (`matrix.md` §6.3, §6.7); no data loss possible thanks to CAS |
 
 ### 3.3. Security & server actions
 

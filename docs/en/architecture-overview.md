@@ -151,7 +151,9 @@ Not a production system for real patients. Deliberately out of scope:
   `audit_log` cascade needs a separate decision (crypto-erasure or anonymization).
 - **Medical validation.** Computed fields (pure remission, age) are simplified demo rules;
   no clinician-expert validation of scales was performed.
-- **Collaboration scaling.** Polling 30–60 s instead of WebSocket/SSE (v1 trade-off).
+- **Collaboration sync.** No active updates between users: others' edits surface only on write
+  (CAS → 409) or on page reload. Design option — polling 30–60 s instead of WebSocket/SSE (v1
+  trade-off); push threshold — `matrix.md` §6.7.
 - **Field requiredness.** Zod generates `optional().nullable()` (partial patches);
   required-logic compensated in UI — production must close it at schema level.
 - **Localization scope.** See `i18n.md`: UI chrome + registry labels are RU/EN;

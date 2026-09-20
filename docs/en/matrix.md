@@ -260,8 +260,8 @@ const moveVertical = (row: number, col: number, dir: 1 | -1) => {
 
 1. Commit the value to the zustand store — on `onBlur` (text/number/date) or immediately (`checkbox`, `select`).
 2. `subscribeDirty` accumulates dirty cells and, after a **300ms** debounce, hands a batch of `DirtyCommit[]` to `onPersist` (outside React re-renders).
-3. **Batch grouping by `phaseId` is mandatory:** cells of one phase → one `PATCH /api/phases/:id` with a patch body (one UPDATE = atomic). Patches of different phases are sent independently/in parallel.
-4. **Flush before unloading:** `beforeunload` / `visibilitychange → hidden` — immediate sending of the pending batch (`fetch` with `keepalive: true`), otherwise edits within the debounce window are lost.
+3. **Batch grouping by `phaseId` is mandatory:** cells of one phase → one Server Action `savePhaseCells` (`src/features/matrix/api/actions.ts`) with a patch (one UPDATE = atomic). Different phases are saved independently/in parallel. _(The HTTP route `PATCH /api/phases/:id` does not exist in code — persistence is implemented via Server Actions.)_
+4. ⚠️ **Flush before unloading — not implemented.** Designed: `beforeunload` / `visibilitychange → hidden` — immediate sending of the pending batch (`fetch` with `keepalive: true`), otherwise edits within the debounce window are lost. Not done in v1: edits within the debounce window (≤300 ms) may be lost when the tab is closed/hidden.
 5. Status indicator in the grid header: "saved / saving / error / conflict".
 
 ### 6.2. `updated_at` version token (CAS)
@@ -278,9 +278,17 @@ const moveVertical = (row: number, col: number, dir: 1 | -1) => {
    ```
 2. `updated_at` is a **version token**, not a "label for display". The client receives it with the phase data and returns it in every PATCH.
 3. `WHERE updated_at = ?` affected no rows → respond **409 Conflict** with the current phase row in the body.
-4. CAS is always on, regardless of mode (a safeguard against two tabs/devices of one user). The ISO format with `%f` is lexicographically sortable — suitable also for `WHERE updated_at > ?` in polling.
+4. CAS is always on (a safeguard against two tabs/devices of one user). The ISO format with `%f` is lexicographically sortable — this will allow `WHERE updated_at > ?` in future polling (§6.3, not implemented).
 
-### 6.3. Operating modes (client setting)
+### 6.3. Operating modes (client setting) — designed, not implemented
+
+> **Status: not implemented in v1.** There is no active synchronization between users in the code:
+> others' edits surface only on write (CAS → 409, §6.4) or on page reload. There is no mode toggle,
+> polling or merge of others' edits in `src/widgets/matrix` / the matrix route; the route
+> `GET /api/patients/:id/phases/changes` does not exist. Below is the design — a candidate for a
+> separate stage (see `./roadmap.md`).
+
+**Intended behaviour (design):**
 
 - The mode is a **client-side UI policy** (localStorage + a toggle in the grid header), unknown to the server:
   - **`solo`** (default): polling off; CAS on.
@@ -302,7 +310,7 @@ Trigger: PATCH returned 409 with the current phase row (the `serverRow` + `serve
    - **Per phase** — buttons in the banner: "Accept all of theirs" (reload the phase into the store, the local draft is reset) / "Overwrite all with mine" (a repeated PATCH with the current `serverUpdatedAt` — CAS now passes);
    - **Merge by default** — automatic only for non-overlapping cells: cells the physician did not edit locally are silently updated with the server values; a conflict arises only on actually overlapping cells. Free text is not auto-merged without the physician's involvement.
 4. **Audit:** all resolved conflicts are logged (who, when, which field, whose value was accepted) — a mandatory requirement for a clinical registry; the overwritten version is kept in the log.
-5. After conflict resolution the banner is removed, `since` for polling is updated to `serverUpdatedAt`.
+5. After conflict resolution the banner is removed (in the designed `collab` mode, §6.3, `since` for polling would be updated to `serverUpdatedAt`).
 
 **Invariant:** a physician's data is never silently lost in any scenario — before any auto-replacement the value is available in the diff/audit.
 
@@ -375,9 +383,12 @@ CREATE UNIQUE INDEX idx_audit_prev_hash ON audit_log (prev_hash) WHERE prev_hash
 - Repository: `src/shared/api/audit-repo.ts` (`insertBatch`, `listByPhase`, `listByPatient`).
 - Dependency: ~~without auth `actor_id` is empty~~ — **auth is implemented** (migration `0003_auth.sql`): sessions in D1 (`session-repo.ts`), login via `features/auth`, `actor_id = SessionUser.id` from `requireUser()`/`getCurrentUser()`. ~~Matrix records are demo (mock)~~ — **real mutations are implemented** (stage 1, `./spec-stage-1.md`): Server Actions (`src/features/matrix/api/actions.ts`) call `phase-repo.updateWithVersion` with `actorId = user.id`, audit is written in the same `db.batch`.
 
-### 6.7. Escalation threshold: polling → push updates
+### 6.7. Escalation threshold: polling → push updates — designed, not implemented
 
-The current `collab` mode is polling every 30–60 s: a deliberate v1 trade-off (no WebSocket/SSE infrastructure, zero extra dependencies, works on Workers without Durable Objects). The downside — an undiscovered-conflict window of up to the polling interval.
+> **Status: not implemented** (see §6.3). There is no active synchronization; this section describes
+> the `collab` design and the threshold at which a switch to push is considered.
+
+The designed `collab` mode is polling every 30–60 s: a deliberate v1 trade-off (no WebSocket/SSE infrastructure, zero extra dependencies, works on Workers without Durable Objects). The downside — an undiscovered-conflict window of up to the polling interval.
 
 **Reconsider the decision (switch to push) when at least one of the following occurs:**
 
@@ -387,4 +398,4 @@ The current `collab` mode is polling every 30–60 s: a deliberate v1 trade-off 
 
 **Candidate solution on escalation:** a Durable Object per patient (coordination) + SSE for distributing `updated_at` tokens; the CAS model and conflict UI (§6.4–6.5) stay unchanged — only the detection speed changes, not the resolution mechanism.
 
-Until the threshold is reached polling is correct: CAS guarantees that data loss is impossible in principle, polling affects only the detection speed, not integrity.
+Once polling is implemented it is sound: CAS guarantees that data loss is impossible in principle, polling affects only the detection speed, not integrity.
