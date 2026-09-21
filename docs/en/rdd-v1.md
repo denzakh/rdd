@@ -238,7 +238,7 @@ The migration generation tool is implemented in `src/shared/lib/registry/d1-sche
 - Artifacts: `migrations/NNNN_*.sql` (sequential migrations), `schema-reference.sql` (the current baseline outside the `migrations` directory, because Wrangler applies all `*.sql` from `migrations/`), the snapshot `.schema-snapshot.json`.
 - Protocol versioning (`registry_versions` + `patients`/`phases`.`registry_version`) — part of the generated baseline `0001_init.sql`, there is no separate migration: schema evolution only via DB reset (`npm run db:restart`). Details — `./schema-evolution.md` §4.
 
-Typical schema change cycle: edit the registry → `npm run gen:d1` → `npm run db:restart` (locally), if necessary `npm run db:migrate:remote`.
+Typical schema change cycle: edit the registry → `npm run gen:d1` → `npm run db:restart` (locally), if necessary `npm run db:migrate:remote`. A full prod D1 reset (dump → DROP tables → migrations) is `npm run db:restart:remote`; with demo data — `npm run db:restart:remote:seed`.
 
 ---
 

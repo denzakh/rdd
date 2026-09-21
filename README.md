@@ -39,21 +39,22 @@ unauthenticated users to `/login` (middleware + `requireUser()`).
 
 ## Commands
 
-| Command                | Purpose                                                                   |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `npm run dev`          | Next dev server (local D1; bindings via `initOpenNextCloudflareForDev`)   |
-| `npm run dev:cf`       | dev in Cloudflare runtime (worker.js)                                     |
-| `npm run build`        | production build                                                          |
-| `npm run gen:d1`       | generate D1 migrations from field registry (`src/shared/config/registry`) |
-| `npm run db:restart`   | full local DB reset (baseline + manual migrations 0002–0007)              |
-| `npm run db:migrate:*` | apply migrations (`--local` / `--remote`)                                 |
-| `npm run user:create`  | create a user (interactive/flags; first one is admin)                     |
-| `npm run seed:demo`    | demo data (local; `seed:demo:remote` — remote D1, confirm with "prod")    |
-| `npm run test`         | unit tests (Vitest)                                                       |
-| `npm run test:db`      | integration tests against local D1                                        |
-| `npm run lint`         | ESLint                                                                    |
-| `npm run steiger`      | FSD layer check                                                           |
-| `npm run deploy`       | deploy to Cloudflare                                                      |
+| Command                     | Purpose                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| `npm run dev`               | Next dev server (local D1; bindings via `initOpenNextCloudflareForDev`)             |
+| `npm run dev:cf`            | dev in Cloudflare runtime (worker.js)                                               |
+| `npm run build`             | production build                                                                    |
+| `npm run gen:d1`            | generate D1 migrations from field registry (`src/shared/config/registry`)           |
+| `npm run db:restart`        | full local DB reset (baseline + manual migrations 0002–0007)                        |
+| `npm run db:restart:remote` | full prod D1 reset: dump → DROP tables → migrations; `:seed` variant adds demo data |
+| `npm run db:migrate:*`      | apply migrations (`--local` / `--remote`)                                           |
+| `npm run user:create`       | create a user (interactive/flags; first one is admin)                               |
+| `npm run seed:demo`         | demo data (local; `seed:demo:remote` — remote D1, confirm with "prod")              |
+| `npm run test`              | unit tests (Vitest)                                                                 |
+| `npm run test:db`           | integration tests against local D1                                                  |
+| `npm run lint`              | ESLint                                                                              |
+| `npm run steiger`           | FSD layer check                                                                     |
+| `npm run deploy`            | deploy to Cloudflare                                                                |
 
 ## Authentication & roles
 

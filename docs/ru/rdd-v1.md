@@ -238,7 +238,7 @@ export const phaseSchema = generateSchema()
 - Артефакты: `migrations/NNNN_*.sql` (последовательные миграции), `schema-reference.sql` (актуальный baseline вне каталога `migrations`, т.к. Wrangler применяет все `*.sql` из `migrations/`), снапшот `.schema-snapshot.json`.
 - Версионность протокола (`registry_versions` + `patients`/`phases`.`registry_version`) — часть генерируемого baseline `0001_init.sql`, отдельной миграции нет: эволюция схемы только через ресет БД (`npm run db:restart`). Подробно — `./schema-evolution.md` §4.
 
-Типичный цикл изменения схемы: отредактировать реестр → `npm run gen:d1` → `npm run db:restart` (локально), при необходимости `npm run db:migrate:remote`.
+Типичный цикл изменения схемы: отредактировать реестр → `npm run gen:d1` → `npm run db:restart` (локально), при необходимости `npm run db:migrate:remote`. Полный сброс прод-Д1 (дамп → DROP таблиц → миграции) — `npm run db:restart:remote`; с демо-данными — `npm run db:restart:remote:seed`.
 
 ---
 

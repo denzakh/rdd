@@ -37,13 +37,17 @@
 ## 4. CI (`.github/workflows/ci.yml`)
 
 ```yaml
-# Node 22, npm ci
+# Node 24, npm ci
 - npm run lint
 - npx tsc --noEmit
 - npm run steiger
 - npx vitest run # unit
 - npm run test:db # integration (wrangler platform proxy, local D1)
 ```
+
+`npm ci` requires a consistent `package-lock.json`: when dependencies change, commit the
+lockfile together with `package.json` (verify locally with the same `npm ci`). Otherwise the
+step fails with `EUSAGE` (`Missing: … from lock file`) and every later check is skipped.
 
 Secrets are not required (local D1). Deploy stays manual (`npm run deploy`).
 
