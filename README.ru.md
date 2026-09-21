@@ -82,6 +82,8 @@ npm run dev                 # http://localhost:3000
 - `docs/ru/consent.md` — согласие пациента: дата и версия формы ИС фиксируются при
   включении, текст согласия вне системы, пороги эскалации
 - `docs/ru/nfr.md` — нефункциональные требования: Availability, RTO/RPO, пороги производительности
+- `docs/ru/deployment.md` — **развёртывание и эксплуатация**: Cloudflare Workers/D1, ручной деплой,
+  домен (Custom Domain), прод-База (миграции, сброс, дампы), GitHub Actions, откат и диагностика
 - `docs/ru/threat-model.md` — threat model (STRIDE): угрозы по категориям с маппингом на security-сводку
 - `docs/en/` — тот же набор на английском (`i18n.md` есть только в EN)
 
@@ -102,3 +104,4 @@ npm run dev                 # http://localhost:3000
 - Деплой ручной: `npm run deploy` (или `npm run preview` для локального CF-рантайма).
 - Целевые ресурсы Cloudflare (`wrangler.jsonc`): воркер `rdd`, кастомный домен
   `rdd.ux42.studio`, D1-база `rdd` (binding `DB`); секреты не требуются.
+- Подробный разбор деплоя, CI, домена и работы с прод-БД: `docs/ru/deployment.md`.

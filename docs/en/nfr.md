@@ -17,7 +17,9 @@ numbers_ to judge the system, not just "works / doesn't work".
 
 Demo gives **no availability guarantees**: single D1 instance + manual deploy.
 Cloudflare itself is highly available, but no SLA is measured here
-(no uptime monitoring/alerting — out of demo scope).
+(no uptime monitoring/alerting — out of demo scope). The mechanics of deploying, rolling back and
+restoring the database (including the built-in D1 Time Travel) are covered in
+[deployment.md](./deployment.md).
 
 ## 2. RTO / RPO (disaster recovery)
 

@@ -9,6 +9,8 @@ Not a retelling of specs: each section is the most illustrative
 > data schema), `auth.md`, `matrix.md`, `roadmap.md` plus stage specs `spec-stage-1..4.md`.
 > Quantitative characteristics (Availability, RTO/RPO, performance budgets) are in
 > `nfr.md` (EN). The formalized STRIDE threat model is in `threat-model.md` (EN).
+> Infrastructure and operations (deploying to Cloudflare Workers, CI, the domain, the
+> production DB, rollback and troubleshooting) are covered in `deployment.md` (EN).
 > Specs are intentionally kept as a decision-trail — a record of the thinking, not just
 > the final state.
 

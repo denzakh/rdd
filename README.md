@@ -88,6 +88,9 @@ originals). Start with the entry point.
 - `docs/en/roadmap.md` — stage plan (`spec-stage-1..4.md`, all implemented)
 - `docs/en/threat-model.md` — STRIDE threat model mapped to the security summary
 - `docs/en/nfr.md` — non-functional requirements: Availability, RTO/RPO, performance budgets
+- `docs/en/deployment.md` — **deployment and operations**: Cloudflare Workers/D1, manual deploy,
+  the domain (Custom Domain), production DB (migrations, reset, dumps), GitHub Actions, rollback
+  and troubleshooting
 - `docs/en/i18n.md` — localization strategy (problem → options → decision → escalation threshold)
 - `docs/en/consent.md` — patient consent: date/version fixed at inclusion, consent text
   out of scope, escalation thresholds
@@ -110,3 +113,4 @@ originals). Start with the entry point.
 - Manual deploy: `npm run deploy` (or `npm run preview` for local CF runtime).
 - Cloudflare targets (`wrangler.jsonc`): worker `rdd`, custom domain `rdd.ux42.studio`,
   D1 database `rdd` (binding `DB`); no secrets required.
+- Full walkthrough of deployment, CI, the domain and production DB work: `docs/en/deployment.md`.
