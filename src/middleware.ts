@@ -8,14 +8,18 @@ import { NextResponse, type NextRequest } from 'next/server'
  */
 const SESSION_COOKIE = 'rdd_session'
 
+/** Публичные маршруты витрины (docs/ru/spec-public-1.md §1 п.1): точное совпадение. */
+const PUBLIC_EXACT = new Set(['/', '/about', '/login'])
+
 export function middleware(request: NextRequest) {
   const hasSession = request.cookies.has(SESSION_COOKIE)
   const { pathname } = request.nextUrl
 
   // Инвайт-ссылки доступны без сессии (регистрация нового пользователя)
   const isInvite = pathname.startsWith('/invite/')
+  const isPublic = PUBLIC_EXACT.has(pathname) || isInvite
 
-  if (!hasSession && pathname !== '/login' && !isInvite) {
+  if (!hasSession && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

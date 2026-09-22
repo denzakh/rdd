@@ -28,6 +28,19 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 }
 
 /**
+ * Безопасная версия для публичных страниц (docs/ru/spec-public-1.md §1 п.2):
+ * в обычном `next dev` нет CF-контекста и `getDb()` бросает — витрина
+ * должна отрендериться как для гостя, а не упасть с 500.
+ */
+export async function getCurrentUserSafe(): Promise<SessionUser | null> {
+  try {
+    return await getCurrentUser()
+  } catch {
+    return null
+  }
+}
+
+/**
  * Текущий пользователь с редиректом на /login, если сессии нет.
  * Для серверных страниц и действий, требующих авторизации.
  */

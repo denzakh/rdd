@@ -11,7 +11,13 @@ import fsd from '@feature-sliced/steiger-plugin'
 export default defineConfig([
   ...fsd.configs.recommended,
   {
-    files: ['./src/features/**', './src/entities/**', './src/widgets/matrix/**'],
+    files: [
+      './src/features/**',
+      './src/entities/**',
+      './src/widgets/matrix/**',
+      './src/widgets/landing/**',
+      './src/widgets/site-header/**',
+    ],
     rules: {
       'fsd/insignificant-slice': 'off',
     },
