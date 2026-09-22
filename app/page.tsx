@@ -1,18 +1,29 @@
-import { redirect } from 'next/navigation'
 import { getLocale, getDict } from '@/shared/lib/intl'
 import { getCurrentUserSafe } from '@/shared/api'
+import { Header } from '@/features/auth'
 import { SiteHeader } from '@/widgets/site-header'
 import { Landing } from '@/widgets/landing'
+import { HomeHub } from '@/widgets/home-hub'
 
 /**
- * Публичная витрина `/` (docs/ru/spec-public-1.md §2): гость → `<Landing/>`,
- * залогиненный → редирект на `/patients` (хаб — это public-2).
- * Только `getLocale()` + `getCurrentUserSafe()`, никаких `getDb()/requireUser()`.
+ * Точка входа `/` (docs/ru/spec-public-2.md §2): гость → `<Landing/>` (PR1),
+ * залогиненный → `<HomeHub/>` вместо редиректа на `/patients`.
+ * Только `getLocale()` + `getCurrentUserSafe()`: `requireUser()` здесь запрещён
+ * (иначе гость потерял бы лендинг), напрямую `getDb()` не вызывается.
  */
 export default async function Home() {
-  const [locale, landing] = await Promise.all([getLocale(), getDict('landing')])
-  const user = await getCurrentUserSafe()
-  if (user) redirect('/patients')
+  const [locale, user] = await Promise.all([getLocale(), getCurrentUserSafe()])
+
+  if (user) {
+    return (
+      <div>
+        <Header displayName={user.displayName} role={user.role} />
+        <HomeHub user={user} locale={locale} />
+      </div>
+    )
+  }
+
+  const landing = await getDict('landing')
 
   return (
     <div>

@@ -14,16 +14,16 @@
 | 2   | A dashboard with live aggregation is expensive and duplicates `/reports`                                                           | Hub issues no new SQL: cards `Patients / Reports / Data Dictionary / Documentation` + search `GET /patients?q=` + `readonly` hint. No live counters                                                                                                        |
 | 3   | A full `16+16 md + spec-stage-1..4` mirror is a separate feature layer (md runtime, TOC, highlighting, Workers cache, ru/en drift) | Private `/docs` (`requireUser()`) holds curated blocks only: architecture digest, security (threat→measure table), NFR/RTO/RPO digest, roadmap `spec-stage-1..4 ✅`, live `/data-dictionary` via internal link. Full texts link out to GitHub `docs/en+ru` |
 | 4   | Guests must not see `/patients` in the menu                                                                                        | `TopNavigation` gains `Documentation → /docs` for logged-in users only (it already renders inside the private `<Header/>`). Public `site-header` keeps its own minimal nav                                                                                 |
-| 5   | `<html lang="en">` is hardcoded in `app/layout.tsx`                                                                                | Make the layout an async server component, `lang={locale}` via `getLocale()`. Plus `metadata`: title `RDD — Depressive Disorders Registry`, README-based description, minimal OpenGraph without images                                                     |
-| 6   | Hub/docs-hub copy must not be hardcoded in `tsx`                                                                                   | New `homeHub: {...}`, `docsHub: {...}` namespaces in `ru.ts` + `en.ts` (same pattern as `landing/about` from PR1)                                                                                                                                          |
+| 5   | `<html lang="en">` is hardcoded in `app/layout.tsx`                                                                                | Make the layout an async server component, `lang={locale}` via `getLocale()`. Plus `metadata`: title `RDD — Depressive Disorders Registry` (`RDD — Регистр депрессивных расстройств` for RU), README-based description, minimal OpenGraph without images   |
+| 6   | Hub/docs-hub copy must not be hardcoded in `tsx`                                                                                   | New `homeHub: {...}`, `docsHub: {...}` namespaces in `ru.ts` + `en.ts` (same pattern as `landing/about` from PR1); the menu item text lives in `common.documentation`                                                                                      |
 
 ## 2. PR2 routes
 
-| Route    | Access                  | Content                                                     |
-| -------- | ----------------------- | ----------------------------------------------------------- |
-| `/`      | branching               | guest → `<Landing/>` (PR1), user → `<HomeHub user locale/>` |
-| `/docs`  | private `requireUser()` | 5 cards (see §3) + GitHub links                             |
-| `/about` | public                  | unchanged from PR1                                          |
+| Route    | Access                  | Content                                                                   |
+| -------- | ----------------------- | ------------------------------------------------------------------------- |
+| `/`      | branching               | guest → `<Landing/>` (PR1), user → `<Header/>` + `<HomeHub user locale/>` |
+| `/docs`  | private `requireUser()` | 5 cards (see §3) + GitHub links, inside the private `<Header/>`           |
+| `/about` | public                  | unchanged from PR1                                                        |
 
 ## 3. `/docs` content
 

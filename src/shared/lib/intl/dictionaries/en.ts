@@ -15,6 +15,7 @@ export const en: DictShape = {
     patients: 'Patients',
     reports: 'Reports',
     dataDictionary: 'Data Dictionary',
+    documentation: 'Documentation',
     search: 'Search',
     save: 'Save',
     saving: 'Saving…',
@@ -122,5 +123,76 @@ export const en: DictShape = {
     docsLink: 'Full documentation on GitHub',
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
     backHome: '← Back home',
+  },
+  homeHub: {
+    title: 'Working hub',
+    greeting: 'Signed in as',
+    searchPlaceholder: 'Patient #',
+    search: 'Search',
+    cardPatientsTitle: 'Patients',
+    cardPatientsText:
+      'Patient list and cards: search by number, the passport, a jump into the phase matrix.',
+    cardReportsTitle: 'Reports',
+    cardReportsText: 'Cohort aggregates and de-identified export as csv / json / xlsx.',
+    cardDictionaryTitle: 'Data Dictionary',
+    cardDictionaryText:
+      'The Data Dictionary is auto-generated from the field registry and stays in sync with the D1 schema.',
+    cardDocsTitle: 'Documentation',
+    cardDocsText:
+      'Curated digests: architecture, security, NFR/RTO/RPO, roadmap. Full texts live on GitHub.',
+  },
+  docsHub: {
+    title: 'Documentation',
+    intro:
+      'Curated digests instead of a mirror of every md file: full texts live on GitHub (docs/ru + docs/en) and are never copied into runtime.',
+    architectureTitle: 'Architecture (digest)',
+    architectureText:
+      'The field registry is the source of truth: one TS registry generates the D1 schema, Zod validation and the UI. The phase matrix renders through a visibility window, concurrent edits surface as CAS conflicts (409), and audit is written in one batch with the mutation.',
+    architectureLink: 'architecture-overview.md on GitHub',
+    architectureUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
+    securityTitle: 'Security: threat → measure → where',
+    securityText:
+      'A digest of auth.md and threat-model.md (STRIDE); full tables via the links below.',
+    securityColThreat: 'Threat',
+    securityColMeasure: 'Measure',
+    securityColWhere: 'Where',
+    securityRow1: 'Password guessing and login enumeration',
+    securityMeasure1:
+      'Rate limit on sign-in; identical response time for existing and non-existing emails',
+    securityWhere1: 'auth.md §6',
+    securityRow2: 'Session hijacking via cookie',
+    securityMeasure2:
+      'Own D1 sessions: HttpOnly cookie, sliding TTL, only the token hash is stored in the DB',
+    securityWhere2: 'auth.md §5',
+    securityRow3: 'IDOR: a clinician sees other clinicians’ patients',
+    securityMeasure3:
+      'Row-level access: per-user data_scope plus a scoped repository on every query',
+    securityWhere3: 'auth.md — Row-level access',
+    securityRow4: 'Mutation bypassing the UI (readonly role)',
+    securityMeasure4:
+      'Double check: canWrite() in every Server Action plus a field whitelist and Zod schema',
+    securityWhere4: 'spec-stage-1 §1, §3',
+    securityRow5: 'Data and audit tampering',
+    securityMeasure5:
+      'actor_id on every mutation; append-only audit_log with a hash chain verified by verifyChain()',
+    securityWhere5: 'matrix.md §6.6',
+    securityAuthLink: 'auth.md on GitHub',
+    securityAuthUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/auth.md',
+    securityThreatLink: 'threat-model.md on GitHub',
+    securityThreatUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/threat-model.md',
+    nfrTitle: 'NFR / RTO / RPO (digest)',
+    nfrText:
+      'Demo: no SLA — a single D1 instance and manual deploys. Production targets: availability ≥ 99.5 % per month, 5xx SLO < 0.5 %, RTO ≤ 4 h, RPO ≤ 1 h, patient list TTI ≤ 1 s.',
+    nfrLink: 'nfr.md on GitHub',
+    nfrUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/nfr.md',
+    roadmapTitle: 'Roadmap: spec-stage-1..4 ✅',
+    roadmapText:
+      'spec-stage-1..4 ✅: real mutations and audit, entities and patient pages, auth v1.5 (password change, rate limit, invites), quality and CI. Beyond the plan — row-level access (data_scope) and consent v1; collab mode (polling) is planned.',
+    roadmapLink: 'roadmap.md on GitHub',
+    roadmapUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/roadmap.md',
+    dictionaryTitle: 'Live Data Dictionary',
+    dictionaryText:
+      'The one registry-driven runtime example: the page is built from the same TS field registry as the D1 schema, so it is not retold here.',
+    dictionaryLink: 'Open /data-dictionary →',
   },
 } as const

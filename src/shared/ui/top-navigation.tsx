@@ -6,15 +6,20 @@ import { ru, en } from '@/shared/lib/intl'
 import type { Locale } from '@/shared/lib/intl'
 import Image from 'next/image'
 
-/** Пункты верхнего меню (все — из неймспейса `common` словарей). */
+/**
+ * Пункты верхнего меню (все — из неймспейса `common` словарей).
+ * `Документация` ведёт в приватный `/docs` (docs/ru/spec-public-2.md §1 п.4):
+ * меню рендерится только внутри приватного `<Header/>`, у витрины своя навигация.
+ */
 const ITEMS = [
   { href: '/patients', key: 'patients' as const },
   { href: '/reports', key: 'reports' as const },
   { href: '/data-dictionary', key: 'dataDictionary' as const },
+  { href: '/docs', key: 'documentation' as const },
 ]
 
 /**
- * Верхнее общее меню: Пациенты, Отчёты, Словарь данных.
+ * Верхнее общее меню: Пациенты, Отчёты, Словарь данных, Документация.
  * Клиентский компонент — использует `usePathname()` для подсветки
  * активного раздела (включая вложенные роуты, напр. `/patients/123`).
  * Локаль и тексты получает из пропса `locale`, как и `<LocaleSwitcher />`.

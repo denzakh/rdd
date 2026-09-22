@@ -16,6 +16,7 @@ export default defineConfig([
       './src/entities/**',
       './src/widgets/matrix/**',
       './src/widgets/landing/**',
+      './src/widgets/home-hub/**',
       './src/widgets/site-header/**',
     ],
     rules: {
