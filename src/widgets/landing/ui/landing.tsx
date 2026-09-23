@@ -77,7 +77,7 @@ export function Landing({ dict }: { dict: LandingDict }) {
 
       <section>
         <Image
-          src="/diagrams/c4-overview.svg"
+          src={dict.diagramSrc}
           alt={dict.diagramAlt}
           width={1200}
           height={1585}

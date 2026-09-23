@@ -20,7 +20,7 @@ Not a retelling of specs: each section is the most illustrative
 
 ## C4 overview: System Context and Container (one picture)
 
-![C4 overview: System Context + Container](../diagrams/c4-overview.svg)
+![C4 overview: System Context + Container](../diagrams/c4-overview.en.svg)
 
 - **L1 System Context:** physician (`clinician`), admin, `readonly` → RDD; dashed —
   Cloudflare Access (escalation option, `auth.md` §2) and a future EHR (not implemented).

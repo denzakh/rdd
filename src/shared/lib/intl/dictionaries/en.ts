@@ -96,6 +96,7 @@ export const en: DictShape = {
     boundariesText:
       'Regulation, backup/DR, retention, medical validation and collab-sync are deliberately out of scope: this is an architecture showcase, not a production system for real patients.',
     diagramAlt: 'C4 overview: system context and containers of RDD',
+    diagramSrc: '/diagrams/c4-overview.en.svg',
     footerNote: 'Demo: synthetic data only, no real PII',
   },
   about: {

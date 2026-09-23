@@ -54,7 +54,7 @@ export const ru = {
     notStored: 'не хранится (расчёт)',
   },
   landing: {
-    badge: 'PhD, Bekhterev Institute, 2015',
+    badge: 'к.м.н. по психиатрии, Институт Бехтерева, 2015',
     title: 'RDD — Регистр депрессивных расстройств',
     subtitle:
       'Веб-приложение клинического регистра: паспорт пациента, матрица фаз заболевания, роли, аудит и аутентификация.',
@@ -66,7 +66,7 @@ export const ru = {
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/architecture-overview.md',
     thesis: 'Реферат диссертации',
     thesisUrl:
-      'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
+      'https://github.com/denzakh/rdd-late-life-thesis/blob/main/ru/abstract/abstract.ru.md',
     cardPassportTitle: 'Паспорт пациента',
     cardPassportText:
       'Демография, социальный статус, вычисляемый возраст — паспортная часть реестра.',
@@ -85,6 +85,7 @@ export const ru = {
     boundariesText:
       'Регуляторика, backup/DR, retention, медицинская валидация и коллаб-sync — сознательно вне scope: это демонстрация архитектуры, а не прод для реальных пациентов.',
     diagramAlt: 'C4-обзор: контекст и контейнеры системы RDD',
+    diagramSrc: '/diagrams/c4-overview.svg',
     footerNote: 'Demo: synthetic data only, no real PII',
   },
   about: {
@@ -106,9 +107,9 @@ export const ru = {
     boundariesTitle: 'Границы демо',
     boundariesText:
       'Регуляторика, шифрование at rest и разделение окружений, backup/DR, retention и удаление данных, медицинская валидация, коллаб-sync — сознательно вынесены за рамки. Пороги эскалации зафиксированы в спеках.',
-    thesisLink: 'Реферат диссертации (PhD, Bekhterev Institute, 2015)',
+    thesisLink: 'Реферат диссертации (к.м.н. по психиатрии, Институт Бехтерева, 2015)',
     thesisUrl:
-      'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
+      'https://github.com/denzakh/rdd-late-life-thesis/blob/main/ru/abstract/abstract.ru.md',
     docsLink: 'Полная документация на GitHub',
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/architecture-overview.md',
     backHome: '← На главную',

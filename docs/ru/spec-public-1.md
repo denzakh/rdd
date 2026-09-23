@@ -15,7 +15,7 @@
 | 3   | Полные `deployment.md` (675 строк), `auth.md §4-6`, `threat-model.md` нельзя светить наружу (`database_id`, PBKDF2-параметры, rate-limit, скрипты сброса) | Публично только `security summary` одной строкой + ссылка на GitHub. Операционка остаётся в `docs/` и GitHub, в рантайм не едет                                                                                             |
 | 4   | Не дублировать спеки внутри рантайма                                                                                                                      | Полные тексты живут только в GitHub `docs/en+ru`. Внутри — курированная выжимка из `architecture-overview.md` (уже написан как digest 3–5 минут) + ссылки                                                                   |
 | 5   | Разметка простынёй в `app/` нарушит FSD                                                                                                                   | Разметка в `src/widgets/landing`, `src/widgets/site-header` с баррелями `index.ts`. В `app/` только тонкие роуты. Проверка `npm run steiger`                                                                                |
-| 6   | C4-диаграмма лежит в `docs/diagrams/` — Next её не отдаёт                                                                                                 | Копия `docs/diagrams/c4-overview.svg` → `public/diagrams/c4-overview.svg`, в лендинге `<Image unoptimized>`                                                                                                                 |
+| 6   | C4-диаграмма лежит в `docs/diagrams/` — Next её не отдаёт                                                                                                 | Копия `docs/diagrams/c4-overview.svg` → `public/diagrams/c4-overview.svg` (RU) и `public/diagrams/c4-overview.en.svg` (EN), в лендинге `<Image unoptimized>` с `src={landing.diagramSrc}`                                   |
 | 7   | `robots.txt` сейчас `Disallow: /` — лендинг не индексируется                                                                                              | Открыть только витрину (см. §5), `/patients`, `/reports`, `/data-dictionary` остаются закрыты                                                                                                                               |
 
 ## 2. Роуты PR1
@@ -28,8 +28,8 @@
 
 - `src/widgets/site-header/ui/site-header.tsx` — режим `public`: лого (`/favicon.svg`), `О проекте → /about`, `<LocaleSwitcher/>`, `Войти → /login`. Существующий `<Header/>` не трогаем.
 - `src/widgets/landing/ui/landing.tsx` — секции:
-  1. hero: заголовок + подзаголовок из `README.md:1-5` + бейдж `PhD, Bekhterev Institute 2015`;
-  2. CTA: `Войти` / `Документация на GitHub (architecture-overview.md)` / `Реферат диссертации`;
+  1. hero: заголовок + подзаголовок из `README.md:1-5` + бейдж из `landing.badge` (RU: `к.м.н. по психиатрии, Институт Бехтерева, 2015`, EN: `PhD, Bekhterev Institute, 2015`);
+  2. CTA: `Войти` / `Документация на GitHub (architecture-overview.md)` / `Реферат диссертации` (`landing.thesisUrl`: RU → `ru/abstract/abstract.ru.md`, EN → `en/abstract/abstract.en.md`);
   3. 4 карточки: паспорт, матрица `1..N + 98/99`, отчёты/экспорт `csv/json/xlsx`, словарь из реестра (по строке из `rdd-v1.md §1`);
   4. блок `Registry → D1/Zod/UI` (3 строки из `architecture-overview §1`);
   5. границы демо: регуляторика, backup/DR, retention, медвалидация, коллаб-sync — формулировка «сознательно вне scope»;

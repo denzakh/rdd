@@ -5,7 +5,7 @@
 STRIDE category; "Source" points to where the measure lives in code.
 
 > **Method.** Six STRIDE categories applied to each link of the context diagram
-> (`../diagrams/c4-overview.svg`): user → RDD (Next.js on Workers) → D1.
+> (`../diagrams/c4-overview.en.svg`): user → RDD (Next.js on Workers) → D1.
 > Some risks consciously accepted for demo (see "Not covered"); everything accepted
 > is documented, not "forgotten".
 

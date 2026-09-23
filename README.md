@@ -74,7 +74,7 @@ originals). Start with the entry point.
 
 - `docs/en/architecture-overview.md` — **entry point**: key architecture decisions,
   security summary, demo boundaries
-- `docs/diagrams/c4-overview.svg` — C4 diagram (System Context + Container)
+- `docs/diagrams/c4-overview.en.svg` — C4 diagram (System Context + Container)
 - `docs/en/rdd-v1.md` — core: architecture, field registry, data schema
 - `docs/en/auth.md` — authentication, roles, row-level access (`data_scope`)
 - `docs/en/matrix.md` — Matrix widget: virtualization, CAS conflicts, audit
