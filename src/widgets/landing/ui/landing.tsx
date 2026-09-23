@@ -10,11 +10,29 @@ type LandingDict = Namespaces['landing']
  * Без БД и без сессии — только словарь локали.
  */
 export function Landing({ dict }: { dict: LandingDict }) {
-  const cards = [
-    { title: dict.cardPassportTitle, text: dict.cardPassportText },
-    { title: dict.cardMatrixTitle, text: dict.cardMatrixText },
-    { title: dict.cardReportsTitle, text: dict.cardReportsText },
-    { title: dict.cardDictionaryTitle, text: dict.cardDictionaryText },
+  // Иконки лежат в public/images и заданы как CSS-маска (bg-current + mask-*):
+  // так SVG наследует цвет карточки (currentColor), чего не даёт <img> со fill="currentColor".
+  const cards: Array<{ title: string; text: string; icon: string }> = [
+    {
+      title: dict.cardPassportTitle,
+      text: dict.cardPassportText,
+      icon: 'mask-[url(/images/patient.svg)]',
+    },
+    {
+      title: dict.cardMatrixTitle,
+      text: dict.cardMatrixText,
+      icon: 'mask-[url(/images/matrix.svg)]',
+    },
+    {
+      title: dict.cardReportsTitle,
+      text: dict.cardReportsText,
+      icon: 'mask-[url(/images/report.svg)]',
+    },
+    {
+      title: dict.cardDictionaryTitle,
+      text: dict.cardDictionaryText,
+      icon: 'mask-[url(/images/journal.svg)]',
+    },
   ]
 
   return (
@@ -54,9 +72,20 @@ export function Landing({ dict }: { dict: LandingDict }) {
 
       <section className="grid gap-4 sm:grid-cols-2">
         {cards.map((c) => (
-          <div key={c.title} className="rounded-lg border border-neutral-200 p-4">
-            <h2 className="font-semibold">{c.title}</h2>
-            <p className="mt-1 text-sm text-neutral-600">{c.text}</p>
+          <div
+            key={c.title}
+            className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4"
+          >
+            <div className="flex w-1/3 shrink-0 items-center justify-center text-neutral-400">
+              <span
+                aria-hidden="true"
+                className={`block h-16 w-full bg-current mask-contain mask-center mask-no-repeat ${c.icon}`}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold">{c.title}</h2>
+              <p className="mt-1 text-sm text-neutral-600">{c.text}</p>
+            </div>
           </div>
         ))}
       </section>
