@@ -67,63 +67,107 @@ export const en: DictShape = {
     badge: 'PhD, Bekhterev Institute, 2015',
     title: 'RDD — Depressive Disorders Registry',
     subtitle:
-      'Clinical registry web app: patient passport, disease-phase matrix, roles, audit and authentication.',
+      'Specialized clinical web registry for longitudinal tracking and analysis of late-life depressive disorders. Engineering showcase at Senior/Architect level: single TS field registry, virtualized phase matrix, and serverless Cloudflare Edge runtime.',
     domainNote:
-      'The data model is grounded in real research — a longitudinal study of recurrent depressive disorder in late-life patients.',
-    login: 'Sign in',
-    about: 'About',
-    docs: 'Docs on GitHub',
+      'Built at the intersection of medicine and engineering: the phase structure, pharmacotherapy dynamics, and remission criteria stem from the author’s 10-year clinical PhD research.',
+    login: 'Sign in to demo',
+    about: 'About the project',
+    docs: 'Architecture Overview (GitHub)',
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
-    thesis: 'Thesis abstract',
+    thesis: 'Thesis abstract (PhD)',
     thesisUrl:
       'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
-    cardPassportTitle: 'Patient passport',
+    targetAudienceTitle: 'Target audience and the core problem solved',
+    forDoctorsTitle: 'For clinicians and clinical researchers',
+    forDoctorsText:
+      'Eliminates the chaos of fragmented spreadsheets and paper charts: connects patient history, psychometric rating scales (HAM-D, MMSE), drug regimen switches, and longitudinal outcomes across all disease phases with instant cohort statistics.',
+    forTechTitle: 'For hiring managers and tech leads',
+    forTechText:
+      'Showcases uncompromised engineering: TypeScript Single Source of Truth eliminating DB/validation/UI schema drift, optimistic CAS concurrency control, and zero-cold-start edge execution.',
+    cardPassportTitle: 'Patient passport and history',
     cardPassportText:
-      'Demographics, social status, computed age — the passport part of the registry.',
-    cardMatrixTitle: 'Phase matrix 1..N + 98/99',
+      'Socio-demographic profile, family history, onset age, and somatic comorbidities with computed age at baseline inclusion.',
+    cardMatrixTitle: 'Disease-phase matrix',
     cardMatrixText:
-      'History and current phases: pharmacotherapy, remission, mental status, rating scales.',
-    cardReportsTitle: 'Reports and export',
-    cardReportsText: 'Cohort aggregates and de-identified export as csv / json / xlsx.',
-    cardDictionaryTitle: 'Registry-driven dictionary',
-    cardDictionaryText: 'The Data Dictionary is auto-generated from the single TS field registry.',
-    pipelineTitle: 'Registry → D1 / Zod / UI',
-    pipeline1:
-      'One TS field registry is the source of truth for the D1 schema, Zod validation and UI.',
-    pipeline2: '“Field = column”: the invariant every layer is built on.',
-    pipeline3: 'Schema evolves only via DB reset; protocol versioning lives in the baseline.',
-    boundariesTitle: 'Demo boundaries',
-    boundariesText:
-      'Regulation, backup/DR, retention, medical validation and collab-sync are deliberately out of scope: this is an architecture showcase, not a production system for real patients.',
+      'Unified tracking across retrospective episodes (1..N), current status (98), and catamnesis (99): symptoms, medication dosages, switch reasons, and clinical scales.',
+    cardReportsTitle: 'Analytics and de-identification',
+    cardReportsText:
+      'Automated computation of intermission intervals, seasonality, and phase structure, plus de-identified dataset export (CSV, JSON, Excel) for publications.',
+    cardDictionaryTitle: 'Self-documenting data dictionary',
+    cardDictionaryText:
+      'Live Data Dictionary generated directly from the field registry: doctors inspect clinical definitions, while engineers see types, validators, and SQLite columns.',
+    techHighlightsTitle: 'Key engineering highlights',
+    highlightRegistryTitle: 'Registry-Driven Core (SSOT)',
+    highlightRegistryText:
+      'One TypeScript registry generates the Cloudflare D1 (SQLite) schema, Zod validation schemas, form UI controls, and the Data Dictionary. The “field = column” invariant eliminates layer desynchronization.',
+    highlightMatrixTitle: 'Virtualized grid with CAS',
+    highlightMatrixText:
+      'TanStack Virtual + CSS Grid with native sticky headers and columns without manual scroll sync. Compare-And-Swap (HTTP 409 Conflict) optimistic locking prevents silent clinical data overwrites.',
+    highlightEdgeTitle: 'Serverless Edge stack and security',
+    highlightEdgeText:
+      'Next.js 16 on Cloudflare Workers + D1. Native Web Crypto API (PBKDF2-SHA256, 600k iterations), HttpOnly session cookies with SHA-256 tokens in D1, Row-Level Access (data_scope), and hash-chained audit logging.',
+    diagramTitle: 'System context & container architecture (C4 Model)',
     diagramAlt: 'C4 overview: system context and containers of RDD',
     diagramSrc: '/diagrams/c4-overview.en.svg',
-    footerNote: 'Demo: synthetic data only, no real PII',
+    boundariesTitle: 'Demo boundaries and scope',
+    boundariesText:
+      'Populated with synthetic clinical records (zero real PII). Regulatory compliance (HIPAA / GDPR), edge WAF protection against L7 floods, and automated D1 point-in-time recovery are documented as production escalation milestones.',
+    footerNote:
+      'RDD — Clinical Depressive Disorders Registry · Demo showcase: synthetic data only, no real PII',
   },
   about: {
-    title: 'About the project',
+    title: 'About the RDD Project (Registry-Driven Development)',
     intro:
-      'RDD is a clinical registry for depressive disorders and a Senior/Architect-level engineering showcase: registry-driven core, phase matrix with CAS conflicts and virtualization, own sessions and audit on Cloudflare D1.',
-    registryTitle: 'Registry-driven core',
-    registryText:
-      'One TS registry generates the D1 schema, Zod schemas, UI rendering, the matrix and computed fields. Details — rdd-v1.md on GitHub.',
-    casTitle: 'CAS conflicts without data loss',
-    casText:
-      'Concurrent edits are detected by record version: a conflict returns as 409, the clinician’s data is never silently overwritten. Details — matrix.md on GitHub.',
-    virtualizationTitle: 'Matrix virtualization',
-    virtualizationText:
-      'A phase grid of hundreds of cells renders through a visibility window: the DOM keeps only visible rows. Details — matrix.md on GitHub.',
-    securityTitle: 'Security in one line',
-    securityText:
-      'Own D1 sessions, roles and row-level access, audit in one batch with the write, no public signup — accounts are created by admin only. Details live on GitHub only, never in runtime HTML.',
-    boundariesTitle: 'Demo boundaries',
-    boundariesText:
-      'Regulation, encryption at rest and environment separation, backup/DR, retention and data deletion, medical validation, collab-sync — deliberately out of scope. Escalation thresholds are fixed in the specs.',
-    thesisLink: 'Thesis abstract (PhD, Bekhterev Institute, 2015)',
+      'RDD is a specialized clinical web registry for longitudinal tracking of patients with recurrent depressive disorder, and simultaneously a full-stack architectural portfolio at Senior / Staff Engineer level. The system solves the primary challenge of clinical research: collecting deeply structured, longitudinal medical data with absolute guarantees against data loss and codebase desynchronization.',
+    clinicalSectionTitle: '1. Clinical Context and Domain Expertise',
+    clinicalBackground:
+      'The registry data model is grounded in a 10-year longitudinal clinical study of recurrent depressive disorder in late-life patients conducted by the author at the V.M. Bekhterev National Medical Research Center for Psychiatry and Neurology (St. Petersburg, 2015, PhD in Psychiatry).',
+    clinicalProblemTitle: 'What Clinical Problem Does It Solve?',
+    clinicalProblemText:
+      'In psychiatric research, traditional tooling (Excel spreadsheets, Google Forms, off-the-shelf EDC/CRMs like RedCap) rapidly fails: it cannot validate the temporal sequence of affective phases, fails to tie pharmacotherapy regimens to symptom dynamics, and allows conflicting entries. RDD encodes clinical reasoning into the system architecture: normalized patient passport, dynamic phase matrix (1..N, admission 98, catamnesis 99), automated pure-remission calculations, and psychometric rating scales (HAM-D, MMSE, Clock Drawing Test).',
+    archSectionTitle: '2. Architecture: Registry-Driven Core (SSOT)',
+    archRegistryText:
+      'The central failure mode of clinical applications with dozens of diagnostic variables is schema drift between SQLite tables, server validation, UI form components, and documentation. RDD solves this with a Single Source of Truth:',
+    archRegistryPoint1:
+      'A single declarative TypeScript object (src/shared/config/registry/) defines each field: SQLite data type, UI component, min/max bounds, clinical options, and calculation formulas.',
+    archRegistryPoint2:
+      'From this registry, gen:d1 generates D1 SQL migrations, Zod schemas are derived at runtime (to-zod.ts), UI form cards render declaratively, and the Data Dictionary updates with zero manual effort.',
+    archRegistryPoint3:
+      'The “Field = Column” invariant: binary clinical signs are flat INTEGER 0/1 columns. This eliminates opaque JSON blobs and heavy EAV patterns, enabling direct high-throughput SQL aggregations.',
+    matrixSectionTitle: '3. High-Performance Phase Grid (Matrix)',
+    matrixText:
+      'The phase matrix is the clinician’s primary workspace, rendering hundreds of dynamic clinical cells simultaneously:',
+    matrixPoint1:
+      'Zero-JS hybrid scrolling: rows render via CSS Grid where the left label column uses native position: sticky; left: 0. This completely avoids desynchronization of independent scroll containers.',
+    matrixPoint2:
+      'TanStack Virtual row windowing: only rows within the visible viewport are kept in the DOM, guaranteeing high performance even on massive patient charts.',
+    matrixPoint3:
+      'Fine-grained Zustand store: editing a cell re-renders only that specific DOM node via subscription selectors, leaving the rest of the table untouched.',
+    matrixPoint4:
+      'Compare-And-Swap (CAS) data protection: concurrent edits by clinicians are verified against the record version. On collision (HTTP 409 Conflict), the doctor sees an interactive diff of both values — silent overwrites are impossible by design.',
+    edgeSectionTitle: '4. Edge Infrastructure, Audit, and Security',
+    edgeText:
+      'The application runs entirely on Cloudflare serverless edge infrastructure (Workers + Pages + D1 Database) with Next.js 16 App Router and zero cold start:',
+    edgeCryptoText:
+      'Web Crypto API: in the absence of node:crypto on Edge, password hashing is built on PBKDF2-SHA256 (600,000 iterations) with cryptographic salts. Session tokens exist strictly in HttpOnly; Secure; SameSite=Lax cookies, with SHA-256 digests stored in D1.',
+    edgeRlsText:
+      'Row-Level Access: declarative data_scope (all / site / assigned) is enforced at the repository query boundary, eliminating IDOR vulnerabilities.',
+    edgeAuditText:
+      'Tamper-evident audit log: every mutation and conflict resolution is batched atomically into audit_log alongside the data. Records are cryptographically hash-chained (prev_hash/entry_hash).',
+    boundariesSectionTitle: '5. Demo Boundaries and Production Readiness',
+    boundariesIntro:
+      'This project demonstrates system architecture and domain depth. The technical specifications explicitly delineate current implementation from production deployment requirements:',
+    boundariesScope1:
+      'Demo scope: fully functional registry business logic running on synthetic clinical profiles on Cloudflare global edge.',
+    boundariesScope2:
+      'Production requirements: HIPAA/GDPR compliance, Cloudflare WAF against L7 floods, automated D1 Point-in-Time Recovery, and integration with hospital EHRs via HL7 FHIR.',
+    thesisLink: 'PhD Thesis Abstract (Bekhterev Institute)',
     thesisUrl:
       'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
-    docsLink: 'Full documentation on GitHub',
+    docsLink: 'Architecture Overview (GitHub)',
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
-    backHome: '← Back home',
+    backHome: '← Back to Home',
+    openDemo: 'Open Demo Interface',
   },
   homeHub: {
     title: 'Working hub',

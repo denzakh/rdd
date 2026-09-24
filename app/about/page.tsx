@@ -14,59 +14,165 @@ export default async function AboutPage() {
     getDict('about'),
   ])
 
-  const blocks = [
-    { title: about.registryTitle, text: about.registryText },
-    { title: about.casTitle, text: about.casText },
-    { title: about.virtualizationTitle, text: about.virtualizationText },
-    { title: about.securityTitle, text: about.securityText },
-  ]
-
   return (
-    <div>
+    <div className="min-h-screen bg-white">
       <SiteHeader locale={locale} dict={landing} />
-      <main className="mx-auto flex max-w-[1000px] flex-col gap-8 px-6 py-10">
-        <section className="space-y-3">
-          <h1 className="text-3xl font-bold">{about.title}</h1>
-          <p className="text-neutral-600">{about.intro}</p>
+
+      <main className="mx-auto flex max-w-[1000px] flex-col gap-10 px-6 py-12">
+        {/* Intro */}
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-block rounded-full border border-neutral-300 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
+              {landing.badge}
+            </span>
+            <span className="inline-block rounded-full bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-800">
+              Senior / Staff Architecture Showcase
+            </span>
+          </div>
+
+          <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 sm:text-4xl">
+            {about.title}
+          </h1>
+
+          <p className="text-base leading-relaxed text-neutral-700 sm:text-lg">{about.intro}</p>
+        </header>
+
+        {/* 1. Clinical Context */}
+        <section className="space-y-4 rounded-xl border border-neutral-200 bg-neutral-50/60 p-6">
+          <h2 className="text-xl font-bold text-neutral-900">{about.clinicalSectionTitle}</h2>
+          <p className="text-sm leading-relaxed text-neutral-700">{about.clinicalBackground}</p>
+
+          <div className="space-y-2 rounded-lg border border-neutral-200 bg-white p-4">
+            <h3 className="text-sm font-semibold text-neutral-900">{about.clinicalProblemTitle}</h3>
+            <p className="text-sm leading-relaxed text-neutral-600">{about.clinicalProblemText}</p>
+          </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2">
-          {blocks.map((b) => (
-            <div key={b.title} className="rounded-lg border border-neutral-200 p-4">
-              <h2 className="font-semibold">{b.title}</h2>
-              <p className="mt-1 text-sm text-neutral-600">{b.text}</p>
+        {/* 2. Registry-Driven Core (SSOT) */}
+        <section className="space-y-4 rounded-xl border border-neutral-200 p-6">
+          <h2 className="text-xl font-bold text-neutral-900">{about.archSectionTitle}</h2>
+          <p className="text-sm leading-relaxed text-neutral-700">{about.archRegistryText}</p>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+              <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                01. Описание
+              </span>
+              <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint1}</p>
             </div>
-          ))}
+            <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+              <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                02. Генерация
+              </span>
+              <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint2}</p>
+            </div>
+            <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+              <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                03. Инвариант
+              </span>
+              <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint3}</p>
+            </div>
+          </div>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="font-semibold">{about.boundariesTitle}</h2>
-          <p className="text-sm text-neutral-600">{about.boundariesText}</p>
+        {/* 3. Matrix Grid */}
+        <section className="space-y-4 rounded-xl border border-neutral-200 p-6">
+          <h2 className="text-xl font-bold text-neutral-900">{about.matrixSectionTitle}</h2>
+          <p className="text-sm leading-relaxed text-neutral-700">{about.matrixText}</p>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Гибридный скролл без JS</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint1}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Виртуализация TanStack</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint2}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Атомарный Zustand-стор</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint3}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">CAS-контроль версий (409)</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint4}</p>
+            </div>
+          </div>
         </section>
 
-        <section className="flex flex-wrap gap-2">
-          <a
-            href={about.thesisUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
-          >
-            {about.thesisLink}
-          </a>
-          <a
-            href={about.docsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
-          >
-            {about.docsLink}
-          </a>
-          <Link
-            href="/"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-100"
-          >
-            {about.backHome}
-          </Link>
+        {/* 4. Edge Infrastructure and Security */}
+        <section className="space-y-4 rounded-xl border border-neutral-200 p-6">
+          <h2 className="text-xl font-bold text-neutral-900">{about.edgeSectionTitle}</h2>
+          <p className="text-sm leading-relaxed text-neutral-700">{about.edgeText}</p>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Web Crypto API</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.edgeCryptoText}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Row-Level Access</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.edgeRlsText}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
+              <h3 className="text-sm font-semibold text-neutral-900">Hash-Chain Audit</h3>
+              <p className="text-xs leading-relaxed text-neutral-600">{about.edgeAuditText}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Boundaries and Production Readiness */}
+        <section className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/40 p-6">
+          <h2 className="text-xl font-bold text-amber-950">{about.boundariesSectionTitle}</h2>
+          <p className="text-sm leading-relaxed text-amber-900">{about.boundariesIntro}</p>
+
+          <div className="grid gap-3 pt-2 sm:grid-cols-2">
+            <div className="space-y-1 rounded-lg border border-amber-200 bg-white/80 p-4">
+              <h3 className="text-sm font-semibold text-amber-950">Текущий демо-контур</h3>
+              <p className="text-xs leading-relaxed text-amber-900">{about.boundariesScope1}</p>
+            </div>
+            <div className="space-y-1 rounded-lg border border-amber-200 bg-white/80 p-4">
+              <h3 className="text-sm font-semibold text-amber-950">Требования для продакшена</h3>
+              <p className="text-xs leading-relaxed text-amber-900">{about.boundariesScope2}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. External Links & CTA */}
+        <section className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-200 pt-6">
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={about.thesisUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              {about.thesisLink} ↗
+            </a>
+            <a
+              href={about.docsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              {about.docsLink} ↗
+            </a>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/"
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              {about.backHome}
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              {about.openDemo}
+            </Link>
+          </div>
         </section>
       </main>
     </div>
