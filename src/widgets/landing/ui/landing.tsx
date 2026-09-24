@@ -5,34 +5,48 @@ import type { Namespaces } from '@/shared/lib/intl'
 type LandingDict = Namespaces['landing']
 
 /**
+ * Иконка карточки: SVG из `public/images` как CSS-маска — глиф окрашивается в
+ * `currentColor`, поэтому наследует цвет блока-родителя. Через `<img>` цвет бы
+ * не наследовался (внутри SVG `fill="currentColor"` разрешается в чёрный).
+ * Размер и свойства маски заданы инлайном: так иконка не зависит от свежести
+ * сгенерированного Tailwind-слоя и не схлопывается в ноль (aspect-ratio + width).
+ * Канвас SVG — `2816×1536`, глиф в нём центрирован.
+ */
+function CardIcon({ src }: { src: string }) {
+  return (
+    <div className="ov relative h-[120px] w-[100px] text-[currentColor]">
+      <span
+        aria-hidden="true"
+        className="absolute top-0 left-[50%] block h-full translate-x-[-50%] text-neutral-400"
+        style={{
+          display: 'block',
+          aspectRatio: '2816 / 1536',
+          backgroundColor: 'currentColor',
+          WebkitMaskImage: `url(${src})`,
+          maskImage: `url(${src})`,
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+        }}
+      />
+    </div>
+  )
+}
+
+/**
  * Публичный лендинг (docs/ru/spec-public-1.md §3): hero, CTA, 4 карточки,
  * блок Registry → D1/Zod/UI, границы демо, C4-диаграмма, футер про synthetic data.
  * Без БД и без сессии — только словарь локали.
  */
 export function Landing({ dict }: { dict: LandingDict }) {
-  // Иконки лежат в public/images и заданы как CSS-маска (bg-current + mask-*):
-  // так SVG наследует цвет карточки (currentColor), чего не даёт <img> со fill="currentColor".
   const cards: Array<{ title: string; text: string; icon: string }> = [
-    {
-      title: dict.cardPassportTitle,
-      text: dict.cardPassportText,
-      icon: 'mask-[url(/images/patient.svg)]',
-    },
-    {
-      title: dict.cardMatrixTitle,
-      text: dict.cardMatrixText,
-      icon: 'mask-[url(/images/matrix.svg)]',
-    },
-    {
-      title: dict.cardReportsTitle,
-      text: dict.cardReportsText,
-      icon: 'mask-[url(/images/report.svg)]',
-    },
-    {
-      title: dict.cardDictionaryTitle,
-      text: dict.cardDictionaryText,
-      icon: 'mask-[url(/images/journal.svg)]',
-    },
+    { title: dict.cardPassportTitle, text: dict.cardPassportText, icon: '/images/patient.svg' },
+    { title: dict.cardMatrixTitle, text: dict.cardMatrixText, icon: '/images/matrix.svg' },
+    { title: dict.cardReportsTitle, text: dict.cardReportsText, icon: '/images/report.svg' },
+    { title: dict.cardDictionaryTitle, text: dict.cardDictionaryText, icon: '/images/journal.svg' },
   ]
 
   return (
@@ -74,13 +88,10 @@ export function Landing({ dict }: { dict: LandingDict }) {
         {cards.map((c) => (
           <div
             key={c.title}
-            className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4"
+            className="flex items-center gap-7 rounded-lg border border-neutral-200 px-6 py-4"
           >
-            <div className="flex w-1/3 shrink-0 items-center justify-center text-neutral-400">
-              <span
-                aria-hidden="true"
-                className={`block h-16 w-full bg-current mask-contain mask-center mask-no-repeat ${c.icon}`}
-              />
+            <div className="flex w-[100px] shrink-0 items-center justify-center text-neutral-400">
+              <CardIcon src={c.icon} />
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="font-semibold">{c.title}</h2>
