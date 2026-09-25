@@ -141,9 +141,6 @@ export const en: DictShape = {
       'Next.js 16 on Cloudflare Workers + D1. Web Crypto cryptography, sessions in HttpOnly cookies, Row-Level Access and a hash-chain log for auditing mutations.',
     highlightEdgeText2:
       'The application starts instantly, with no heavy dependencies and low running cost even on large datasets. It runs on serverless infrastructure, which simplifies scaling, and all data is protected.',
-    diagramTitle: 'System context & container architecture (C4 Model)',
-    diagramAlt: 'C4 overview: system context and containers of RDD',
-    diagramSrc: '/diagrams/c4-overview.en.svg',
     boundariesTitle: 'Demo boundaries and scope',
     boundariesText:
       'Populated with synthetic clinical records (zero real PII). Regulatory compliance (HIPAA / GDPR), edge WAF protection against L7 floods, and automated D1 point-in-time recovery are documented as production escalation milestones.',

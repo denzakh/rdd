@@ -18,11 +18,11 @@ export default async function AboutPage() {
     <div className="min-h-screen bg-white">
       <SiteHeader locale={locale} dict={landing} />
 
-      <main className="mx-auto flex max-w-[1000px] flex-col gap-10 px-6 py-12">
+      <main className="mx-auto flex max-w-[1000px] flex-col gap-10 px-6 py-10">
         {/* Intro */}
         <header className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full border border-neutral-300 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
+            <span className="inline-block rounded-full bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
               {landing.badge}
             </span>
             <span className="inline-block rounded-full bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-800">

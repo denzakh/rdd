@@ -34,7 +34,7 @@
   4. блок `Registry → D1/Zod/UI` (3 строки из `architecture-overview §1`);
   5. границы демо: регуляторика, backup/DR, retention, медвалидация, коллаб-sync — формулировка «сознательно вне scope»;
   6. футер `Demo: synthetic data only, no real PII`.
-- Структура слайса (FSD-сегменты; слайс остаётся `src/widgets/landing`): `ui/landing.tsx` — только композиция `<main>` из секций; `ui/landing-{hero,audience,capabilities,highlights,boundaries,footer}.tsx` — по одной секции на файл; `ui/icons/icon-{cross,machine}.tsx` — инлайновые SVG-глифы (path ≈ 4 КБ); `model/landing-content.ts` — сборка view-модели из словаря (`buildCards` / `buildHighlights` / `buildGoals`) и тип `LandingDict`. Публичный API слайса не изменился: `export { Landing } from './ui/landing'`.
+- Структура слайса (FSD-сегменты; слайс остаётся `src/widgets/landing`): `ui/landing.tsx` — только композиция `<main>` из секций; `ui/landing-{hero,audience,capabilities,highlights,boundaries,footer}.tsx` — по одной секции на файл; `ui/icons/icon-{cross,machine}.tsx` — инлайновые SVG-глифы (path ≈ 4 КБ); `model/landing-content.ts` — сборка view-модели из словаря (`buildCards` / `buildHighlights` / `buildGoals`) и тип `LandingDict`. Публичный API слайса не изменился: `export { Landing } from './ui/landing'`. Удалено как мёртвое (ничего не рендерилось): ключи словаря `landing.diagramTitle` / `diagramAlt` / `diagramSrc` и копии `public/diagrams/c4-overview{,.en}.svg` — блок C4 из витрины убран, исходники диаграмм остаются в `docs/diagrams/` (их читают `README.md`, `architecture-overview.md`, `threat-model.md`).
 - Плюс `src/widgets/landing/index.ts`, `src/widgets/site-header/index.ts`.
 
 ## 4. Словари i18n

@@ -60,7 +60,7 @@
     "tsx": "^4.23.13",
     "typescript": "^5.7.4",
     "vitest": "^4.1.11",
-    "wrangler": "^4.70.0"
+    "wrangler": "^4.141.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [

@@ -10,7 +10,7 @@ import { buildCards, type LandingDict } from '../model/landing-content'
  */
 function CardIcon({ src }: { src: string }) {
   return (
-    <div className="ov relative h-[120px] w-[100px] text-[currentColor]">
+    <div className="relative h-[120px] w-[100px]">
       <span
         aria-hidden="true"
         className="absolute top-0 left-[50%] block h-full translate-x-[-50%] text-neutral-400"

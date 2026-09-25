@@ -34,7 +34,7 @@
   4. `Registry → D1/Zod/UI` block (3 lines from `architecture-overview` §1);
   5. demo boundaries: regulation, backup/DR, retention, medical validation, collab-sync — framed as "deliberately out of scope";
   6. footer `Demo: synthetic data only, no real PII`.
-- Slice layout (FSD segments; the slice is still `src/widgets/landing`): `ui/landing.tsx` is only the `<main>` composition; `ui/landing-{hero,audience,capabilities,highlights,boundaries,footer}.tsx` hold one section each; `ui/icons/icon-{cross,machine}.tsx` hold the inline SVG glyphs (≈4 KB path); `model/landing-content.ts` builds the view model from the dictionary (`buildCards` / `buildHighlights` / `buildGoals`) and exports `LandingDict`. The slice public API is unchanged: `export { Landing } from './ui/landing'`.
+- Slice layout (FSD segments; the slice is still `src/widgets/landing`): `ui/landing.tsx` is only the `<main>` composition; `ui/landing-{hero,audience,capabilities,highlights,boundaries,footer}.tsx` hold one section each; `ui/icons/icon-{cross,machine}.tsx` hold the inline SVG glyphs (≈4 KB path); `model/landing-content.ts` builds the view model from the dictionary (`buildCards` / `buildHighlights` / `buildGoals`) and exports `LandingDict`. The slice public API is unchanged: `export { Landing } from './ui/landing'`. Removed as dead (nothing rendered them): the dictionary keys `landing.diagramTitle` / `diagramAlt` / `diagramSrc` and the copies `public/diagrams/c4-overview{,.en}.svg` — the C4 block is gone from the showcase, while the diagram sources stay in `docs/diagrams/` (read by `README.md`, `architecture-overview.md`, `threat-model.md`).
 - Plus `src/widgets/landing/index.ts`, `src/widgets/site-header/index.ts`.
 
 ## 4. i18n dictionaries
