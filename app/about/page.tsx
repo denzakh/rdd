@@ -56,19 +56,19 @@ export default async function AboutPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
               <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-                01. Описание
+                {about.archPoint1Label}
               </span>
               <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint1}</p>
             </div>
             <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
               <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-                02. Генерация
+                {about.archPoint2Label}
               </span>
               <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint2}</p>
             </div>
             <div className="space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-4">
               <span className="text-xs font-semibold tracking-wider text-neutral-500 uppercase">
-                03. Инвариант
+                {about.archPoint3Label}
               </span>
               <p className="text-xs leading-relaxed text-neutral-700">{about.archRegistryPoint3}</p>
             </div>
@@ -82,19 +82,19 @@ export default async function AboutPage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Гибридный скролл без JS</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.matrixPoint1Label}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint1}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Виртуализация TanStack</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.matrixPoint2Label}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint2}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Атомарный Zustand-стор</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.matrixPoint3Label}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint3}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-white p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">CAS-контроль версий (409)</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.matrixPoint4Label}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.matrixPoint4}</p>
             </div>
           </div>
@@ -128,11 +128,15 @@ export default async function AboutPage() {
 
           <div className="grid gap-3 pt-2 sm:grid-cols-2">
             <div className="space-y-1 rounded-lg border border-amber-200 bg-white/80 p-4">
-              <h3 className="text-sm font-semibold text-amber-950">Текущий демо-контур</h3>
+              <h3 className="text-sm font-semibold text-amber-950">
+                {about.boundariesScope1Label}
+              </h3>
               <p className="text-xs leading-relaxed text-amber-900">{about.boundariesScope1}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-amber-200 bg-white/80 p-4">
-              <h3 className="text-sm font-semibold text-amber-950">Требования для продакшена</h3>
+              <h3 className="text-sm font-semibold text-amber-950">
+                {about.boundariesScope2Label}
+              </h3>
               <p className="text-xs leading-relaxed text-amber-900">{about.boundariesScope2}</p>
             </div>
           </div>

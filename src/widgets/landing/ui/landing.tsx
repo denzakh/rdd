@@ -1,7 +1,6 @@
-import Image from 'next/image'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import type { Namespaces } from '@/shared/lib/intl'
-import { distDir } from 'vitest/node'
 
 type LandingDict = Namespaces['landing']
 
@@ -37,7 +36,7 @@ function CardIcon({ src }: { src: string }) {
   )
 }
 
-function GoalIcon(icon) {
+function GoalIcon(icon: ReactNode) {
   return (
     <div className="flex h-16 w-16 shrink-0 items-center justify-center opacity-70">{icon}</div>
   )
@@ -90,7 +89,7 @@ const IconMachine = (
   </svg>
 )
 
-function Goal({ title, icon, list }: { title: string; icon: React.ReactNode; list: string[] }) {
+function Goal({ title, icon, list }: { title: string; icon: ReactNode; list: string[] }) {
   return (
     <div className="space-y-1.5">
       <h3 className="flex items-center gap-4">
@@ -207,7 +206,7 @@ export function Landing({ dict }: { dict: LandingDict }) {
 
       {/* 3. Core Functional Capabilities */}
       <section className="space-y-3">
-        <h2 className="text-xl font-bold text-neutral-900">Возможности регистра</h2>
+        <h2 className="text-xl font-bold text-neutral-900">{dict.capabilitiesTitle}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {cards.map((c) => (
             <div

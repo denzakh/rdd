@@ -1,7 +1,21 @@
 import type { ru } from './ru'
 
+/**
+ * Значение словаря: строка, массив строк или вложенный объект с такими же
+ * значениями (`landing.forDoctors.list`). Форма повторяет структуру `ru`,
+ * но строковые литералы заменяются на `string`, чтобы английские тексты
+ * проходили проверку типов.
+ */
+type DictValue<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? DictValue<U>[]
+    : T extends object
+      ? { [K in keyof T]: DictValue<T[K]> }
+      : T
+
 export type DictShape = {
-  [K in keyof typeof ru]: { [P in keyof (typeof ru)[K]]: string }
+  [K in keyof typeof ru]: { [P in keyof (typeof ru)[K]]: DictValue<(typeof ru)[K][P]> }
 }
 
 /**
@@ -67,9 +81,9 @@ export const en: DictShape = {
     badge: 'PhD, Bekhterev Institute, 2015',
     title: 'RDD — Depressive Disorders Registry',
     subtitle:
-      'Specialized clinical web registry for longitudinal tracking and analysis of late-life depressive disorders. Engineering showcase at Senior/Architect level: single TS field registry, virtualized phase matrix, and serverless Cloudflare Edge runtime.',
+      'Specialized clinical web registry for longitudinal research on late-life depression. A showcase of Senior/Architect-level developer skills in building medical applications.',
     domainNote:
-      'Built at the intersection of medicine and engineering: the phase structure, pharmacotherapy dynamics, and remission criteria stem from the author’s 6-year clinical PhD research.',
+      'Built at the intersection of medicine and IT, and grounded in the author’s real 6-year clinical study.',
     login: 'Sign in to demo',
     about: 'About the project',
     docs: 'Architecture Overview (GitHub)',
@@ -77,35 +91,56 @@ export const en: DictShape = {
     thesis: 'Thesis abstract (PhD)',
     thesisUrl:
       'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
-    targetAudienceTitle: 'Target audience and the core problem solved',
-    forDoctorsTitle: 'For clinicians and clinical researchers',
-    forDoctorsText:
-      'Eliminates the chaos of fragmented spreadsheets and paper charts: connects patient history, psychometric rating scales (HAM-D, MMSE), drug regimen switches, and longitudinal outcomes across all disease phases with instant cohort statistics.',
-    forTechTitle: 'For hiring managers and tech leads',
-    forTechText:
-      'Showcases uncompromised engineering: TypeScript Single Source of Truth eliminating DB/validation/UI schema drift, optimistic CAS concurrency control, and zero-cold-start edge execution.',
+    targetAudienceTitle: 'Who the system serves and what task it solves',
+    forDoctors: {
+      title: 'For clinicians and researchers',
+      list: [
+        'Automates depression research',
+        'Analyses every phase of the illness',
+        'Connects history, mental status, treatment and outcomes',
+        'Computes cohort statistics instantly',
+        'Supports data export in several formats',
+      ],
+    },
+    forTech: {
+      title: 'For hiring managers and tech leads',
+      list: [
+        'Demonstrates medical application engineering skills',
+        'Shows a deliberate, uncompromised architecture',
+        'Single source of truth for the whole application',
+        'Automatic synchronization of DB, validation and UI layers',
+        'Zero cold start on serverless infrastructure',
+      ],
+    },
+    capabilitiesTitle: 'Registry capabilities',
     cardPassportTitle: 'Patient passport and history',
     cardPassportText:
-      'Socio-demographic profile, family history, onset age, and somatic comorbidities with computed age at baseline inclusion.',
+      'Interface for filling in the socio-demographic profile. Includes anonymized personal data and study-consent management. Some values are computed automatically — for example, the age at disease onset.',
     cardMatrixTitle: 'Disease-phase matrix',
     cardMatrixText:
-      'Unified tracking across retrospective episodes (1..N), current status (98), and catamnesis (99): symptoms, medication dosages, switch reasons, and clinical scales.',
-    cardReportsTitle: 'Analytics and de-identification',
+      'A convenient interface for capturing the disease history. It is a matrix of depressive phases where the clinician, while interviewing the patient, can record symptoms across several episodes at once. It also tracks the state dynamics in the current phase.',
+    cardReportsTitle: 'Analytics and export',
     cardReportsText:
-      'Automated computation of intermission intervals, seasonality, and phase structure, plus de-identified dataset export (CSV, JSON, Excel) for publications.',
-    cardDictionaryTitle: 'Self-documenting data dictionary',
+      'Automatic computation of the key cohort metrics, presented in a clear visual form. Data export in several formats (Excel, CSV, JSON) for statistical analysis.',
+    cardDictionaryTitle: 'Glossary of terms',
     cardDictionaryText:
-      'Live Data Dictionary generated directly from the field registry: doctors inspect clinical definitions, while engineers see types, validators, and SQLite columns.',
-    techHighlightsTitle: 'Key engineering highlights',
+      'A live glossary formed directly from the single field registry: clinicians see the clinical meaning of each sign, while engineers see types, validators and DB columns.',
+    techHighlightsTitle: 'Key engineering decisions',
     highlightRegistryTitle: 'Registry-Driven Core (SSOT)',
-    highlightRegistryText:
-      'One TypeScript registry generates the Cloudflare D1 (SQLite) schema, Zod validation schemas, form UI controls, and the Data Dictionary. The “field = column” invariant eliminates layer desynchronization.',
+    highlightRegistryText1:
+      'A single declarative TS field registry generates the Cloudflare D1 (SQLite) schema, Zod validation schemas, UI input fields and the Data Dictionary. The “field = column” invariant rules out layer desynchronization.',
+    highlightRegistryText2:
+      'This approach speeds up development and reduces the number of errors: adding a new sign to the registry automatically updates every layer, including the DB migration, validation and UI.',
     highlightMatrixTitle: 'Virtualized grid with CAS',
-    highlightMatrixText:
-      'TanStack Virtual + CSS Grid with native sticky headers and columns without manual scroll sync. Compare-And-Swap (HTTP 409 Conflict) optimistic locking prevents silent clinical data overwrites.',
+    highlightMatrixText1:
+      'TanStack Virtual + CSS Grid with sticky columns. Optimistic field locking (Compare-And-Swap).',
+    highlightMatrixText2:
+      'The interface stays fast even with large amounts of data, validates entered values automatically, supports several clinicians working together, and protects against data loss during concurrent editing of the same patient.',
     highlightEdgeTitle: 'Serverless Edge stack and security',
-    highlightEdgeText:
-      'Next.js 16 on Cloudflare Workers + D1. Native Web Crypto API (PBKDF2-SHA256, 600k iterations), HttpOnly session cookies with SHA-256 tokens in D1, Row-Level Access (data_scope), and hash-chained audit logging.',
+    highlightEdgeText1:
+      'Next.js 16 on Cloudflare Workers + D1. Web Crypto cryptography, sessions in HttpOnly cookies, Row-Level Access and a hash-chain log for auditing mutations.',
+    highlightEdgeText2:
+      'The application starts instantly, with no heavy dependencies and low running cost even on large datasets. It runs on serverless infrastructure, which simplifies scaling, and all data is protected.',
     diagramTitle: 'System context & container architecture (C4 Model)',
     diagramAlt: 'C4 overview: system context and containers of RDD',
     diagramSrc: '/diagrams/c4-overview.en.svg',
@@ -121,13 +156,13 @@ export const en: DictShape = {
       'RDD is a specialized clinical web registry for longitudinal tracking of patients with recurrent depressive disorder, and simultaneously a full-stack architectural portfolio at Senior / Staff Engineer level. The system solves the primary challenge of clinical research: collecting deeply structured, longitudinal medical data with absolute guarantees against data loss and codebase desynchronization.',
     clinicalSectionTitle: '1. Clinical Context and Domain Expertise',
     clinicalBackground:
-      'The registry data model is grounded in a 10-year longitudinal clinical study of recurrent depressive disorder in late-life patients conducted by the author at the V.M. Bekhterev National Medical Research Center for Psychiatry and Neurology (St. Petersburg, 2015, PhD in Psychiatry).',
+      'The registry data model is grounded in a 6-year study of recurrent depressive disorder in late-life patients conducted by the author at the V.M. Bekhterev National Medical Research Center for Psychiatry and Neurology (St. Petersburg, 2015, PhD in Psychiatry).',
     clinicalProblemTitle: 'What Clinical Problem Does It Solve?',
     clinicalProblemText:
-      'In psychiatric research, traditional tooling (Excel spreadsheets, Google Forms, off-the-shelf EDC/CRMs like RedCap) rapidly fails: it cannot validate the temporal sequence of affective phases, fails to tie pharmacotherapy regimens to symptom dynamics, and allows conflicting entries. RDD encodes clinical reasoning into the system architecture: normalized patient passport, dynamic phase matrix (1..N, admission 98, catamnesis 99), automated pure-remission calculations, and psychometric rating scales (HAM-D, MMSE, Clock Drawing Test).',
+      'In psychiatric research, traditional tooling (Excel spreadsheets, generic Google Forms surveys, systems like RedCap) rapidly hits a wall: it cannot validate the temporal sequence of affective phases, fails to tie pharmacotherapy switches to symptom dynamics, and allows conflicting entries. RDD moves clinical reasoning directly into the system architecture: a normalized patient passport and a dynamic phase matrix (1..N, admission, discharge) covering the clinical picture of phases and intermissions, treatment effectiveness, and psychometric rating scales.',
     archSectionTitle: '2. Architecture: Registry-Driven Core (SSOT)',
     archRegistryText:
-      'The central failure mode of clinical applications with dozens of diagnostic variables is schema drift between SQLite tables, server validation, UI form components, and documentation. RDD solves this with a Single Source of Truth:',
+      'The central problem of medical systems with dozens of clinical signs is the difficulty of adapting the application to changes in the study design. Whenever a change is introduced, there is a constant risk of desynchronization between the database schema, backend validation, UI form components, and the data dictionary. RDD implements the Single Source of Truth approach:',
     archRegistryPoint1:
       'A single declarative TypeScript object (src/shared/config/registry/) defines each field: SQLite data type, UI component, min/max bounds, clinical options, and calculation formulas.',
     archRegistryPoint2:
@@ -136,15 +171,15 @@ export const en: DictShape = {
       'The “Field = Column” invariant: binary clinical signs are flat INTEGER 0/1 columns. This eliminates opaque JSON blobs and heavy EAV patterns, enabling direct high-throughput SQL aggregations.',
     matrixSectionTitle: '3. High-Performance Phase Grid (Matrix)',
     matrixText:
-      'The phase matrix is the clinician’s primary workspace, rendering hundreds of dynamic clinical cells simultaneously:',
+      'Applications like this often suffer from poor usability when filling in clinical signs, and the interface can lag because of the sheer volume of data. We built the “phase matrix” — the clinician’s central tool that displays hundreds of cells of disease signs at once:',
     matrixPoint1:
-      'Zero-JS hybrid scrolling: rows render via CSS Grid where the left label column uses native position: sticky; left: 0. This completely avoids desynchronization of independent scroll containers.',
+      'Hybrid scrolling without JS synchronization: rows render via CSS Grid, where the left column with the sign name uses the native “position: sticky” rule. This ruled out desynchronization of independent scroll layers.',
     matrixPoint2:
       'TanStack Virtual row windowing: only rows within the visible viewport are kept in the DOM, guaranteeing high performance even on massive patient charts.',
     matrixPoint3:
       'Fine-grained Zustand store: editing a cell re-renders only that specific DOM node via subscription selectors, leaving the rest of the table untouched.',
     matrixPoint4:
-      'Compare-And-Swap (CAS) data protection: concurrent edits by clinicians are verified against the record version. On collision (HTTP 409 Conflict), the doctor sees an interactive diff of both values — silent overwrites are impossible by design.',
+      'Data-loss protection (Compare-And-Swap): concurrent edits by several clinicians are verified against the record version. On a conflict (HTTP 409 Conflict) the doctor sees the difference between their own value and the colleague’s version — silent overwrites are impossible by design.',
     edgeSectionTitle: '4. Edge Infrastructure, Audit, and Security',
     edgeText:
       'The application runs entirely on Cloudflare serverless edge infrastructure (Workers + Pages + D1 Database) with Next.js 16 App Router and zero cold start:',
@@ -161,6 +196,15 @@ export const en: DictShape = {
       'Demo scope: fully functional registry business logic running on synthetic clinical profiles on Cloudflare global edge.',
     boundariesScope2:
       'Production requirements: HIPAA/GDPR compliance, Cloudflare WAF against L7 floods, automated D1 Point-in-Time Recovery, and integration with hospital EHRs via HL7 FHIR.',
+    archPoint1Label: '01. Description',
+    archPoint2Label: '02. Generation',
+    archPoint3Label: '03. Invariant',
+    matrixPoint1Label: 'Hybrid scroll, no JS',
+    matrixPoint2Label: 'TanStack virtualization',
+    matrixPoint3Label: 'Atomic Zustand store',
+    matrixPoint4Label: 'CAS version control (409)',
+    boundariesScope1Label: 'Current demo scope',
+    boundariesScope2Label: 'Production requirements',
     thesisLink: 'PhD Thesis Abstract (Bekhterev Institute)',
     thesisUrl:
       'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
@@ -169,23 +213,7 @@ export const en: DictShape = {
     backHome: '← Back to Home',
     openDemo: 'Open Demo Interface',
   },
-  homeHub: {
-    title: 'Working hub',
-    greeting: 'Signed in as',
-    searchPlaceholder: 'Patient #',
-    search: 'Search',
-    cardPatientsTitle: 'Patients',
-    cardPatientsText:
-      'Patient list and cards: search by number, the passport, a jump into the phase matrix.',
-    cardReportsTitle: 'Reports',
-    cardReportsText: 'Cohort aggregates and de-identified export as csv / json / xlsx.',
-    cardDictionaryTitle: 'Data Dictionary',
-    cardDictionaryText:
-      'The Data Dictionary is auto-generated from the field registry and stays in sync with the D1 schema.',
-    cardDocsTitle: 'Documentation',
-    cardDocsText:
-      'Curated digests: architecture, security, NFR/RTO/RPO, roadmap. Full texts live on GitHub.',
-  },
+
   docsHub: {
     title: 'Documentation',
     intro:
