@@ -69,7 +69,7 @@ export const en: DictShape = {
     subtitle:
       'Specialized clinical web registry for longitudinal tracking and analysis of late-life depressive disorders. Engineering showcase at Senior/Architect level: single TS field registry, virtualized phase matrix, and serverless Cloudflare Edge runtime.',
     domainNote:
-      'Built at the intersection of medicine and engineering: the phase structure, pharmacotherapy dynamics, and remission criteria stem from the author’s 10-year clinical PhD research.',
+      'Built at the intersection of medicine and engineering: the phase structure, pharmacotherapy dynamics, and remission criteria stem from the author’s 6-year clinical PhD research.',
     login: 'Sign in to demo',
     about: 'About the project',
     docs: 'Architecture Overview (GitHub)',

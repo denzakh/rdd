@@ -3,7 +3,6 @@ import { getCurrentUserSafe } from '@/shared/api'
 import { Header } from '@/features/auth'
 import { SiteHeader } from '@/widgets/site-header'
 import { Landing } from '@/widgets/landing'
-import { HomeHub } from '@/widgets/home-hub'
 
 /**
  * Точка входа `/` (docs/ru/spec-public-2.md §2): гость → `<Landing/>` (PR1),
@@ -13,15 +12,6 @@ import { HomeHub } from '@/widgets/home-hub'
  */
 export default async function Home() {
   const [locale, user] = await Promise.all([getLocale(), getCurrentUserSafe()])
-
-  if (user) {
-    return (
-      <div>
-        <Header displayName={user.displayName} role={user.role} />
-        <HomeHub user={user} locale={locale} />
-      </div>
-    )
-  }
 
   const landing = await getDict('landing')
 

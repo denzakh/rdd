@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Namespaces } from '@/shared/lib/intl'
+import { distDir } from 'vitest/node'
 
 type LandingDict = Namespaces['landing']
 
@@ -36,6 +37,77 @@ function CardIcon({ src }: { src: string }) {
   )
 }
 
+function GoalIcon(icon) {
+  return (
+    <div className="flex h-16 w-16 shrink-0 items-center justify-center opacity-70">{icon}</div>
+  )
+}
+
+const iconCross = (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+    <g transform="scale(1.18) translate(-8,-7)" fill="#cccccc">
+      <path
+        d="M 32 10
+       H 68
+       V 32
+       H 90
+       V 68
+       H 68
+       V 90
+       H 32
+       V 68
+       H 10
+       V 32
+       H 32
+       Z"
+      />
+      <path
+        d="M 44 22
+       H 56
+       V 44
+       H 78
+       V 56
+       H 56
+       V 78
+       H 44
+       V 56
+       H 22
+       V 44
+       H 44
+       Z"
+        fill="#ffffff"
+      />
+    </g>
+  </svg>
+)
+
+const IconMachine = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1280" viewBox="0 0 1280 1280">
+    <g transform="translate(0,1280) scale(0.1,-0.1)" fill="#cccccc">
+      <path d="M5385 12786c-92-29-158-87-199-175-21-45-21-56-24-687l-3-640-102-29c-388-108-835-298-1166-495l-85-51-465 465c-439 437-469 465-521 482-82 27-173 23-246-10-53-24-130-98-730-699-746-747-718-714-719-847 0-142-17-120 494-633l456-458-24-42c-132-236-243-467-329-682-59-148-154-435-189-570l-18-70-640-5-640-5-57-28c-65-32-121-89-152-156l-21-46 0-1005 0-1005 28-57c32-65 89-121 156-152 45-21 56-21 691-24l645-3 43-151c104-365 300-824 477-1112l44-71-57-60c-31-33-179-184-327-335-610-619-580-582-580-725 1-63 6-90 24-130 19-40 160-187 695-722 460-460 685-678 714-692 90-45 197-47 290-5 23 11 208 188 497 476l461 458 114-65c328-187 711-348 1077-453l162-47 3-645c3-635 3-646 24-691 31-67 87-124 152-156l57-28 1005 0 1005 0 57 28c65 32 121 89 152 156 21 45 21 56 24 687l3 642 62 17c408 111 818 282 1186 493l114 65 456-460c514-519 499-507 636-507 63 0 91 5 130 23 73 34 1390 1352 1426 1426 34 71 34 200 0 265-15 30-174 197-482 506l-460 460 56 95c85 142 235 454 308 639 66 166 148 414 182 547l19 72 645 3c636 3 647 3 692 24 67 31 124 87 156 152l28 57 0 1005 0 1005-28 57c-32 65-89 121-156 152-45 21-56 21-687 24l-642 3-11 44c-91 360-280 819-490 1185l-71 124 464 466c520 521 502 498 500 640-1 134 23 106-722 852-595 595-673 670-726 694-73 33-164 37-246 10-52-17-82-45-520-482l-466-464-114 66c-326 187-741 360-1117 465l-122 34-3 645c-3 637-3 646-25 692-30 66-95 132-156 159l-52 24-990 2c-779 1-999-1-1030-11z m1160-4527c580-49 1087-347 1410-829 71-106 174-315 215-438 220-653 55-1381-425-1881-557-580-1414-740-2135-400-392 186-696 485-885 874-110 224-163 422-185 680-14 162-1 345 35 520 166 798 849 1403 1665 1474 137 12 171 12 305 0z" />
+    </g>
+    <circle cx="640" cy="640" r="300" fill="#fafafa" />
+  </svg>
+)
+
+function Goal({ title, icon, list }: { title: string; icon: React.ReactNode; list: string[] }) {
+  return (
+    <div className="space-y-1.5">
+      <h3 className="flex items-center gap-4">
+        {GoalIcon(icon)}
+        <span className="text-xl font-semibold text-neutral-700">{title}</span>
+      </h3>
+      <ul className="mt-4 text-sm leading-relaxed text-neutral-600">
+        {list.map((item, index) => (
+          <li key={index} className="list-inside list-disc">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 /**
  * Публичный лендинг (docs/ru/spec-public-1.md §3): hero, CTA, 4 карточки,
  * блок Registry → D1/Zod/UI, границы демо, C4-диаграмма, футер про synthetic data.
@@ -50,9 +122,21 @@ export function Landing({ dict }: { dict: LandingDict }) {
   ]
 
   const highlights = [
-    { title: dict.highlightRegistryTitle, text: dict.highlightRegistryText },
-    { title: dict.highlightMatrixTitle, text: dict.highlightMatrixText },
-    { title: dict.highlightEdgeTitle, text: dict.highlightEdgeText },
+    {
+      title: dict.highlightRegistryTitle,
+      text1: dict.highlightRegistryText1,
+      text2: dict.highlightRegistryText2,
+    },
+    {
+      title: dict.highlightMatrixTitle,
+      text1: dict.highlightMatrixText1,
+      text2: dict.highlightMatrixText2,
+    },
+    {
+      title: dict.highlightEdgeTitle,
+      text1: dict.highlightEdgeText1,
+      text2: dict.highlightEdgeText2,
+    },
   ]
 
   return (
@@ -60,11 +144,11 @@ export function Landing({ dict }: { dict: LandingDict }) {
       {/* 1. Hero Section */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-block rounded-full border border-neutral-300 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-            {dict.badge}
-          </span>
           <span className="inline-block rounded-full bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-800">
             Next.js 16 · Cloudflare Workers · D1 SQLite
+          </span>
+          <span className="inline-block rounded-full bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
+            {dict.badge}
           </span>
         </div>
 
@@ -111,29 +195,13 @@ export function Landing({ dict }: { dict: LandingDict }) {
       </section>
 
       {/* 2. Target Audience */}
-      <section className="space-y-4 rounded-xl border border-neutral-200 bg-neutral-50/70 p-6">
+      <section className="space-y-4 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
         <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">
           {dict.targetAudienceTitle}
         </h2>
         <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <h3 className="flex items-center gap-2 font-semibold text-neutral-900">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                MD
-              </span>
-              {dict.forDoctorsTitle}
-            </h3>
-            <p className="text-sm leading-relaxed text-neutral-600">{dict.forDoctorsText}</p>
-          </div>
-          <div className="space-y-1.5">
-            <h3 className="flex items-center gap-2 font-semibold text-neutral-900">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
-                TS
-              </span>
-              {dict.forTechTitle}
-            </h3>
-            <p className="text-sm leading-relaxed text-neutral-600">{dict.forTechText}</p>
-          </div>
+          <Goal title={dict.forDoctors.title} icon={iconCross} list={dict.forDoctors.list} />
+          <Goal title={dict.forTech.title} icon={IconMachine} list={dict.forTech.list} />
         </div>
       </section>
 
@@ -168,33 +236,14 @@ export function Landing({ dict }: { dict: LandingDict }) {
               className="space-y-2 rounded-xl border border-neutral-200 bg-neutral-50/50 p-5"
             >
               <h3 className="text-sm font-semibold text-neutral-900">{h.title}</h3>
-              <p className="text-xs leading-relaxed text-neutral-600">{h.text}</p>
+              <p className="text-xs leading-relaxed text-neutral-600">{h.text1}</p>
+              <p className="text-xs leading-relaxed text-neutral-600">{h.text2}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 5. C4 Architecture Overview */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-neutral-900">{dict.diagramTitle}</h2>
-          <Link href="/about" className="text-xs font-medium text-cyan-700 hover:underline">
-            {dict.about} →
-          </Link>
-        </div>
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
-          <Image
-            src={dict.diagramSrc}
-            alt={dict.diagramAlt}
-            width={1200}
-            height={1585}
-            unoptimized
-            className="w-full rounded-lg"
-          />
-        </div>
-      </section>
-
-      {/* 6. Demo Boundaries */}
+      {/* 5. Demo Boundaries */}
       <section className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50/50 p-5">
         <h3 className="text-sm font-semibold text-amber-900">{dict.boundariesTitle}</h3>
         <p className="text-xs leading-relaxed text-amber-800">{dict.boundariesText}</p>
