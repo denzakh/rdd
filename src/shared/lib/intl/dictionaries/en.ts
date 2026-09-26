@@ -217,6 +217,9 @@ export const en: DictShape = {
     edgeSectionTitle: '4. Edge Infrastructure, Audit, and Security',
     edgeText:
       'The application runs entirely on Cloudflare serverless edge infrastructure (Workers + Pages + D1 Database) with Next.js 16 App Router and zero cold start:',
+    edgeCryptoTitle: 'Web Crypto API',
+    edgeRlsTitle: 'Row-level access',
+    edgeAuditTitle: 'Tamper-evident audit log',
     edgeCryptoText:
       'Web Crypto API: in the absence of node:crypto on Edge, password hashing is built on PBKDF2-SHA256 (100,000 iterations) with cryptographic salts. Session tokens exist strictly in HttpOnly; Secure; SameSite=Lax cookies, with SHA-256 digests stored in D1.',
     edgeRlsText:
@@ -398,12 +401,12 @@ export const en: DictShape = {
         title: 'Operations and quality',
         cards: [
           {
-            title: 'Cloudflare edge with no cold start',
+            title: 'Cloud hosting that starts instantly',
             problem:
-              'A self-hosted VPS holding medical data is an extra perimeter, manual patching and cold starts.',
+              'Medical data needs hosting you do not have to maintain by hand: no server of your own, no manual patching, and no waiting for the app to warm up after an idle period.',
             solution:
-              'Next.js on Workers and D1 through open-next, released with a single command and zero warm-up time.',
-            why: 'No stateful instances and no secrets: the whole perimeter is static code plus a database.',
+              'The app runs on the Cloudflare cloud platform: code on Workers, the database in D1, and one command releases it through open-next. The site opens right away — there is nothing to warm up.',
+            why: 'No long-running servers and no configuration to keep secret: the whole app is code plus a database.',
             ref: 'deployment.md',
             file: 'deployment.md',
           },

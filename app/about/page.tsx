@@ -107,15 +107,15 @@ export default async function AboutPage() {
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Web Crypto API</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.edgeCryptoTitle}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.edgeCryptoText}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Row-Level Access</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.edgeRlsTitle}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.edgeRlsText}</p>
             </div>
             <div className="space-y-1 rounded-lg border border-neutral-200 bg-neutral-50/70 p-4">
-              <h3 className="text-sm font-semibold text-neutral-900">Hash-Chain Audit</h3>
+              <h3 className="text-sm font-semibold text-neutral-900">{about.edgeAuditTitle}</h3>
               <p className="text-xs leading-relaxed text-neutral-600">{about.edgeAuditText}</p>
             </div>
           </div>
