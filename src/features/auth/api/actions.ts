@@ -27,11 +27,25 @@ export interface LoginState {
   error?: string
 }
 
-export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
-  const email = String(formData.get('email') ?? '')
+/**
+ * Аргумент входа — обычный объект, а НЕ FormData.
+ *
+ * Почему: на проде (OpenNext + Cloudflare Workers) разбор multipart в server
+ * action ломается — в loginAction приходит значение чужой длины (в диагностике
+ * стабильно 15 символов при любой длине отправки), поэтому вход по паролю
+ * невозможен. Локально в Node тот же код работает, что и маскирует проблему.
+ * Объект сериализуется в JSON и multipart-парсер не задействуется вовсе.
+ */
+export interface LoginInput {
+  email: string
+  password: string
+}
+
+export async function loginAction(_prev: LoginState, input: LoginInput): Promise<LoginState> {
+  const email = String(input?.email ?? '')
     .trim()
     .toLowerCase()
-  const password = String(formData.get('password') ?? '')
+  const password = String(input?.password ?? '')
 
   if (!email || !password) return { error: 'Введите email и пароль' }
 
