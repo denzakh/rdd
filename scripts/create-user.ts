@@ -109,12 +109,18 @@ const buildInsertSql = (u: NewUser): string =>
 const buildVerifySql = (id: string): string =>
   `SELECT email, role, created_at FROM users WHERE id = '${sqlQuote(id)}';`
 
-// wrangler d1 execute --json печатает JSON в stdout; парсим с запасом на мусор
+// wrangler d1 execute --json печатает JSON в stdout: начиная с wrangler 4.141 — массив,
+// на более старых версиях — одиночный объект. Учитываем оба формата.
 function parseWranglerJson(stdout: string): Record<string, unknown>[] {
-  const start = stdout.indexOf('{')
-  if (start < 0) throw new Error('Не удалось разобрать вывод wrangler (--json)')
-  const parsed = JSON.parse(stdout.slice(start)) as { results?: Record<string, unknown>[] }
-  return parsed.results ?? []
+  const arrStart = stdout.indexOf('[')
+  const objStart = stdout.indexOf('{')
+  if (arrStart < 0 && objStart < 0) throw new Error('Не удалось разобрать вывод wrangler (--json)')
+  const parsed =
+    arrStart >= 0 && (objStart < 0 || arrStart < objStart)
+      ? (JSON.parse(stdout.slice(arrStart)) as Array<{ results?: Record<string, unknown>[] }>)
+      : (JSON.parse(stdout.slice(objStart)) as { results?: Record<string, unknown>[] })
+  const first = Array.isArray(parsed) ? parsed[0] : parsed
+  return first?.results ?? []
 }
 
 function countUsersRemote(): number {
@@ -189,25 +195,18 @@ function createUserRemote(user: NewUser): void {
     rmSync(dir, { recursive: true, force: true })
   }
 
-  // верификация: читаем запись обратно
-  const verifyDir = mkdtempSync(join(tmpdir(), 'rdd-user-'))
-  const verifyFile = join(verifyDir, 'verify.sql')
-  try {
-    writeFileSync(verifyFile, buildVerifySql(user.id), 'utf8')
-    const out = execSync(
-      `npx wrangler d1 execute ${D1_NAME} --remote --json --file=${verifyFile}`,
-      {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'inherit'],
-      }
-    )
-    const rows = parseWranglerJson(out)
-    const row = rows[0] as { email?: string } | undefined
-    if (!row || row.email !== user.email)
-      throw new Error('Проверка после вставки в remote не прошла')
-  } finally {
-    rmSync(verifyDir, { recursive: true, force: true })
-  }
+  // Верификация: читаем запись обратно через --command, а не --file.
+  // `--file` в ответе отдаёт сводку («Total queries executed»), а не строки SELECT,
+  // поэтому проверять по нему бессмысленно.
+  const sql = buildVerifySql(user.id)
+  if (sql.includes('"')) throw new Error('Недопустимые символы в SQL верификации')
+  const out = execSync(`npx wrangler d1 execute ${D1_NAME} --remote --json --command "${sql}"`, {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'inherit'],
+  })
+  const rows = parseWranglerJson(out)
+  const row = rows[0] as { email?: string } | undefined
+  if (!row || row.email !== user.email) throw new Error('Проверка после вставки в remote не прошла')
 }
 
 // ---------- main ----------
