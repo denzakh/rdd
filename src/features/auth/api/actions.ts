@@ -48,6 +48,15 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   // Одинаковая задержка для неизвестного email и неверного пароля —
   // не раскрываем существование учётной записи.
   const ok = user ? await verifyPassword(password, user.passwordHash!) : false
+
+  // ⚠️ ВРЕМЕННАЯ ДИАГНОСТИКА (удалить после диагностики входа на проде).
+  // Пароль и хеш НЕ логируются — только длина и префикс формата.
+  console.error(
+    `[login-diag] email=${email} userFound=${Boolean(user)} ` +
+      `pwLen=${password.length} hashLen=${user?.passwordHash?.length ?? -1} ` +
+      `hashHead=${user?.passwordHash?.slice(0, 12) ?? 'n/a'} ok=${ok}`
+  )
+
   if (!user || !ok) {
     await new Promise((r) => setTimeout(r, 400))
     if (user) await registerFailedLogin(db, user.id)
