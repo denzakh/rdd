@@ -311,41 +311,42 @@ export const en: DictShape = {
         title: 'Clinician workflow',
         cards: [
           {
-            title: 'Phase matrix over hundreds of signs',
+            title: 'Phase matrix: hundreds of signs without lag',
             problem:
-              'Hundreds of cells across episodes: a plain table lags, and a pinned column with a header needs manual scroll synchronization.',
+              'During one appointment a clinician fills in signs across several episodes of the disease at once — that is hundreds of cells. A plain table with that much data becomes sluggish, and a pinned column of sign names has to be scroll-synchronized by hand.',
             solution:
-              'TanStack virtualization plus CSS Grid, where the left cell of every row uses native position: sticky.',
-            why: 'No second scroll layer at all, only the visible rows live in the DOM, so interaction stays instant.',
+              'Virtualization with TanStack Virtual combined with CSS Grid: only the visible rows are loaded, and the left cell of every row is held in place by the browser itself (position: sticky).',
+            why: 'There is no second scroll layer at all and only visible rows live in the page, so the response stays instant even with hundreds of signs.',
             ref: 'matrix.md §1–2',
             file: 'matrix.md',
           },
           {
-            title: 'Edits without data loss (CAS)',
+            title: 'Edits without data loss: compare and merge (CAS)',
             problem:
-              'Two clinicians edit the same phase: naive optimistic locking just rejects the second patch and silently loses the work.',
+              'Two clinicians may edit the same phase at the same time, and no edit may be lost. Simple locking by modification time would only reject the second attempt and silently throw away the clinician’s work.',
             solution:
-              'Comparison against updated_at from SQLite plus conflict resolution at cell or phase level with a “mine / theirs” diff.',
-            why: 'Client clocks are not trusted, and every conflict resolution is written to the audit log.',
+              'The row version is compared against the updated_at field in the SQLite database itself, and differences are shown to the clinician cell by cell or for the whole phase — with a “mine / theirs” choice.',
+            why: 'The clinician’s computer clock is not treated as the source of truth, and every conflict resolution is written to the audit log.',
             ref: 'matrix.md §6',
             file: 'matrix.md',
           },
           {
-            title: 'De-identified export',
-            problem: 'Researchers need a dataset for R/Python without direct patient identifiers.',
+            title: 'Data export without personal data',
+            problem:
+              'A researcher needs a ready-made dataset for R or Python analysis that contains no direct patient identifiers — no names, dates of birth or medical record numbers.',
             solution:
-              'One aggregated de-identified dataset, then thin CSV/JSON/XLSX adapters on top plus export throttling.',
-            why: 'PII is stripped once before serialization, so a new format physically cannot leak it.',
+              'First a single de-identified dataset is assembled, and plain CSV, JSON and XLSX exports are produced from it; frequent export requests are rate-limited.',
+            why: 'Personal data is stripped once — before the dataset is turned into a file — so a new export format physically cannot slip it through.',
             ref: 'export.md',
             file: 'export.md',
           },
           {
-            title: 'Patient consent',
+            title: 'Patient consent: the fact is recorded, not the scan',
             problem:
-              'Enrollment in a study must be legally recorded, yet the consent text and the signature are not stored in the system.',
+              'Enrolling a patient in a study has to be legally recorded, even though the informed consent form text and the signature are not stored in the system.',
             solution:
-              'The consent date is set automatically when the record is created, the form version is a text field, and withdrawal is a separate action.',
-            why: 'The system keeps only the date, the version and the fact of withdrawal; scans and e-signatures are deliberately out of scope.',
+              'The consent date is set automatically when the record is created, the form version is kept in a text field, and withdrawal of consent is a separate action.',
+            why: 'The system keeps the date, the form version and the fact of withdrawal — enough to prove the procedure was followed. Scans and electronic signatures are deliberately out of scope.',
             ref: 'consent.md',
             file: 'consent.md',
           },
@@ -386,12 +387,12 @@ export const en: DictShape = {
             file: 'matrix.md',
           },
           {
-            title: 'Two-tier route protection',
+            title: 'Two lines of defence for pages',
             problem:
-              'A page without a server-side check stays reachable through a direct link from browser history.',
+              'A page that the interface hides but the server never checks stays reachable through a direct link — from browser history or from the list of visited pages.',
             solution:
-              'Middleware on cookie presence (fast) plus requireUser() validating the session in the DB (strict).',
-            why: 'UI checks are not protection: every mutating action additionally asks canWrite().',
+              'The first line is a cookie check in middleware: it is fast and turns away most requests. The second is the requireUser() function, which validates the session in the database on every call.',
+            why: 'Checks in the user interface do not count as protection, and every data change additionally asks for write permission (canWrite).',
             ref: 'auth.md §7',
             file: 'auth.md',
           },
@@ -412,31 +413,32 @@ export const en: DictShape = {
             file: 'deployment.md',
           },
           {
-            title: 'NFR: availability and RTO/RPO',
+            title: 'Service reliability and acceptable data loss',
             problem:
-              'A demo without an SLA: what is guaranteed today and what stays a production goal.',
+              'The demo version has no service level agreement: it is unclear what is already guaranteed and what remains a goal for production use.',
             solution:
-              'Availability and the 5xx SLO, RTO ≤ 4 h, RPO ≤ 1 h, plus performance thresholds for the matrix and the network are all written down.',
+              'Concrete numbers are written down: the share of time the service is available (availability) and the allowed share of 5xx errors, recovery time of at most 4 hours (RTO), data loss of at most 1 hour (RPO), plus performance thresholds for the matrix and the network.',
             why: 'Numbers instead of slogans: they show exactly what moves into a production environment.',
             ref: 'nfr.md',
             file: 'nfr.md',
           },
           {
-            title: 'CI and quality gates',
-            problem: 'Regressions in medical logic are noticed by a clinician, not by a test.',
+            title: 'Automated quality checks on every build',
+            problem:
+              'A mistake in the medical logic — a broken registry rule or a wrong conflict resolution — is usually noticed by a clinician during real work, not by a test.',
             solution:
-              'GitHub Actions: lint + tsc + steiger (FSD layers) plus unit and integration tests against a local D1.',
-            why: 'Registry, CAS and audit invariants are verified before a deploy, not after a complaint.',
+              'Every change is checked in GitHub Actions: style check, type check, the feature-sliced design layer rule (steiger), and unit and integration tests against a local D1 database.',
+            why: 'The invariants of the registry, of version comparison and of the audit log are verified before a deploy, not after a complaint.',
             ref: 'spec-stage-4.md',
             file: 'spec-stage-4.md',
           },
           {
             title: 'Manual deploy and rollback',
             problem:
-              'Auto-deploy is dangerous: migrations and production-data operations must stay under human control.',
+              'Automatic deploys are dangerous for medical data: schema migrations and operations on the production database must stay under a human’s control.',
             solution:
-              'A release is npm run deploy, a code rollback is returning to the previous worker version, and data is handled by dump and reset per checklist.',
-            why: 'Production operations require an explicit action, which lowers the risk of irreversible changes.',
+              'A release is a single npm run deploy command, a code rollback means switching back to the previous worker version, and data is handled only per checklist: dump first, restore second.',
+            why: 'Production operations require an explicit human action, which noticeably lowers the risk of irreversible changes.',
             ref: 'deployment.md §8',
             file: 'deployment.md',
           },
