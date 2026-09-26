@@ -194,7 +194,7 @@ export const ru = {
     edgeText:
       'Приложение развернуто в бессерверном рантайме Cloudflare (Workers + Pages + D1 Database) на базе Next.js 16 App Router с нулевым cold start:',
     edgeCryptoText:
-      'Криптография на Web Crypto API: из-за отсутствия node:crypto на Edge хэширование паролей реализовано через PBKDF2-SHA256 (600 000 итераций) с солью. Токен сессии хранится в HttpOnly; Secure; SameSite=Lax cookie, а в БД — только SHA-256 дайджест.',
+      'Криптография на Web Crypto API: из-за отсутствия node:crypto на Edge хэширование паролей реализовано через PBKDF2-SHA256 (100 000 итераций) с солью. Токен сессии хранится в HttpOnly; Secure; SameSite=Lax cookie, а в БД — только SHA-256 дайджест.',
     edgeRlsText:
       'Разграничение доступа к данным (Row-Level Access): декларативный data_scope пользователя (all / site / assigned) автоматически инкапсулируется в репозиторий запросов, предотвращая IDOR-уязвимости.',
     edgeAuditText:
@@ -332,7 +332,7 @@ export const ru = {
             title: 'Пароли и сессии на Edge',
             problem: 'В Cloudflare Workers нет node:crypto — bcrypt/argon2 недоступны нативно.',
             solution:
-              'PBKDF2-SHA256 через Web Crypto (600k итераций) и собственные сессии в D1, токен — только в HttpOnly cookie.',
+              'PBKDF2-SHA256 через Web Crypto (100k итераций) и собственные сессии в D1, токен — только в HttpOnly cookie.',
             why: 'Утечка базы не угоняет сессии: в D1 лежит лишь SHA-256 токена.',
             ref: 'auth.md §2, §4–5',
             file: 'auth.md',

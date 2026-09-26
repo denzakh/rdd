@@ -35,7 +35,7 @@ for public access.
 | Password brute force                 | Rate-limit: 5 wrong → 15 min lock                             | spec-stage-3, README |
 | Login enumeration                    | Same 400 ms delay for existing/non-existing emails            | auth.md §6           |
 | Session interception                 | `Secure; HttpOnly; SameSite=Lax`, 12 h TTL, sliding           | auth.md §5           |
-| Weak hash (DB theft → offline crack) | PBKDF2-SHA256, 600k iterations, constant-time compare         | auth.md §4           |
+| Weak hash (DB theft → offline crack) | PBKDF2-SHA256, 100k iterations, constant-time compare         | auth.md §4           |
 | Impersonation via invite             | Registration forbidden; admin-only; one-time links, 7-day TTL | auth.md §1–2, §9     |
 
 ### T — Tampering

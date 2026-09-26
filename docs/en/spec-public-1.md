@@ -57,4 +57,4 @@ Disallow: /
 3. `npm run dev:cf` smoke: public pages issue no D1 queries.
 4. RU/EN switch via `<LocaleSwitcher/>` works on `/` and `/about`.
 5. `npm run lint`, `npx tsc --noEmit`, `npm run steiger`, `npm run build` — green; `/` and `/about` build as static, no `getDb`.
-6. Public HTML contains no `database_id`, `pbkdf2`, `600k`, `400ms`, `db:restart:remote` strings.
+6. Public HTML contains no `database_id`, `pbkdf2`, `100k`, `400ms`, `db:restart:remote` strings.

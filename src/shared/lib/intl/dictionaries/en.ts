@@ -218,7 +218,7 @@ export const en: DictShape = {
     edgeText:
       'The application runs entirely on Cloudflare serverless edge infrastructure (Workers + Pages + D1 Database) with Next.js 16 App Router and zero cold start:',
     edgeCryptoText:
-      'Web Crypto API: in the absence of node:crypto on Edge, password hashing is built on PBKDF2-SHA256 (600,000 iterations) with cryptographic salts. Session tokens exist strictly in HttpOnly; Secure; SameSite=Lax cookies, with SHA-256 digests stored in D1.',
+      'Web Crypto API: in the absence of node:crypto on Edge, password hashing is built on PBKDF2-SHA256 (100,000 iterations) with cryptographic salts. Session tokens exist strictly in HttpOnly; Secure; SameSite=Lax cookies, with SHA-256 digests stored in D1.',
     edgeRlsText:
       'Row-Level Access: declarative data_scope (all / site / assigned) is enforced at the repository query boundary, eliminating IDOR vulnerabilities.',
     edgeAuditText:
@@ -356,7 +356,7 @@ export const en: DictShape = {
             problem:
               'Cloudflare Workers has no node:crypto, so bcrypt/argon2 are not available natively.',
             solution:
-              'PBKDF2-SHA256 through Web Crypto (600k iterations) and own sessions in D1, with the token living only in an HttpOnly cookie.',
+              'PBKDF2-SHA256 through Web Crypto (100k iterations) and own sessions in D1, with the token living only in an HttpOnly cookie.',
             why: 'A database leak does not hijack sessions: D1 only holds the SHA-256 of the token.',
             ref: 'auth.md §2, §4–5',
             file: 'auth.md',

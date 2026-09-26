@@ -82,7 +82,7 @@ not "just optimistic locking".
 **Options:** Auth.js/Lucia (extra dependency, no OAuth scenario), Cloudflare Access
 (CF-account tie-in), public registration (forbidden — PII).
 
-**Decision:** own D1-backed sessions + **PBKDF2-SHA256 via Web Crypto** (600k iterations,
+**Decision:** own D1-backed sessions + **PBKDF2-SHA256 via Web Crypto** (100k iterations,
 params embedded in hash string). Token lives only in HttpOnly cookie; DB holds
 SHA-256(token). Two-level route protection: middleware on cookie presence (fast) +
 `requireUser()` with DB validation (strict).
@@ -129,7 +129,7 @@ input→persist debounce 300 ms with CAS version token.
 | Password brute force             | Rate-limit: 5 wrong → 15 min lock                           | `ru/spec-stage-3.md`, README    |
 | Login enumeration                | Constant ~400 ms for existing/non-existing emails           | `ru/auth.md` §6                 |
 | DB leak → session hijack         | DB holds only SHA-256(token); raw token in HttpOnly cookie  | `ru/auth.md` §5                 |
-| Weak password hash               | PBKDF2-SHA256 600k, constant-time compare                   | `ru/auth.md` §4                 |
+| Weak password hash               | PBKDF2-SHA256 100k, constant-time compare                   | `ru/auth.md` §4                 |
 | Cookie interception              | `Secure; HttpOnly; SameSite=Lax`, 12 h TTL, sliding         | `ru/auth.md` §5                 |
 | Mutation bypassing UI (readonly) | UI `isReadOnly` + `canWrite()` in every Server Action       | `spec-stage-1.md` §1, §3        |
 | IDOR on patients                 | `data_scope` + scope-repository on list/count/findById      | `auth.md` — Row-level access    |

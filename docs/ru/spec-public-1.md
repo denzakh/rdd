@@ -57,4 +57,4 @@ Disallow: /
 3. `npm run dev:cf`: публичные страницы не делают запросов к D1.
 4. RU/EN-переключение через `<LocaleSwitcher/>` работает на `/` и `/about`.
 5. `npm run lint`, `npx tsc --noEmit`, `npm run steiger`, `npm run build` — зелёные; `/` и `/about` собираются как статика без `getDb`.
-6. В публичном HTML нет строк `database_id`, `pbkdf2`, `600k`, `400 мс`, `db:restart:remote`.
+6. В публичном HTML нет строк `database_id`, `pbkdf2`, `100k`, `400 мс`, `db:restart:remote`.
