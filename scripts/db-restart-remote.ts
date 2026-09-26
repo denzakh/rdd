@@ -82,20 +82,30 @@ function parseWranglerJson(stdout: string): Record<string, unknown>[] {
   return rows
 }
 
-/** Выполнить SELECT через wrangler и получить строки (SQL пишется во временный файл). */
+/**
+ * Выполнить SELECT через wrangler и получить строки.
+ *
+ * ⚠️ Именно `--command`, а НЕ `--file`: начиная с wrangler 4.x для батча (`--file`)
+ * в `results` приходят только мета-данные (`Total queries executed`, `Rows read`, …),
+ * а строки SELECT теряются — скрипт получал «таблицу» с `name: undefined`.
+ * С `--command` строки возвращаются как есть.
+ *
+ * SQL обязателен в одинарных кавычках (идентификаторы вида `'patients'`), иначе
+ * двойные кавычки разорвут аргумент командной строки Windows.
+ */
 function queryRows(sql: string): Record<string, unknown>[] {
-  const dir = mkdtempSync(join(tmpdir(), 'rdd-reset-'))
-  try {
-    const file = join(dir, 'query.sql')
-    writeFileSync(file, sql, 'utf8')
-    const out = execSync(
-      `npx wrangler d1 execute ${D1_NAME} ${targetFlag} --json --file="${file}"`,
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], cwd: projectRoot }
+  const out = execSync(
+    `npx wrangler d1 execute ${D1_NAME} ${targetFlag} --json --command "${sql}"`,
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], cwd: projectRoot }
+  )
+  const rows = parseWranglerJson(out)
+  if (rows.length === 0) {
+    throw new Error(
+      `wrangler не вернул ни одной строки для запроса: ${sql}\n` +
+        'Формат вывода wrangler изменился — обновите parseWranglerJson в scripts/db-restart-remote.ts'
     )
-    return parseWranglerJson(out)
-  } finally {
-    rmSync(dir, { recursive: true, force: true })
   }
+  return rows
 }
 
 interface TableInfo {
@@ -158,7 +168,7 @@ function dropOrder(tables: TableInfo[]): string[] {
 /** Количество строк в таблице (null — таблицы нет или запрос не удался). */
 function countRows(table: string): number | null {
   try {
-    const rows = queryRows(`SELECT COUNT(*) AS c FROM "${table}";`)
+    const rows = queryRows(`SELECT COUNT(*) AS c FROM '${table}';`)
     const value = rows[0]?.c
     return value === undefined || value === null ? null : Number(value)
   } catch {

@@ -8,6 +8,7 @@
  * Неинтерактивный режим (для CI/автоматизации):
  *   tsx scripts/create-user.ts --email a@b.ru --name "Имя" --role admin --password "..."
  *   tsx scripts/create-user.ts --email a@b.ru --gen-password   (пароль напечатается один раз)
+ *   … --remote --yes — пропустить подтверждение «prod» (иначе скрипт ждёт ввода с клавиатуры)
  *
  * Первый пользователь в базе всегда получает роль admin.
  * Публичной регистрации нет — пользователи заводятся только этим скриптом.
@@ -59,6 +60,7 @@ async function ask(rl: ReturnType<typeof makeRl>, question: string, def = ''): P
 
 interface Args {
   remote: boolean
+  yes: boolean
   email?: string
   name?: string
   role?: string
@@ -78,6 +80,7 @@ function parseArgs(): Args {
   const password = get('--password')
   return {
     remote: flags.has('--remote'),
+    yes: flags.has('--yes'),
     email,
     name: get('--name'),
     role: get('--role'),
@@ -267,7 +270,9 @@ async function main(): Promise<void> {
       role = 'clinician'
     }
 
-    if (args.remote) {
+    // Подтверждение записи в прод. `--yes` пропускает его — нужно для CI/агентов,
+    // где ввод с клавиатуры недоступен (иначе скрипт висит на вопросе).
+    if (args.remote && !args.yes) {
       const answer = await ask(
         rl,
         `Записать в ${D1_NAME} (remote)? Напечатайте "prod" для подтверждения`
