@@ -24,6 +24,7 @@ const ITEMS = [
 /**
  * Верхнее общее меню: Пациенты, Отчёты, Словарь данных, Документация
  * (для админа дополнительно — Пользователи).
+ * Лого слева — ссылка на главную `/` (публичная витрина, docs/ru/spec-public-1.md §2).
  * Клиентский компонент — использует `usePathname()` для подсветки
  * активного раздела (включая вложенные роуты, напр. `/patients/123`).
  * Локаль и тексты получает из пропса `locale`, как и `<LocaleSwitcher />`.
@@ -36,9 +37,15 @@ export function TopNavigation({ locale, role }: { locale: Locale; role?: string 
 
   return (
     <nav className="flex items-center gap-6 text-sm">
-      <div className="opacity-80">
+      {/* Лого — ссылка на главную витрину `/` (та же точка входа, что и у SiteHeader). */}
+      <Link
+        href="/"
+        title={common.home}
+        aria-label={common.home}
+        className="flex items-center opacity-80 hover:opacity-100"
+      >
         <Image src="/favicon.svg" alt="RDD" width={32} height={32} unoptimized />
-      </div>
+      </Link>
       {items.map(({ href, key }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
         return (

@@ -34,6 +34,8 @@ export const en: DictShape = {
     userManagement: 'Users',
     /** Label of the `/change-password` link in the header (key icon). */
     changePasswordLink: 'Change password',
+    /** Label of the header logo link (points to the `/` landing page). */
+    home: 'Home',
     search: 'Search',
     save: 'Save',
     saving: 'Saving…',
