@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { acceptInviteAction, type AcceptInviteState } from '../api/actions'
+import { MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 
 const initialState: AcceptInviteState = {}
 
@@ -36,7 +37,7 @@ export function InviteAcceptForm({
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium">
-          Пароль (мин. 10 символов)
+          Пароль (мин. {MIN_PASSWORD_LENGTH} символов)
         </label>
         <input
           id="password"
@@ -44,7 +45,7 @@ export function InviteAcceptForm({
           type="password"
           autoComplete="new-password"
           required
-          minLength={10}
+          minLength={MIN_PASSWORD_LENGTH}
           className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
         />
       </div>
@@ -58,7 +59,7 @@ export function InviteAcceptForm({
           type="password"
           autoComplete="new-password"
           required
-          minLength={10}
+          minLength={MIN_PASSWORD_LENGTH}
           className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
         />
       </div>

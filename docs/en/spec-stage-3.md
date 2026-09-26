@@ -42,7 +42,7 @@ CREATE TABLE invites (
 
 ## 4. Password change
 
-- `/change-password` page: "current", "new", "repeat" fields; policy ≥10 characters — the same as in `password.ts`.
+- `/change-password` page: "current", "new", "repeat" fields; policy ≥8 characters — the same as in `password.ts`.
 - Server Action `changePasswordAction`: `verifyPassword` → PBKDF2 hash of the new one → UPDATE + `must_change_password = 0`
   → all other sessions of the user are invalidated (DELETE from `sessions` by `user_id`, except the current one).
 - `requireUser()` at `must_change_password=1` and a route ≠ `/change-password`, `/login` → `redirect('/change-password')`.

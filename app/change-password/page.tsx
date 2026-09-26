@@ -1,5 +1,6 @@
 import { ChangePasswordForm } from '@/features/auth/ui/change-password-form'
 import { requireUser } from '@/shared/api'
+import { MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 
 /** Страница смены пароля (в т.ч. принудительной — must_change_password=1). */
 export default async function ChangePasswordPage() {
@@ -10,7 +11,7 @@ export default async function ChangePasswordPage() {
         <header className="space-y-1 text-center">
           <h1 className="text-lg font-semibold">Смена пароля</h1>
           <p className="text-sm text-neutral-500">
-            Минимум 10 символов. Другие сессии будут завершены.
+            Минимум {MIN_PASSWORD_LENGTH} символов. Другие сессии будут завершены.
           </p>
         </header>
         <ChangePasswordForm />

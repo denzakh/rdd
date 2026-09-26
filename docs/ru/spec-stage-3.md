@@ -42,7 +42,7 @@ CREATE TABLE invites (
 
 ## 4. Смена пароля
 
-- Страница `/change-password`: поля «текущий», «новый», «повтор»; политика ≥10 символов — та же, что в `password.ts`.
+- Страница `/change-password`: поля «текущий», «новый», «повтор»; политика ≥8 символов — та же, что в `password.ts`.
 - Server Action `changePasswordAction`: `verifyPassword` → PBKDF2-хэш нового → UPDATE + `must_change_password = 0`
   → инвалидируются все прочие сессии пользователя (DELETE из `sessions` по `user_id`, кроме текущей).
 - `requireUser()` при `must_change_password=1` и маршруте ≠ `/change-password`, `/login` → `redirect('/change-password')`.

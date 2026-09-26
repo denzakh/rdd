@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useActionState } from 'react'
 import { changePasswordAction, type ChangePasswordState } from '../api/actions'
+import { MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 
 const initialState: ChangePasswordState = {}
 
@@ -39,7 +40,7 @@ export function ChangePasswordForm() {
             type="password"
             autoComplete={autoComplete}
             required
-            minLength={name === 'current' ? 1 : 10}
+            minLength={name === 'current' ? 1 : MIN_PASSWORD_LENGTH}
             className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
           />
         </div>

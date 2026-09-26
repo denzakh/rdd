@@ -53,7 +53,7 @@ async function deriveBits(
   )
 }
 
-export const MIN_PASSWORD_LENGTH = 10
+export const MIN_PASSWORD_LENGTH = 8
 
 /** Генерация пароля: 12 случайных байт base64url (16 символов), показывается один раз. */
 export const generatePassword = (): string => {

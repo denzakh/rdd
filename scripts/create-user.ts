@@ -21,13 +21,12 @@ import { join } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { Writable } from 'node:stream'
 import { getPlatformProxy } from 'wrangler'
-import { hashPassword } from '../src/shared/lib/password'
+import { hashPassword, MIN_PASSWORD_LENGTH } from '../src/shared/lib/password'
 
 const ROLES = ['admin', 'clinician', 'readonly'] as const
 type Role = (typeof ROLES)[number]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const MIN_PASSWORD_LENGTH = 8
 const D1_NAME = 'rdd'
 
 // ---------- ввод ----------

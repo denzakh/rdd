@@ -10,7 +10,7 @@
  * новый хеш, сброс счётчика неудачных попыток и снятие блокировки.
  */
 import { execSync } from 'node:child_process'
-import { hashPassword, verifyPassword } from '../src/shared/lib/password'
+import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '../src/shared/lib/password'
 
 const D1_NAME = 'rdd'
 
@@ -44,7 +44,8 @@ async function main(): Promise<void> {
   const password = process.env.RDD_NEW_PASSWORD ?? ''
   if (!email)
     throw new Error('Укажите email: npx tsx scripts/reset-password-remote.ts user@example.com')
-  if (password.length < 10) throw new Error('Пароль должен быть не короче 10 символов')
+  if (password.length < MIN_PASSWORD_LENGTH)
+    throw new Error(`Пароль должен быть не короче ${MIN_PASSWORD_LENGTH} символов`)
 
   const existing = query(`SELECT id FROM users WHERE email = '${sqlQuote(email)}';`)
   if (!existing.length) throw new Error(`Пользователь ${email} не найден`)

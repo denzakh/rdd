@@ -49,7 +49,9 @@ only by the admin. Key stack constraints:
 - Hash format: `pbkdf2$<iterations>$<salt-hex>$<hash-hex>` — parameters are inside
   the string, raising iterations does not break old hashes.
 - Verification — constant-time comparison (`verifyPassword`).
-- Policy: at least 10 characters; password generation — 12 random bytes base64url.
+- Policy: at least 8 characters (`MIN_PASSWORD_LENGTH` — the single constant in
+  `password.ts`, imported by scripts and forms; hardcoding it in the UI is not
+  allowed); password generation — 12 random bytes base64url.
 - Alternatives bcrypt/argon2 are not available natively in Workers — noted.
 
 ## 5. Sessions (src/shared/api/session-repo.ts)
