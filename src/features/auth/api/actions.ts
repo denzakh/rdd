@@ -19,8 +19,8 @@ import {
   requireUser,
   resetLoginFailures,
   SESSION_COOKIE,
-  SESSION_TTL_HOURS,
 } from '@/shared/api'
+import { sessionCookieOptions } from '@/shared/api/session-cookie'
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '@/shared/lib/password'
 
 export interface LoginState {
@@ -60,13 +60,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
   const token = await createSession(db, user.id, hdrs.get('user-agent') ?? undefined)
 
   const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: SESSION_TTL_HOURS * 3600,
-  })
+  cookieStore.set(SESSION_COOKIE, token, await sessionCookieOptions())
 
   redirect('/patients')
 }

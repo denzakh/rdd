@@ -227,55 +227,286 @@ export const ru = {
   docsHub: {
     title: 'Документация',
     intro:
-      'Курированные выжимки вместо зеркала всех md: полные тексты живут в GitHub (docs/ru + docs/en) и в рантайм не копируются.',
-    architectureTitle: 'Архитектура (выжимка)',
-    architectureText:
-      'Реестр полей — источник правды: один TS-реестр порождает схему D1, Zod-валидацию и UI. Матрица фаз рендерится окном видимости, параллельные правки выявляются через CAS (409), аудит пишется в одном batch с записью.',
-    architectureLink: 'architecture-overview.md на GitHub',
-    architectureUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/architecture-overview.md',
-    securityTitle: 'Безопасность: угроза → мера → где',
+      'Коротко по каждой функции: какую проблему она решает, что выбрано и почему именно так. Полные разборы с порогами эскалации живут в документации репозитория (docs/ru и docs/en) — в рантайм они не копируются.',
+    featuresTitle: 'Функции и принятые решения',
+    problemLabel: 'Проблема',
+    solutionLabel: 'Решение',
+    whyLabel: 'Почему так',
+    groups: [
+      {
+        id: 'data',
+        title: 'Данные и схема',
+        cards: [
+          {
+            title: 'Единый реестр полей (SSOT)',
+            problem:
+              '50+ клинических полей: схема БД, валидация и UI описывались бы в трёх местах и рано или поздно разъезжались.',
+            solution:
+              'Один TS-реестр генерирует схему D1, Zod-схемы, поля ввода, матрицу и словарь данных.',
+            why: 'Инвариант «поле = колонка»: новое или исправленное поле — одна правка в реестре.',
+            ref: 'rdd-v1.md §3',
+            file: 'rdd-v1.md',
+          },
+          {
+            title: 'Бинарные признаки — плоские 0/1',
+            problem:
+              'Десятки диагностических флагов (симптомы, терапия, ремиссия): колонки, EAV, битмаска или JSON?',
+            solution:
+              'Плоские INTEGER 0/1 в общей схеме реестра — пять вариантов рассмотрены, выбран этот.',
+            why: 'Агрегат считается одним WHERE col = 1, а JSON-колонка вывела бы признак из цепочки «реестр → UI».',
+            ref: 'rdd-v1.md §7',
+            file: 'rdd-v1.md',
+          },
+          {
+            title: 'Версионирование протокола без миграций',
+            problem:
+              'CRF меняется по ходу набора: что означает значение, введённое до правки этического комитета?',
+            solution:
+              'registry_version на записи плюс реестр версий; схема меняется только полным ресетом БД.',
+            why: 'Исторические значения не переписываются, экспорт несёт версию протокола на каждой строке.',
+            ref: 'schema-evolution.md',
+            file: 'schema-evolution.md',
+          },
+          {
+            title: 'Живой словарь данных',
+            problem: 'Ручная таблица полей устаревает сразу после первой правки реестра.',
+            solution:
+              'Страница /data-dictionary собирается из того же реестра, из которого генерируется схема D1.',
+            why: 'Врач видит клинический смысл признака, разработчик — типы и колонки; рассинхрон невозможен.',
+            ref: 'data-dictionary.md',
+            file: 'data-dictionary.md',
+          },
+        ],
+      },
+      {
+        id: 'clinical',
+        title: 'Работа врача',
+        cards: [
+          {
+            title: 'Матрица фаз на сотни признаков',
+            problem:
+              'Сотни ячеек по эпизодам: обычная таблица подтормаживает, а фиксированная колонка с шапкой требует ручной синхронизации скролла.',
+            solution:
+              'Виртуализация TanStack + CSS Grid, где левая ячейка каждой строки — нативный position: sticky.',
+            why: 'Никаких двух слоёв скролла, в DOM лежат только видимые строки, реакция мгновенная.',
+            ref: 'matrix.md §1–2',
+            file: 'matrix.md',
+          },
+          {
+            title: 'Правки без потери данных (CAS)',
+            problem:
+              'Два врача правят одну фазу: наивный optimistic locking просто отклонит второй патч и молча потеряет работу.',
+            solution:
+              'Сравнение по updated_at из SQLite плюс разрешение конфликта на уровне ячейки или фазы с показом «моё / чужое».',
+            why: 'Клиентскому времени не доверяем, а каждое разрешение конфликта попадает в аудит.',
+            ref: 'matrix.md §6',
+            file: 'matrix.md',
+          },
+          {
+            title: 'Де-идентифицированный экспорт',
+            problem:
+              'Исследователю нужен датасет для R/Python без прямых идентификаторов пациента.',
+            solution:
+              'Один агрегированный обезличенный набор данных, дальше — тонкие адаптеры CSV/JSON/XLSX и троттлинг экспорта.',
+            why: 'PII отсекается один раз до сериализации: новый формат физически не сможет его протащить.',
+            ref: 'export.md',
+            file: 'export.md',
+          },
+          {
+            title: 'Согласие пациента',
+            problem:
+              'Включение в исследование нужно юридически зафиксировать, хотя текст ИС и подпись в системе не хранятся.',
+            solution:
+              'Дата согласия ставится автоматически при создании карточки, версия формы ИС — текстовым полем, отзыв — отдельное действие.',
+            why: 'В системе остаются дата, версия и факт отзыва; сканы и ЭЦП — осознанно вне scope.',
+            ref: 'consent.md',
+            file: 'consent.md',
+          },
+        ],
+      },
+      {
+        id: 'access',
+        title: 'Доступ и безопасность',
+        cards: [
+          {
+            title: 'Пароли и сессии на Edge',
+            problem: 'В Cloudflare Workers нет node:crypto — bcrypt/argon2 недоступны нативно.',
+            solution:
+              'PBKDF2-SHA256 через Web Crypto (600k итераций) и собственные сессии в D1, токен — только в HttpOnly cookie.',
+            why: 'Утечка базы не угоняет сессии: в D1 лежит лишь SHA-256 токена.',
+            ref: 'auth.md §2, §4–5',
+            file: 'auth.md',
+          },
+          {
+            title: 'Row-level access: чья это карта',
+            problem:
+              'Роль clinician по умолчанию видит всех пациентов — по прямой ссылке на карту это уже IDOR.',
+            solution:
+              'data_scope (all / site / assigned) инкапсулируется в репозиторий: фильтр работает на всех выборках, включая findById.',
+            why: 'Список и прямая ссылка ведут себя одинаково, а site без привязки к центру не видит ничего (fail closed).',
+            ref: 'auth.md — Row-level access',
+            file: 'auth.md',
+          },
+          {
+            title: 'Аудит, который нельзя переписать',
+            problem:
+              'В клинической карте важно, кто, когда и что изменил, — иначе изменения недоказуемы.',
+            solution:
+              'append-only audit_log пишется в одном db.batch с данными, UPDATE/DELETE запрещены триггерами, записи связаны hash-chain.',
+            why: 'verifyChain() детектирует ретроспективную подмену, а PII в лог не дублируется.',
+            ref: 'matrix.md §6.6',
+            file: 'matrix.md',
+          },
+          {
+            title: 'Двухуровневая защита маршрутов',
+            problem:
+              'Страница без серверной проверки остаётся доступной по прямой ссылке из истории браузера.',
+            solution:
+              'middleware по наличию cookie (быстро) плюс requireUser() с валидацией сессии в БД (строго).',
+            why: 'Проверки в UI не считаются защитой: каждое мутирующее действие дополнительно спрашивает canWrite().',
+            ref: 'auth.md §7',
+            file: 'auth.md',
+          },
+        ],
+      },
+      {
+        id: 'ops',
+        title: 'Эксплуатация и качество',
+        cards: [
+          {
+            title: 'Cloudflare Edge без cold start',
+            problem:
+              'Собственный VPS с медицинскими данными — лишний контур, ручные патчи и cold start.',
+            solution:
+              'Next.js на Workers и D1 через open-next, релиз одной командой, ноль секунд на прогрев.',
+            why: 'Нет stateful-инстансов и секретов: весь контур — статический код плюс база.',
+            ref: 'deployment.md',
+            file: 'deployment.md',
+          },
+          {
+            title: 'NFR: доступность и RTO/RPO',
+            problem: 'Демо без SLA: что гарантируется сейчас, а что остаётся целью продакшена.',
+            solution:
+              'Зафиксированы availability и SLO по 5xx, RTO ≤ 4 ч, RPO ≤ 1 ч, пороги производительности матрицы и сети.',
+            why: 'Числа вместо лозунгов: по ним видно, что уходит в боевой контур.',
+            ref: 'nfr.md',
+            file: 'nfr.md',
+          },
+          {
+            title: 'CI и контроль качества',
+            problem: 'Регрессии в медицинской логике замечает врач, а не тест.',
+            solution:
+              'GitHub Actions: lint + tsc + steiger (слои FSD) + unit- и интеграционные тесты на локальной D1.',
+            why: 'Инварианты реестра, CAS и аудита проверяются до деплоя, а не после жалобы.',
+            ref: 'spec-stage-4.md',
+            file: 'spec-stage-4.md',
+          },
+          {
+            title: 'Ручной деплой и откат',
+            problem:
+              'Автодеплой опасен: миграции и операции с прод-данными должны быть под контролем человека.',
+            solution:
+              'Релиз — npm run deploy, откат кода — возврат предыдущей версии воркера, данные — дамп и сброс по чек-листу.',
+            why: 'Прод-операции требуют явного действия, что снижает риск необратимых изменений.',
+            ref: 'deployment.md §8',
+            file: 'deployment.md',
+          },
+        ],
+      },
+    ],
+    securityTitle: 'Безопасность: угроза → мера',
     securityText:
-      'Выжимка из auth.md и threat-model.md (STRIDE); полные таблицы — по ссылкам ниже.',
+      'Выжимка из auth.md и threat-model.md (STRIDE), полные таблицы — по ссылкам ниже.',
     securityColThreat: 'Угроза',
     securityColMeasure: 'Мера',
     securityColWhere: 'Где',
-    securityRow1: 'Подбор пароля и перебор логинов',
-    securityMeasure1:
-      'Rate-limit на вход; одинаковое время ответа для существующих и несуществующих email',
-    securityWhere1: 'auth.md §6',
-    securityRow2: 'Угон сессии через cookie',
-    securityMeasure2:
-      'Собственные сессии на D1: HttpOnly-cookie, скользящий TTL, в БД только хэш токена',
-    securityWhere2: 'auth.md §5',
-    securityRow3: 'IDOR: clinician видит чужих пациентов',
-    securityMeasure3:
-      'Row-level access: data_scope у пользователя + scope-репозиторий на всех выборках',
-    securityWhere3: 'auth.md — Row-level access',
-    securityRow4: 'Мутация мимо UI (роль readonly)',
-    securityMeasure4:
-      'Двойная проверка: canWrite() в каждом Server Action + whitelist полей и Zod-схема',
-    securityWhere4: 'spec-stage-1 §1, §3',
-    securityRow5: 'Подмена данных и аудита',
-    securityMeasure5:
-      'actor_id в каждой мутации; audit_log append-only с hash-chain, целостность проверяет verifyChain()',
-    securityWhere5: 'matrix.md §6.6',
-    securityAuthLink: 'auth.md на GitHub',
-    securityAuthUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/auth.md',
-    securityThreatLink: 'threat-model.md на GitHub',
-    securityThreatUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/threat-model.md',
-    nfrTitle: 'NFR / RTO / RPO (выжимка)',
-    nfrText:
-      'Демо: SLA не гарантируется — один инстанс D1 и ручной деплой. Прод-цели: availability ≥ 99,5 % в месяц, SLO по 5xx < 0,5 %, RTO ≤ 4 ч, RPO ≤ 1 ч, TTI списка пациентов ≤ 1 с.',
-    nfrLink: 'nfr.md на GitHub',
-    nfrUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/nfr.md',
-    roadmapTitle: 'Roadmap: spec-stage-1..4 ✅',
-    roadmapText:
-      'spec-stage-1..4 ✅: реальные мутации и аудит, entities и страницы пациента, auth v1.5 (смена пароля, rate-limit, инвайты), качество и CI. Сверх плана — row-level access (data_scope) и согласие v1; запланирован collab-режим (polling).',
-    roadmapLink: 'roadmap.md на GitHub',
-    roadmapUrl: 'https://github.com/denzakh/rdd/blob/main/docs/ru/roadmap.md',
-    dictionaryTitle: 'Словарь данных (живой)',
-    dictionaryText:
-      'Единственный registry-driven пример в рантайме: страница собирается из того же TS-реестра полей, что и схема D1, поэтому здесь не пересказывается.',
-    dictionaryLink: 'Открыть /data-dictionary →',
+    securityRows: [
+      {
+        threat: 'Подбор пароля и перебор логинов',
+        measure:
+          'Rate-limit на вход (5 неудач → блокировка 15 мин); одинаковое время ответа для существующих и несуществующих email',
+        where: 'auth.md §6',
+        file: 'auth.md',
+      },
+      {
+        threat: 'Угон сессии через cookie',
+        measure:
+          'Собственные сессии на D1: HttpOnly-cookie, скользящий TTL 12 ч, в БД только SHA-256 токена',
+        where: 'auth.md §5',
+        file: 'auth.md',
+      },
+      {
+        threat: 'IDOR: clinician видит чужих пациентов',
+        measure:
+          'Row-level access: data_scope у пользователя + scope-репозиторий на всех выборках, включая findById',
+        where: 'auth.md — Row-level access',
+        file: 'auth.md',
+      },
+      {
+        threat: 'Мутация мимо UI (роль readonly)',
+        measure:
+          'Двойная проверка: canWrite() в каждом Server Action + whitelist полей и Zod-схема',
+        where: 'spec-stage-1.md §1, §3',
+        file: 'spec-stage-1.md',
+      },
+      {
+        threat: 'Подмена данных и аудита',
+        measure:
+          'actor_id в каждой мутации; audit_log append-only с hash-chain, целостность проверяет verifyChain()',
+        where: 'matrix.md §6.6',
+        file: 'matrix.md',
+      },
+    ],
+    quickTitle: 'Живые разделы приложения',
+    quickText: 'Эти страницы собираются из того же кода, о котором написано выше.',
+    quickLinks: [
+      {
+        label: 'Словарь данных',
+        href: '/data-dictionary',
+        note: 'все поля реестра с типами и колонками',
+      },
+      {
+        label: 'Отчёты и экспорт',
+        href: '/reports',
+        note: 'агрегаты по выборке и выгрузка CSV/JSON/XLSX',
+      },
+      {
+        label: 'Пациенты',
+        href: '/patients',
+        note: 'карточки пациентов, отфильстрированные по data_scope',
+      },
+    ],
+    limitsTitle: 'Границы демо-проекта',
+    limitsText:
+      'Не «забыто», а осознанно вынесено за рамки: каждый пункт потребовал бы отдельного контура работ и зафиксирован в документации с порогом эскалации.',
+    limits: [
+      'Комплаенс и регуляторика (152-ФЗ / HIPAA), DPA с обработчиками, электронная подпись согласия.',
+      'Шифрование at rest (BYOK/KMS) и разделение демо- и реальных окружений.',
+      'Регулярные бэкапы D1, point-in-time recovery и план восстановления.',
+      'Retention-политики и удаление пациента вместе с append-only аудитом.',
+      'Активная синхронизация коллаборации: polling 30–60 с вместо WebSocket/SSE.',
+    ],
+    limitsRef: 'architecture-overview.md — «Границы демо-проекта»',
+    limitsFile: 'architecture-overview.md',
+    docsTitle: 'Документация в репозитории',
+    docsText:
+      'Полные тексты лежат в репозитории зеркальными наборами docs/ru и docs/en — отсюда и ссылки на конкретные разделы выше.',
+    docsLinks: [
+      {
+        file: 'architecture-overview.md',
+        note: 'точка входа: ключевые решения, security-сводка, границы демо',
+      },
+      { file: 'rdd-v1.md', note: 'ядро: реестр полей, генерация схемы D1, вычисления' },
+      { file: 'auth.md', note: 'пароли, сессии, роли, row-level access' },
+      { file: 'matrix.md', note: 'матрица фаз: виртуализация, CAS, аудит' },
+      { file: 'export.md', note: 'де-идентифицированный экспорт и троттлинг' },
+      { file: 'schema-evolution.md', note: 'версионирование протокола и эволюция схемы' },
+      { file: 'data-dictionary.md', note: 'как устроен автогенерируемый словарь данных' },
+      { file: 'consent.md', note: 'согласие пациента: дата и версия формы ИС' },
+      { file: 'nfr.md', note: 'availability, RTO/RPO, пороги производительности' },
+      { file: 'deployment.md', note: 'деплой, домен, CI, прод-БД, откат и диагностика' },
+      { file: 'threat-model.md', note: 'формализованный threat model (STRIDE)' },
+      { file: 'roadmap.md', note: 'этапы 1–6 реализованы, этап 7 запланирован' },
+    ],
   },
 } as const

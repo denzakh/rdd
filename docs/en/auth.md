@@ -36,9 +36,16 @@ only by the admin. Key stack constraints:
 
 ## 4. Passwords (src/shared/lib/password.ts)
 
-- **PBKDF2-SHA256** via `crypto.subtle`: 600 000 iterations (`PBKDF2_ITERATIONS`),
+- **PBKDF2-SHA256** via `crypto.subtle`: 100 000 iterations (`PBKDF2_ITERATIONS`),
   salt 16 bytes, key length 256 bits. Works in Workers and Node >= 18,
   the same code at runtime and in `scripts/create-user.ts`.
+- ⚠️ **Ceiling is 100 000 iterations.** In Workers `crypto.subtle.deriveBits`
+  throws on larger values, `verifyPassword` returns `false`, and a correct
+  password is rejected with "Invalid email or password" (in Node the same hash
+  passes). The iteration count lives **inside the hash**, so lowering the
+  constant does not repair already-created accounts: their hash must be
+  rewritten (`reset-password-local.ts` / `reset-password-remote.ts`).
+  Diagnosed 2026-09-26: 600 000 broke login, 100 000 works.
 - Hash format: `pbkdf2$<iterations>$<salt-hex>$<hash-hex>` — parameters are inside
   the string, raising iterations does not break old hashes.
 - Verification — constant-time comparison (`verifyPassword`).

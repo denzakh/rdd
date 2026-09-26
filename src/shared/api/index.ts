@@ -1,6 +1,7 @@
 export { getDb } from './db'
 export { EXPORT_THROTTLE_SECONDS, tryClaimExportSlot, type ExportSlot } from './export-throttle'
 export { getCurrentUser, getCurrentUserSafe, requireUser } from './session-server'
+export { isSecureRequest, sessionCookieOptions } from './session-cookie'
 export type { PatientRow, PhaseRow } from './rows'
 export { applyComputed } from './with-computed'
 export { createAuditRepository, type AuditRepository, type AuditEntry } from './audit-repo'

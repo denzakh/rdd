@@ -36,9 +36,16 @@
 
 ## 4. Пароли (src/shared/lib/password.ts)
 
-- **PBKDF2-SHA256** через `crypto.subtle`: 600 000 итераций (`PBKDF2_ITERATIONS`),
+- **PBKDF2-SHA256** через `crypto.subtle`: 100 000 итераций (`PBKDF2_ITERATIONS`),
   соль 16 байт, длина ключа 256 бит. Работает в Workers и Node >= 18,
   один и тот же код в рантайме и в `scripts/create-user.ts`.
+- ⚠️ **Потолок — 100 000 итераций.** В Workers `crypto.subtle.deriveBits`
+  бросает исключение на больших значениях, `verifyPassword` возвращает `false`,
+  и верный пароль отвергается с «Неверный email или пароль» (в Node тот же
+  хеш проходит). Число итераций хранится **внутри хэша**, поэтому понижение
+  константы не чинит уже созданные учётки: их хеш надо перезаписать
+  (`reset-password-local.ts` / `reset-password-remote.ts`).
+  Диагностировано 2026-09-26: 600 000 ломали вход, 100 000 работают.
 - Формат хэша: `pbkdf2$<iterations>$<salt-hex>$<hash-hex>` — параметры внутри
   строки, повышение итераций не ломает старые хэши.
 - Проверка — constant-time сравнение (`verifyPassword`).

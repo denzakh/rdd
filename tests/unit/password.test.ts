@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   generatePassword,
   hashPassword,
@@ -39,6 +39,18 @@ describe('password: verifyPassword', () => {
     await expect(verifyPassword('x', 'bcrypt$foo')).resolves.toBe(false)
     await expect(verifyPassword('x', 'pbkdf2$abc$zz$00')).resolves.toBe(false)
     await expect(verifyPassword('x', 'pbkdf2$0$00$00')).resolves.toBe(false)
+  })
+
+  it('сбой PBKDF2 логируется, а не глотается молча', async () => {
+    // Соль нечётной длины → fromHex бросает; раньше это уходило в тихий `catch`.
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      await expect(verifyPassword('x', 'pbkdf2$1000$abc$00')).resolves.toBe(false)
+      expect(error).toHaveBeenCalledOnce()
+      expect(String(error.mock.calls[0]?.[0])).toContain('1000')
+    } finally {
+      error.mockRestore()
+    }
   })
 
   it('кастомное число итераций сохраняется в хэше и верифицируется', async () => {

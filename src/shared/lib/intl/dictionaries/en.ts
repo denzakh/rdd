@@ -251,55 +251,286 @@ export const en: DictShape = {
   docsHub: {
     title: 'Documentation',
     intro:
-      'Curated digests instead of a mirror of every md file: full texts live on GitHub (docs/ru + docs/en) and are never copied into runtime.',
-    architectureTitle: 'Architecture (digest)',
-    architectureText:
-      'The field registry is the source of truth: one TS registry generates the D1 schema, Zod validation and the UI. The phase matrix renders through a visibility window, concurrent edits surface as CAS conflicts (409), and audit is written in one batch with the mutation.',
-    architectureLink: 'architecture-overview.md on GitHub',
-    architectureUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
-    securityTitle: 'Security: threat → measure → where',
+      'A short brief per capability: which problem it solves, what was chosen and why. The full write-ups with escalation thresholds live in the repository docs (docs/ru and docs/en) and are never copied into runtime.',
+    featuresTitle: 'Capabilities and the decisions behind them',
+    problemLabel: 'Problem',
+    solutionLabel: 'Decision',
+    whyLabel: 'Why',
+    groups: [
+      {
+        id: 'data',
+        title: 'Data and schema',
+        cards: [
+          {
+            title: 'Single field registry (SSOT)',
+            problem:
+              '50+ clinical fields: the DB schema, validation and the UI would be described in three places and would inevitably drift apart.',
+            solution:
+              'One TS registry generates the D1 schema, the Zod schemas, the input fields, the matrix and the data dictionary.',
+            why: 'The “field = column” invariant: a new or fixed field is a single edit in the registry.',
+            ref: 'rdd-v1.md §3',
+            file: 'rdd-v1.md',
+          },
+          {
+            title: 'Binary signs as flat 0/1 columns',
+            problem:
+              'Dozens of diagnostic flags (symptoms, therapy, remission): columns, EAV, a bitmask or JSON?',
+            solution:
+              'Flat INTEGER 0/1 inside the shared registry schema — five options were considered and this one won.',
+            why: 'Aggregates come down to a single WHERE col = 1, while a JSON column would drop the sign out of the “registry → UI” chain.',
+            ref: 'rdd-v1.md §7',
+            file: 'rdd-v1.md',
+          },
+          {
+            title: 'Protocol versioning without migrations',
+            problem:
+              'The CRF changes while enrollment is ongoing: what does a value entered before an ethics-committee amendment mean?',
+            solution:
+              'registry_version on the record plus a registry of versions; the schema only changes through a full DB reset.',
+            why: 'Historical values are never rewritten, and the export carries the protocol version on every row.',
+            ref: 'schema-evolution.md',
+            file: 'schema-evolution.md',
+          },
+          {
+            title: 'Live data dictionary',
+            problem: 'A hand-written field table goes stale right after the first registry edit.',
+            solution:
+              'The /data-dictionary page is built from the same registry the D1 schema is generated from.',
+            why: 'Clinicians see the clinical meaning of a sign, engineers see types and columns; drift is impossible.',
+            ref: 'data-dictionary.md',
+            file: 'data-dictionary.md',
+          },
+        ],
+      },
+      {
+        id: 'clinical',
+        title: 'Clinician workflow',
+        cards: [
+          {
+            title: 'Phase matrix over hundreds of signs',
+            problem:
+              'Hundreds of cells across episodes: a plain table lags, and a pinned column with a header needs manual scroll synchronization.',
+            solution:
+              'TanStack virtualization plus CSS Grid, where the left cell of every row uses native position: sticky.',
+            why: 'No second scroll layer at all, only the visible rows live in the DOM, so interaction stays instant.',
+            ref: 'matrix.md §1–2',
+            file: 'matrix.md',
+          },
+          {
+            title: 'Edits without data loss (CAS)',
+            problem:
+              'Two clinicians edit the same phase: naive optimistic locking just rejects the second patch and silently loses the work.',
+            solution:
+              'Comparison against updated_at from SQLite plus conflict resolution at cell or phase level with a “mine / theirs” diff.',
+            why: 'Client clocks are not trusted, and every conflict resolution is written to the audit log.',
+            ref: 'matrix.md §6',
+            file: 'matrix.md',
+          },
+          {
+            title: 'De-identified export',
+            problem: 'Researchers need a dataset for R/Python without direct patient identifiers.',
+            solution:
+              'One aggregated de-identified dataset, then thin CSV/JSON/XLSX adapters on top plus export throttling.',
+            why: 'PII is stripped once before serialization, so a new format physically cannot leak it.',
+            ref: 'export.md',
+            file: 'export.md',
+          },
+          {
+            title: 'Patient consent',
+            problem:
+              'Enrollment in a study must be legally recorded, yet the consent text and the signature are not stored in the system.',
+            solution:
+              'The consent date is set automatically when the record is created, the form version is a text field, and withdrawal is a separate action.',
+            why: 'The system keeps only the date, the version and the fact of withdrawal; scans and e-signatures are deliberately out of scope.',
+            ref: 'consent.md',
+            file: 'consent.md',
+          },
+        ],
+      },
+      {
+        id: 'access',
+        title: 'Access and security',
+        cards: [
+          {
+            title: 'Passwords and sessions on the edge',
+            problem:
+              'Cloudflare Workers has no node:crypto, so bcrypt/argon2 are not available natively.',
+            solution:
+              'PBKDF2-SHA256 through Web Crypto (600k iterations) and own sessions in D1, with the token living only in an HttpOnly cookie.',
+            why: 'A database leak does not hijack sessions: D1 only holds the SHA-256 of the token.',
+            ref: 'auth.md §2, §4–5',
+            file: 'auth.md',
+          },
+          {
+            title: 'Row-level access: whose chart is this',
+            problem:
+              'The clinician role sees every patient by default — through a direct link to a chart that is already an IDOR.',
+            solution:
+              'data_scope (all / site / assigned) is encapsulated in the repository: the filter applies to every query, findById included.',
+            why: 'Lists and direct links behave identically, and a site without a center binding sees nothing (fail closed).',
+            ref: 'auth.md — Row-level access',
+            file: 'auth.md',
+          },
+          {
+            title: 'An audit log that cannot be rewritten',
+            problem:
+              'In a clinical chart it matters who changed what and when — otherwise changes are unprovable.',
+            solution:
+              'An append-only audit_log is written in the same db.batch as the data, UPDATE/DELETE are blocked by triggers, and entries are linked by a hash chain.',
+            why: 'verifyChain() detects retrospective tampering, and PII is never duplicated into the log.',
+            ref: 'matrix.md §6.6',
+            file: 'matrix.md',
+          },
+          {
+            title: 'Two-tier route protection',
+            problem:
+              'A page without a server-side check stays reachable through a direct link from browser history.',
+            solution:
+              'Middleware on cookie presence (fast) plus requireUser() validating the session in the DB (strict).',
+            why: 'UI checks are not protection: every mutating action additionally asks canWrite().',
+            ref: 'auth.md §7',
+            file: 'auth.md',
+          },
+        ],
+      },
+      {
+        id: 'ops',
+        title: 'Operations and quality',
+        cards: [
+          {
+            title: 'Cloudflare edge with no cold start',
+            problem:
+              'A self-hosted VPS holding medical data is an extra perimeter, manual patching and cold starts.',
+            solution:
+              'Next.js on Workers and D1 through open-next, released with a single command and zero warm-up time.',
+            why: 'No stateful instances and no secrets: the whole perimeter is static code plus a database.',
+            ref: 'deployment.md',
+            file: 'deployment.md',
+          },
+          {
+            title: 'NFR: availability and RTO/RPO',
+            problem:
+              'A demo without an SLA: what is guaranteed today and what stays a production goal.',
+            solution:
+              'Availability and the 5xx SLO, RTO ≤ 4 h, RPO ≤ 1 h, plus performance thresholds for the matrix and the network are all written down.',
+            why: 'Numbers instead of slogans: they show exactly what moves into a production environment.',
+            ref: 'nfr.md',
+            file: 'nfr.md',
+          },
+          {
+            title: 'CI and quality gates',
+            problem: 'Regressions in medical logic are noticed by a clinician, not by a test.',
+            solution:
+              'GitHub Actions: lint + tsc + steiger (FSD layers) plus unit and integration tests against a local D1.',
+            why: 'Registry, CAS and audit invariants are verified before a deploy, not after a complaint.',
+            ref: 'spec-stage-4.md',
+            file: 'spec-stage-4.md',
+          },
+          {
+            title: 'Manual deploy and rollback',
+            problem:
+              'Auto-deploy is dangerous: migrations and production-data operations must stay under human control.',
+            solution:
+              'A release is npm run deploy, a code rollback is returning to the previous worker version, and data is handled by dump and reset per checklist.',
+            why: 'Production operations require an explicit action, which lowers the risk of irreversible changes.',
+            ref: 'deployment.md §8',
+            file: 'deployment.md',
+          },
+        ],
+      },
+    ],
+    securityTitle: 'Security: threat → measure',
     securityText:
       'A digest of auth.md and threat-model.md (STRIDE); full tables via the links below.',
     securityColThreat: 'Threat',
     securityColMeasure: 'Measure',
     securityColWhere: 'Where',
-    securityRow1: 'Password guessing and login enumeration',
-    securityMeasure1:
-      'Rate limit on sign-in; identical response time for existing and non-existing emails',
-    securityWhere1: 'auth.md §6',
-    securityRow2: 'Session hijacking via cookie',
-    securityMeasure2:
-      'Own D1 sessions: HttpOnly cookie, sliding TTL, only the token hash is stored in the DB',
-    securityWhere2: 'auth.md §5',
-    securityRow3: 'IDOR: a clinician sees other clinicians’ patients',
-    securityMeasure3:
-      'Row-level access: per-user data_scope plus a scoped repository on every query',
-    securityWhere3: 'auth.md — Row-level access',
-    securityRow4: 'Mutation bypassing the UI (readonly role)',
-    securityMeasure4:
-      'Double check: canWrite() in every Server Action plus a field whitelist and Zod schema',
-    securityWhere4: 'spec-stage-1 §1, §3',
-    securityRow5: 'Data and audit tampering',
-    securityMeasure5:
-      'actor_id on every mutation; append-only audit_log with a hash chain verified by verifyChain()',
-    securityWhere5: 'matrix.md §6.6',
-    securityAuthLink: 'auth.md on GitHub',
-    securityAuthUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/auth.md',
-    securityThreatLink: 'threat-model.md on GitHub',
-    securityThreatUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/threat-model.md',
-    nfrTitle: 'NFR / RTO / RPO (digest)',
-    nfrText:
-      'Demo: no SLA — a single D1 instance and manual deploys. Production targets: availability ≥ 99.5 % per month, 5xx SLO < 0.5 %, RTO ≤ 4 h, RPO ≤ 1 h, patient list TTI ≤ 1 s.',
-    nfrLink: 'nfr.md on GitHub',
-    nfrUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/nfr.md',
-    roadmapTitle: 'Roadmap: spec-stage-1..4 ✅',
-    roadmapText:
-      'spec-stage-1..4 ✅: real mutations and audit, entities and patient pages, auth v1.5 (password change, rate limit, invites), quality and CI. Beyond the plan — row-level access (data_scope) and consent v1; collab mode (polling) is planned.',
-    roadmapLink: 'roadmap.md on GitHub',
-    roadmapUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/roadmap.md',
-    dictionaryTitle: 'Live Data Dictionary',
-    dictionaryText:
-      'The one registry-driven runtime example: the page is built from the same TS field registry as the D1 schema, so it is not retold here.',
-    dictionaryLink: 'Open /data-dictionary →',
+    securityRows: [
+      {
+        threat: 'Password guessing and login enumeration',
+        measure:
+          'Sign-in rate limit (5 failures → 15 min lockout); identical response time for existing and non-existing emails',
+        where: 'auth.md §6',
+        file: 'auth.md',
+      },
+      {
+        threat: 'Session hijacking via cookie',
+        measure:
+          'Own D1 sessions: HttpOnly cookie, sliding 12 h TTL, only the SHA-256 of the token in the DB',
+        where: 'auth.md §5',
+        file: 'auth.md',
+      },
+      {
+        threat: 'IDOR: a clinician sees other clinicians’ patients',
+        measure:
+          'Row-level access: per-user data_scope plus a scoped repository on every query, findById included',
+        where: 'auth.md — Row-level access',
+        file: 'auth.md',
+      },
+      {
+        threat: 'Mutation bypassing the UI (readonly role)',
+        measure:
+          'Double check: canWrite() in every Server Action plus a field whitelist and a Zod schema',
+        where: 'spec-stage-1.md §1, §3',
+        file: 'spec-stage-1.md',
+      },
+      {
+        threat: 'Data and audit tampering',
+        measure:
+          'actor_id on every mutation; append-only audit_log with a hash chain verified by verifyChain()',
+        where: 'matrix.md §6.6',
+        file: 'matrix.md',
+      },
+    ],
+    quickTitle: 'Live sections of the app',
+    quickText: 'These pages are built from the very code described above.',
+    quickLinks: [
+      {
+        label: 'Data Dictionary',
+        href: '/data-dictionary',
+        note: 'every registry field with types and columns',
+      },
+      {
+        label: 'Reports and export',
+        href: '/reports',
+        note: 'cohort aggregates plus CSV/JSON/XLSX download',
+      },
+      { label: 'Patients', href: '/patients', note: 'patient records filtered by data_scope' },
+    ],
+    limitsTitle: 'Boundaries of the demo',
+    limitsText:
+      'Not “forgotten” but deliberately out of scope: each item would require a separate body of work and is documented with an escalation threshold.',
+    limits: [
+      'Compliance and regulation (HIPAA / personal-data law), DPAs with processors, e-signature for consent.',
+      'Encryption at rest (BYOK/KMS) and separation of demo and production environments.',
+      'Regular D1 backups, point-in-time recovery and a disaster recovery plan.',
+      'Retention policies and patient deletion together with the append-only audit log.',
+      'Active collaboration sync: 30–60 s polling instead of WebSocket/SSE.',
+    ],
+    limitsRef: 'architecture-overview.md — “Boundaries of the demo project”',
+    limitsFile: 'architecture-overview.md',
+    docsTitle: 'Documentation in the repository',
+    docsText:
+      'The full texts live in the repository as mirrored docs/ru and docs/en sets — the section links above point straight into them.',
+    docsLinks: [
+      {
+        file: 'architecture-overview.md',
+        note: 'entry point: key decisions, security digest, demo boundaries',
+      },
+      { file: 'rdd-v1.md', note: 'the core: field registry, D1 schema generation, computations' },
+      { file: 'auth.md', note: 'passwords, sessions, roles, row-level access' },
+      { file: 'matrix.md', note: 'phase matrix: virtualization, CAS, audit' },
+      { file: 'export.md', note: 'de-identified export and throttling' },
+      { file: 'schema-evolution.md', note: 'protocol versioning and schema evolution' },
+      { file: 'data-dictionary.md', note: 'how the auto-generated data dictionary works' },
+      { file: 'consent.md', note: 'patient consent: date and version of the form' },
+      { file: 'nfr.md', note: 'availability, RTO/RPO, performance thresholds' },
+      {
+        file: 'deployment.md',
+        note: 'deploy, domain, CI, production DB, rollback and diagnostics',
+      },
+      { file: 'threat-model.md', note: 'formalized threat model (STRIDE)' },
+      { file: 'roadmap.md', note: 'stages 1–6 implemented, stage 7 planned' },
+    ],
   },
 } as const

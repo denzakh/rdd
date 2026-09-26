@@ -15,8 +15,8 @@ import {
   getDb,
   requireUser,
   SESSION_COOKIE,
-  SESSION_TTL_HOURS,
 } from '@/shared/api'
+import { sessionCookieOptions } from '@/shared/api/session-cookie'
 import { generatePassword, hashPassword, MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 import {
   auditUser,
@@ -310,12 +310,6 @@ export async function acceptInviteAction(
     (await headers()).get('user-agent') ?? undefined
   )
   const cookieStore = await cookies()
-  cookieStore.set(SESSION_COOKIE, sessionToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: SESSION_TTL_HOURS * 3600,
-  })
+  cookieStore.set(SESSION_COOKIE, sessionToken, await sessionCookieOptions())
   redirect('/patients')
 }

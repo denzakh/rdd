@@ -93,7 +93,17 @@ export async function verifyPassword(password: string, stored: string): Promise<
     let diff = 0
     for (let i = 0; i < expected.length; i++) diff |= actual[i]! ^ expected[i]!
     return diff === 0
-  } catch {
+  } catch (e) {
+    // Не глотать молча: «Неверный email или пароль» из-за сбоя deriveBits
+    // неотличим от настоящей ошибки пароля. Особенно опасно, когда хеш в БД
+    // содержит больше итераций, чем переваривает Workers (см. ⚠️ выше):
+    // тогда вход отвергается всегда, а счётчик неудач растёт до блокировки.
+    console.error(
+      `verifyPassword: сбой PBKDF2 при ${iterations} итерациях — ` +
+        `${e instanceof Error ? e.message : String(e)}. ` +
+        'Если в логе Workers такая ошибка — хеш создан со старым числом итераций; ' +
+        'помогает scripts/reset-password-local.ts (локально) или reset-password-remote.ts (прод).'
+    )
     return false
   }
 }
