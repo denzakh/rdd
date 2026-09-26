@@ -275,12 +275,12 @@ export const en: DictShape = {
             file: 'rdd-v1.md',
           },
           {
-            title: 'Binary signs as flat 0/1 columns',
+            title: 'Storing binary signs',
             problem:
-              'Dozens of diagnostic flags (symptoms, therapy, remission): columns, EAV, a bitmask or JSON?',
+              'A clinical study can have many signs that take YES or NO values (symptoms, therapy, remission). We had to choose how to store them: separate columns, a sign-value table, a bitmask, or a single JSON column.',
             solution:
-              'Flat INTEGER 0/1 inside the shared registry schema — five options were considered and this one won.',
-            why: 'Aggregates come down to a single WHERE col = 1, while a JSON column would drop the sign out of the “registry → UI” chain.',
+              'Every sign is stored as its own column holding 0 or 1 in the shared registry schema. Five storage options were considered and this one was chosen.',
+            why: 'While the number of signs is small (fewer than 150), plain columns are simply more convenient. They make export and edits easy, fit the single-registry logic, and allow fast symptom search without extra load on the database.',
             ref: 'rdd-v1.md §7',
             file: 'rdd-v1.md',
           },
