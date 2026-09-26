@@ -10,30 +10,36 @@ import Image from 'next/image'
  * Пункты верхнего меню (все — из неймспейса `common` словарей).
  * `Документация` ведёт в приватный `/docs` (docs/ru/spec-public-2.md §1 п.4):
  * меню рендерится только внутри приватного `<Header/>`, у витрины своя навигация.
+ * Пункт `adminOnly` (`/admin/users`) показывается только при role=admin; сама
+ * страница дополнительно проверяет роль на сервере (docs/ru/spec-stage-3.md §5).
  */
 const ITEMS = [
-  { href: '/patients', key: 'patients' as const },
-  { href: '/reports', key: 'reports' as const },
-  { href: '/data-dictionary', key: 'dataDictionary' as const },
-  { href: '/docs', key: 'documentation' as const },
+  { href: '/patients', key: 'patients' as const, adminOnly: false },
+  { href: '/reports', key: 'reports' as const, adminOnly: false },
+  { href: '/data-dictionary', key: 'dataDictionary' as const, adminOnly: false },
+  { href: '/docs', key: 'documentation' as const, adminOnly: false },
+  { href: '/admin/users', key: 'userManagement' as const, adminOnly: true },
 ]
 
 /**
- * Верхнее общее меню: Пациенты, Отчёты, Словарь данных, Документация.
+ * Верхнее общее меню: Пациенты, Отчёты, Словарь данных, Документация
+ * (для админа дополнительно — Пользователи).
  * Клиентский компонент — использует `usePathname()` для подсветки
  * активного раздела (включая вложенные роуты, напр. `/patients/123`).
  * Локаль и тексты получает из пропса `locale`, как и `<LocaleSwitcher />`.
+ * `role` — для показа admin-пункта (это скрытие UI, не авторизация).
  */
-export function TopNavigation({ locale }: { locale: Locale }) {
+export function TopNavigation({ locale, role }: { locale: Locale; role?: string }) {
   const pathname = usePathname() ?? ''
   const common = (locale === 'en' ? en : ru).common
+  const items = ITEMS.filter((item) => !item.adminOnly || role === 'admin')
 
   return (
     <nav className="flex items-center gap-6 text-sm">
       <div className="opacity-80">
         <Image src="/favicon.svg" alt="RDD" width={32} height={32} unoptimized />
       </div>
-      {ITEMS.map(({ href, key }) => {
+      {items.map(({ href, key }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link

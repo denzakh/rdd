@@ -4,7 +4,8 @@ import { getLocale } from '@/shared/lib/intl'
 
 /**
  * Верхняя строка приложения: левая часть — навигация (Пациенты, Отчёты,
- * Словарь данных), правая часть — имя пользователя, переключатель языка и
+ * Словарь данных, Документация, а для админа — Пользователи), правая часть —
+ * ссылка на смену пароля, имя пользователя, переключатель языка и
  * кнопка выхода.
  *
  * Внешний блок имеет borderBottom на всю ширину, внутренний — flex-правила
@@ -17,7 +18,7 @@ export async function Header({ displayName, role }: { displayName: string; role:
   return (
     <div className="border-b border-neutral-200">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-2 text-sm">
-        <TopNavigation locale={locale} />
+        <TopNavigation locale={locale} role={role} />
         <UserInfo displayName={displayName} role={role} locale={locale} />
       </div>
     </div>

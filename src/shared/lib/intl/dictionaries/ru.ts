@@ -6,6 +6,10 @@ export const ru = {
     reports: 'Отчёты',
     dataDictionary: 'Словарь данных',
     documentation: 'Документация',
+    /** Пункт меню «Управление пользователями» — только для роли admin. */
+    userManagement: 'Пользователи',
+    /** Подпись ссылки на `/change-password` в шапке (иконка ключа). */
+    changePasswordLink: 'Сменить пароль',
     search: 'Найти',
     save: 'Сохранить',
     saving: 'Сохранение…',

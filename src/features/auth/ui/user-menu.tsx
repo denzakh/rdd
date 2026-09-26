@@ -1,12 +1,15 @@
+import Link from 'next/link'
 import { logoutAction } from '../api/actions'
 import { getLocale } from '@/shared/lib/intl'
 import type { Locale } from '@/shared/lib/intl'
+import { en, ru } from '@/shared/lib/intl'
 import { LocaleSwitcher } from '@/shared/ui/locale-switcher'
+import { KeyIcon } from './key-icon'
 
 /**
- * Содержимое меню пользователя (имя, роль, язык, выход) без собственной
- * обёртки. Серверный компонент — используется как внутри `<UserMenu />`,
- * так и внутри `<Header />` (справа в flex-строке).
+ * Содержимое меню пользователя (смена пароля, имя, роль, язык, выход) без
+ * собственной обёртки. Серверный компонент — используется как внутри
+ * `<UserMenu />`, так и внутри `<Header />` (справа в flex-строке).
  */
 export function UserInfo({
   displayName,
@@ -17,8 +20,18 @@ export function UserInfo({
   role: string
   locale: Locale
 }) {
+  const common = (locale === 'en' ? en : ru).common
   return (
     <div className="flex items-center gap-3">
+      <Link
+        href="/change-password"
+        title={common.changePasswordLink}
+        aria-label={common.changePasswordLink}
+        className="flex items-center gap-1.5 text-neutral-600 hover:text-cyan-700"
+      >
+        <KeyIcon />
+        <span className="text-xs">{common.changePasswordLink}</span>
+      </Link>
       <span className="text-neutral-600">
         {displayName} · <span className="text-neutral-400">{role}</span>
       </span>
@@ -36,8 +49,8 @@ export function UserInfo({
 }
 
 /**
- * Меню пользователя (имя, роль, язык, выход) в виде самостоятельной
- * строки с borderBottom. Серверный компонент.
+ * Меню пользователя (смена пароля, имя, роль, язык, выход) в виде
+ * самостоятельной строки с borderBottom. Серверный компонент.
  */
 export async function UserMenu({ displayName, role }: { displayName: string; role: string }) {
   const locale = await getLocale()

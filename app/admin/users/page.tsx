@@ -7,7 +7,7 @@ import {
   InvitesPanel,
   UsersTable,
 } from '@/features/users'
-import { UserMenu } from '@/features/auth'
+import { Header } from '@/features/auth'
 
 /**
  * Admin-UI пользователей (docs/ru/spec-stage-3.md §5).
@@ -21,7 +21,7 @@ export default async function AdminUsersPage() {
 
   return (
     <main className="mx-auto max-w-5xl p-6">
-      <UserMenu displayName={user.displayName} role={user.role} />
+      <Header displayName={user.displayName} role={user.role} />
       <h1 className="mt-6 mb-4 text-lg font-semibold">Пользователи</h1>
       <UsersTable users={users} />
       <div className="mt-8 border-t border-neutral-200 pt-6">

@@ -30,6 +30,10 @@ export const en: DictShape = {
     reports: 'Reports',
     dataDictionary: 'Data Dictionary',
     documentation: 'Documentation',
+    /** Admin-only menu item pointing to the user-management page. */
+    userManagement: 'Users',
+    /** Label of the `/change-password` link in the header (key icon). */
+    changePasswordLink: 'Change password',
     search: 'Search',
     save: 'Save',
     saving: 'Saving…',
