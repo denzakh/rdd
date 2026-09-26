@@ -27,25 +27,11 @@ export interface LoginState {
   error?: string
 }
 
-/**
- * Аргумент входа — обычный объект, а НЕ FormData.
- *
- * Почему: на проде (OpenNext + Cloudflare Workers) разбор multipart в server
- * action ломается — в loginAction приходит значение чужой длины (в диагностике
- * стабильно 15 символов при любой длине отправки), поэтому вход по паролю
- * невозможен. Локально в Node тот же код работает, что и маскирует проблему.
- * Объект сериализуется в JSON и multipart-парсер не задействуется вовсе.
- */
-export interface LoginInput {
-  email: string
-  password: string
-}
-
-export async function loginAction(_prev: LoginState, input: LoginInput): Promise<LoginState> {
-  const email = String(input?.email ?? '')
+export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
+  const email = String(formData.get('email') ?? '')
     .trim()
     .toLowerCase()
-  const password = String(input?.password ?? '')
+  const password = String(formData.get('password') ?? '')
 
   if (!email || !password) return { error: 'Введите email и пароль' }
 
@@ -62,15 +48,6 @@ export async function loginAction(_prev: LoginState, input: LoginInput): Promise
   // Одинаковая задержка для неизвестного email и неверного пароля —
   // не раскрываем существование учётной записи.
   const ok = user ? await verifyPassword(password, user.passwordHash!) : false
-
-  // ⚠️ ВРЕМЕННАЯ ДИАГНОСТИКА (удалить после диагностики входа на проде).
-  // Пароль и хеш НЕ логируются — только длина и префикс формата.
-  console.error(
-    `[login-diag] email=${email} userFound=${Boolean(user)} ` +
-      `pwLen=${password.length} hashLen=${user?.passwordHash?.length ?? -1} ` +
-      `hashHead=${user?.passwordHash?.slice(0, 12) ?? 'n/a'} ok=${ok}`
-  )
-
   if (!user || !ok) {
     await new Promise((r) => setTimeout(r, 400))
     if (user) await registerFailedLogin(db, user.id)
