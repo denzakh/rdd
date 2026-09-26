@@ -247,6 +247,8 @@ export const en: DictShape = {
       'https://github.com/denzakh/rdd-late-life-thesis/blob/main/en/abstract/abstract.en.md',
     docsLink: 'Architecture Overview (GitHub)',
     docsUrl: 'https://github.com/denzakh/rdd/blob/main/docs/en/architecture-overview.md',
+    docsHubLink: 'Project Documentation',
+    docsHubUrl: '/docs',
     backHome: '← Back to Home',
     openDemo: 'Open Demo Interface',
   },
