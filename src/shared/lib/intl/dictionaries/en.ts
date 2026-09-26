@@ -296,10 +296,11 @@ export const en: DictShape = {
           },
           {
             title: 'Live data dictionary',
-            problem: 'A hand-written field table goes stale right after the first registry edit.',
+            problem:
+              'A doctor needs to know what each sign means and what answers it allows, while a developer needs to know the data type and which table holds it. Describing this by hand means that when signs are added or edited, it is easy to forget to update the description — and the documentation drifts away from the real database.',
             solution:
-              'The /data-dictionary page is built from the same registry the D1 schema is generated from.',
-            why: 'Clinicians see the clinical meaning of a sign, engineers see types and columns; drift is impossible.',
+              'The /data-dictionary page is built from the same sign definitions the database tables are generated from. Nothing has to be maintained by hand: rename a sign or change its allowed answers, and the dictionary shows exactly that.',
+            why: 'Clinicians see the clinical meaning of a sign, developers see types and column names, and both read the same single source — so the description and the database cannot fall out of sync.',
             ref: 'data-dictionary.md',
             file: 'data-dictionary.md',
           },
