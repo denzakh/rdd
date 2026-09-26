@@ -4,7 +4,8 @@ import {
   lockUserAction,
   unlockUserAction,
 } from '../api/actions'
-import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS, type AdminUser } from '../model/user-repo'
+import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-constants'
+import type { AdminUser } from '../model/user-repo'
 import { ResetPasswordForm } from './reset-password-form'
 
 const fmt = (iso: string | null): string => (iso ? new Date(iso).toLocaleString('ru-RU') : '—')

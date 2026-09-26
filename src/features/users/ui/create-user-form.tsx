@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { createUserAction, type CreateUserState } from '../api/actions'
-import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-repo'
+import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-constants'
 
 const initialState: CreateUserState = {}
 

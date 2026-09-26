@@ -5,18 +5,11 @@
  */
 import { randomUUID } from 'node:crypto'
 import { createAuditRepository, type AuditEntry } from '@/shared/api'
+import { type DataScope, type Role } from './user-constants'
 
-export type Role = 'admin' | 'clinician' | 'readonly'
-export const ROLES: readonly Role[] = ['admin', 'clinician', 'readonly'] as const
-
-export type DataScope = 'all' | 'site' | 'assigned'
-export const DATA_SCOPES: readonly DataScope[] = ['all', 'site', 'assigned'] as const
-
-export const DATA_SCOPE_LABELS: Record<DataScope, string> = {
-  all: 'все пациенты',
-  site: 'свой центр',
-  assigned: 'только назначенные',
-}
+// Типы и константы живут в user-constants.ts: их импортируют 'use client' компоненты,
+// а этот модуль — только server. Ре-экспортируем, чтобы старые импорты не сломались.
+export { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS, type Role, type DataScope } from './user-constants'
 
 export interface AdminUser {
   id: string

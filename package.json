@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
+    "postinstall": "tsx scripts/patch-opennext-turbopack.ts",
     "steiger": "steiger src",
     "steiger:fix": "steiger src --fix",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
