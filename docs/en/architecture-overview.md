@@ -92,8 +92,10 @@ SHA-256(token). Two-level route protection: middleware on cookie presence (fast)
 ## 5. Audit as a requirement, not an option
 
 For a clinical registry audit is a domain requirement. `audit_log` is append-only,
-outside the registry; data write + audit event are one `db.batch` (atomic); no PII
-duplication (ids only); every conflict resolution recorded with before/after values.
+outside the registry; data write + audit event are one `db.batch` (atomic); no second copy
+of the chart is kept — the log refers to the patient by `patient_id`, and
+`old_value`/`new_value` hold the values of the fields that changed; every conflict
+resolution is recorded with before/after values.
 Integrity at DB level: triggers forbid UPDATE/DELETE, hash-chain
 (`prev_hash`/`entry_hash`, migration `0006_audit_hash_chain.sql`) detects tampering
 (`verifyChain()`).

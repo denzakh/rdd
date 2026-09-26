@@ -220,9 +220,9 @@ export const en: DictShape = {
     edgeCryptoText:
       'Web Crypto API: in the absence of node:crypto on Edge, password hashing is built on PBKDF2-SHA256 (100,000 iterations) with cryptographic salts. Session tokens exist strictly in HttpOnly; Secure; SameSite=Lax cookies, with SHA-256 digests stored in D1.',
     edgeRlsText:
-      'Row-Level Access: declarative data_scope (all / site / assigned) is enforced at the repository query boundary, eliminating IDOR vulnerabilities.',
+      'Row-level access: each user is given a visibility width (data_scope) — “all”, “own center” (site) or “assigned patients” (assigned). The repository adds the filter to every query, so a direct link cannot open someone else’s chart (IDOR).',
     edgeAuditText:
-      'Tamper-evident audit log: every mutation and conflict resolution is batched atomically into audit_log alongside the data. Records are cryptographically hash-chained (prev_hash/entry_hash).',
+      'An audit log that cannot be rewritten: every change is written to audit_log in the same transaction as the data, and entries are chained by hashes (prev_hash/entry_hash) — history cannot be tampered with unnoticed.',
     boundariesSectionTitle: '5. Demo Boundaries and Production Readiness',
     boundariesIntro:
       'This project demonstrates system architecture and domain depth. The technical specifications explicitly delineate current implementation from production deployment requirements:',
@@ -362,22 +362,22 @@ export const en: DictShape = {
             file: 'auth.md',
           },
           {
-            title: 'Row-level access: whose chart is this',
+            title: 'Chart access: whose chart is this',
             problem:
-              'The clinician role sees every patient by default — through a direct link to a chart that is already an IDOR.',
+              'A doctor sees every patient chart by default — swap someone else’s ID into the URL and you get their chart (IDOR).',
             solution:
-              'data_scope (all / site / assigned) is encapsulated in the repository: the filter applies to every query, findById included.',
-            why: 'Lists and direct links behave identically, and a site without a center binding sees nothing (fail closed).',
+              'Each user has a data_scope setting — “all”, “own center” (site) or “assigned patients” (assigned). The repository adds the filter itself to every query, including lookups by ID (findById).',
+            why: 'A direct link cannot show you more than the list does — the filter applies in both places. And if a user has no center set, the “own center” mode shows nothing at all — nothing is better than something extra.',
             ref: 'auth.md — Row-level access',
             file: 'auth.md',
           },
           {
             title: 'An audit log that cannot be rewritten',
             problem:
-              'In a clinical chart it matters who changed what and when — otherwise changes are unprovable.',
+              'In a patient chart you have to be able to tell who changed what and when — otherwise the changes cannot be proven.',
             solution:
-              'An append-only audit_log is written in the same db.batch as the data, UPDATE/DELETE are blocked by triggers, and entries are linked by a hash chain.',
-            why: 'verifyChain() detects retrospective tampering, and PII is never duplicated into the log.',
+              'Every change is written to the audit_log in the same transaction as the data itself. Entries can only be appended: the database refuses to change or delete them. Each entry is also chained to the previous one by a hash, so the chain cannot be cut unnoticed.',
+            why: 'The verifyChain() check catches history rewritten after the fact. And the log keeps no second copy of the chart — it refers to the patient by ID and stores only the values of the fields that changed.',
             ref: 'matrix.md §6.6',
             file: 'matrix.md',
           },

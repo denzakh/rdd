@@ -102,7 +102,7 @@
 - `readonly` — только чтение; проверка `canWrite(user)` (session-repo) обязательна
   в каждом Server Action мутаций (`src/features/matrix/api/actions.ts`, admin-UI).
 
-## Row-level access: привязка «чья карта» (migrations/0005_data_scope.sql)
+## Разграничение доступа к картам: чья это карта (migrations/0005_data_scope.sql)
 
 Аутентификация (роль: кто ты) и авторизация на уровне данных (scope: что ты
 видишь) — разные вещи. Ширина видимости пациентов задаётся колонкой
@@ -110,7 +110,7 @@
 
 - `all` (по умолчанию) — видит всех пациентов;
 - `site` — только пациенты своего центра (`patients.site_id = users.site_id`;
-  без привязки к центру — не видно ничего, fail closed);
+  без привязки к центру — не видно ничего: лучше ничего, чем лишнее);
 - `assigned` — только пациенты, назначенные этому врачу
   (`patients.assigned_clinician_id = users.id`).
 

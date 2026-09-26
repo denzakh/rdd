@@ -58,8 +58,8 @@ for public access.
 
 | Threat                              | Measure                                                                                   | Source                     |
 | ----------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------- |
-| IDOR: clinician sees other patients | `data_scope`; scope-repository on list/count/findById                                     | auth.md — Row-level access |
-| PII via logs                        | `audit_log`: ids + JSON values only                                                       | matrix.md §6.6             |
+| IDOR: clinician sees other patients | `data_scope`; repository filters list/count/findById                                      | auth.md — Row-level access |
+| PII via logs                        | `audit_log`: patient id + JSON values of the changed fields, no second copy of the chart  | matrix.md §6.6             |
 | DB leak → session theft             | DB: SHA-256(token) only; raw token in HttpOnly cookie                                     | auth.md §5                 |
 | Reading others' cells in the matrix | Conflict diffs are visible only to the patient's participants (scope); no background sync | matrix.md §6.4–6.5         |
 

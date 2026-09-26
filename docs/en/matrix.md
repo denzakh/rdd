@@ -378,7 +378,11 @@ CREATE UNIQUE INDEX idx_audit_prev_hash ON audit_log (prev_hash) WHERE prev_hash
 -- + triggers audit_no_update / audit_no_delete (RAISE ABORT)
 ```
 
-- Values are JSON strings (`JSON.stringify(FieldValue)`); PII is not duplicated in the log (only ids).
+- Values are JSON strings (`JSON.stringify(FieldValue)`); no second copy of the chart is kept: the log
+  refers to the patient by `patient_id`, and `old_value`/`new_value` hold the values of the
+  fields that changed. A patient-card update writes the whole changed field set
+  (`src/features/patients/api/actions.ts`), so the append-only log conflicts with the right to
+  erasure — see [threat-model.md](./threat-model.md) (retention).
 - **Atomicity:** the data write + audit — a single `db.batch([...])`; the CAS result is checked after the batch, on failure — a separate `conflict_received` event / no record-write audit.
 - Repository: `src/shared/api/audit-repo.ts` (`insertBatch`, `listByPhase`, `listByPatient`).
 - Dependency: ~~without auth `actor_id` is empty~~ — **auth is implemented** (migration `0003_auth.sql`): sessions in D1 (`session-repo.ts`), login via `features/auth`, `actor_id = SessionUser.id` from `requireUser()`/`getCurrentUser()`. ~~Matrix records are demo (mock)~~ — **real mutations are implemented** (stage 1, `./spec-stage-1.md`): Server Actions (`src/features/matrix/api/actions.ts`) call `phase-repo.updateWithVersion` with `actorId = user.id`, audit is written in the same `db.batch`.
