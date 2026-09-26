@@ -21,6 +21,7 @@ export type LandingHighlight = {
   title: string
   text1: string
   text2: string
+  img: string
 }
 
 /** Цель одной аудитории в блоке «Для кого…»: заголовок и список пунктов. */
@@ -46,16 +47,19 @@ export function buildHighlights(dict: LandingDict): LandingHighlight[] {
       title: dict.highlightRegistryTitle,
       text1: dict.highlightRegistryText1,
       text2: dict.highlightRegistryText2,
+      img: 'ssot.jpg',
     },
     {
       title: dict.highlightMatrixTitle,
       text1: dict.highlightMatrixText1,
       text2: dict.highlightMatrixText2,
+      img: 'virt.jpg',
     },
     {
       title: dict.highlightEdgeTitle,
       text1: dict.highlightEdgeText1,
       text2: dict.highlightEdgeText2,
+      img: 'protect.jpg',
     },
   ]
 }
