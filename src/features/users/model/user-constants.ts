@@ -6,6 +6,7 @@
  * импорте из user-repo они тянут за собой node:crypto и getDb() → падает сборка
  * (Module build failed: UnhandledSchemeError: Reading from "node:crypto").
  */
+import type { Namespaces } from '@/shared/lib/intl'
 
 export type Role = 'admin' | 'clinician' | 'readonly'
 export const ROLES: readonly Role[] = ['admin', 'clinician', 'readonly'] as const
@@ -18,3 +19,14 @@ export const DATA_SCOPE_LABELS: Record<DataScope, string> = {
   site: 'свой центр',
   assigned: 'только назначенные',
 }
+
+/**
+ * Тип словаря admin-UI и локализованная подпись data_scope. Живёт здесь, а не
+ * в user-repo: файл импортируется из 'use client' компонентов (table/forms),
+ * которые получают словарь пропом от server-страницы — куки они не читают
+ * (docs/en/i18n.md §3–4).
+ */
+export type AdminDict = Namespaces['admin']
+
+export const scopeLabel = (dict: AdminDict, scope: DataScope): string =>
+  scope === 'site' ? dict.scopeSite : scope === 'assigned' ? dict.scopeAssigned : dict.scopeAll

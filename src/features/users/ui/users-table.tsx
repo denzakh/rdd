@@ -4,36 +4,52 @@ import {
   lockUserAction,
   unlockUserAction,
 } from '../api/actions'
-import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-constants'
+import { ROLES, DATA_SCOPES, scopeLabel, type AdminDict } from '../model/user-constants'
 import type { AdminUser } from '../model/user-repo'
 import { ResetPasswordForm } from './reset-password-form'
 
-const fmt = (iso: string | null): string => (iso ? new Date(iso).toLocaleString('ru-RU') : '—')
+const fmt = (iso: string | null, locale: string): string =>
+  iso ? new Date(iso).toLocaleString(locale === 'en' ? 'en-US' : 'ru-RU') : '—'
 
 const lockedNow = (u: AdminUser): boolean =>
   u.lockedUntil !== null && new Date(u.lockedUntil) > new Date()
 
-/** Таблица пользователей (admin). Мутации — Server Actions с проверкой на сервере. */
-export function UsersTable({ users }: { users: AdminUser[] }) {
+/** Компактная кнопка-действие в ячейке «Действия» (одна линия с соседней). */
+const actionBtn = 'rounded border border-neutral-300 px-1.5 py-0.5 text-xs hover:bg-neutral-100'
+
+/**
+ * Таблица пользователей (admin). Мутации — Server Actions с проверкой на сервере.
+ * Тексты — из словаря `admin`, который приходит пропом со страницы (server
+ * component читает локаль через `getDict('admin')`).
+ */
+export function UsersTable({
+  users,
+  dict,
+  locale,
+}: {
+  users: AdminUser[]
+  dict: AdminDict
+  locale: string
+}) {
   return (
-    <table className="w-full text-sm">
+    <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="border-b text-left text-neutral-500">
-          <th className="py-2">Email</th>
-          <th>Имя</th>
-          <th>Роль</th>
-          <th>Видимость пациентов</th>
-          <th>Блокировка</th>
-          <th>Создан</th>
-          <th>Действия</th>
+        <tr className="border-b border-neutral-200 text-left text-xs text-neutral-500">
+          <th className="px-2 py-1.5 font-medium">{dict.colEmail}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colName}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colRole}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colVisibility}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colLock}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colCreated}</th>
+          <th className="px-2 py-1.5 font-medium">{dict.colActions}</th>
         </tr>
       </thead>
       <tbody>
         {users.map((u) => (
-          <tr key={u.id} className="border-b border-neutral-100 align-top">
-            <td className="py-2 pr-2">{u.email}</td>
-            <td className="pr-2">{u.displayName}</td>
-            <td className="pr-2">
+          <tr key={u.id} className="border-b border-neutral-100 align-middle">
+            <td className="px-2 py-1.5">{u.email}</td>
+            <td className="px-2 py-1.5">{u.displayName}</td>
+            <td className="px-2 py-1.5">
               <form action={changeRoleAction} className="inline-flex items-center gap-1">
                 <input type="hidden" name="id" value={u.id} />
                 <select
@@ -52,7 +68,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                 </button>
               </form>
             </td>
-            <td className="pr-2">
+            <td className="px-2 py-1.5">
               <form action={changeDataScopeAction} className="inline-flex items-center gap-1">
                 <input type="hidden" name="id" value={u.id} />
                 <select
@@ -62,14 +78,14 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                 >
                   {DATA_SCOPES.map((s) => (
                     <option key={s} value={s}>
-                      {DATA_SCOPE_LABELS[s]}
+                      {scopeLabel(dict, s)}
                     </option>
                   ))}
                 </select>
                 <input
                   name="site_id"
                   defaultValue={u.siteId ?? ''}
-                  placeholder="центр"
+                  placeholder={dict.sitePlaceholder}
                   className="w-16 rounded border border-neutral-300 px-1 py-0.5 text-xs"
                 />
                 <button type="submit" className="text-xs underline hover:text-neutral-700">
@@ -77,34 +93,43 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                 </button>
               </form>
             </td>
-            <td className="pr-2 text-xs">
+            <td className="px-2 py-1.5 text-xs">
               {lockedNow(u) ? (
-                <span className="text-red-600">до {fmt(u.lockedUntil)}</span>
+                <span className="text-red-600">
+                  {dict.lockedUntil} {fmt(u.lockedUntil, locale)}
+                </span>
               ) : u.failedAttempts > 0 ? (
-                <span className="text-neutral-500">неудачных: {u.failedAttempts}</span>
+                <span className="text-neutral-500">
+                  {dict.failedAttempts}
+                  {u.failedAttempts}
+                </span>
               ) : (
                 '—'
               )}
             </td>
-            <td className="pr-2 text-xs text-neutral-500">{fmt(u.createdAt)}</td>
-            <td className="space-y-1 py-2 text-xs">
-              {lockedNow(u) ? (
-                <form action={unlockUserAction}>
-                  <input type="hidden" name="id" value={u.id} />
-                  <button type="submit" className="underline hover:text-neutral-700">
-                    Разблокировать
-                  </button>
-                </form>
-              ) : (
-                <form action={lockUserAction}>
-                  <input type="hidden" name="id" value={u.id} />
-                  <button type="submit" className="underline hover:text-neutral-700">
-                    Заблокировать
-                  </button>
-                </form>
-              )}
-              <div>
-                <ResetPasswordForm userId={u.id} />
+            <td className="px-2 py-1.5 text-xs text-neutral-500">{fmt(u.createdAt, locale)}</td>
+            <td className="px-2 py-1.5">
+              <div className="flex flex-wrap items-center gap-1">
+                {lockedNow(u) ? (
+                  <form action={unlockUserAction}>
+                    <input type="hidden" name="id" value={u.id} />
+                    <button type="submit" className={actionBtn}>
+                      {dict.unlockUser}
+                    </button>
+                  </form>
+                ) : (
+                  <form action={lockUserAction}>
+                    <input type="hidden" name="id" value={u.id} />
+                    <button type="submit" className={actionBtn}>
+                      {dict.lockUser}
+                    </button>
+                  </form>
+                )}
+                <ResetPasswordForm
+                  userId={u.id}
+                  label={dict.resetPassword}
+                  buttonClass={actionBtn}
+                />
               </div>
             </td>
           </tr>

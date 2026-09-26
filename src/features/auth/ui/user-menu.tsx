@@ -27,10 +27,9 @@ export function UserInfo({
         href="/change-password"
         title={common.changePasswordLink}
         aria-label={common.changePasswordLink}
-        className="flex items-center gap-1.5 text-neutral-600 hover:text-cyan-700"
+        className="flex items-center text-neutral-600 hover:text-cyan-700"
       >
         <KeyIcon />
-        <span className="text-xs">{common.changePasswordLink}</span>
       </Link>
       <span className="text-neutral-600">
         {displayName} · <span className="text-neutral-400">{role}</span>

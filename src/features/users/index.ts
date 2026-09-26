@@ -7,6 +7,8 @@ export {
   ROLES,
   DATA_SCOPES,
   DATA_SCOPE_LABELS,
+  scopeLabel,
+  type AdminDict,
   type AdminUser,
   type DataScope,
 } from './model/user-repo'

@@ -9,7 +9,15 @@ import { type DataScope, type Role } from './user-constants'
 
 // Типы и константы живут в user-constants.ts: их импортируют 'use client' компоненты,
 // а этот модуль — только server. Ре-экспортируем, чтобы старые импорты не сломались.
-export { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS, type Role, type DataScope } from './user-constants'
+export {
+  ROLES,
+  DATA_SCOPES,
+  DATA_SCOPE_LABELS,
+  scopeLabel,
+  type Role,
+  type DataScope,
+  type AdminDict,
+} from './user-constants'
 
 export interface AdminUser {
   id: string

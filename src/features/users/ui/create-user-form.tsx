@@ -2,16 +2,16 @@
 
 import { useActionState } from 'react'
 import { createUserAction, type CreateUserState } from '../api/actions'
-import { ROLES, DATA_SCOPES, DATA_SCOPE_LABELS } from '../model/user-constants'
+import { ROLES, DATA_SCOPES, scopeLabel, type AdminDict } from '../model/user-constants'
 
 const initialState: CreateUserState = {}
 
-export function CreateUserForm() {
+export function CreateUserForm({ dict }: { dict: AdminDict }) {
   const [state, formAction, isPending] = useActionState(createUserAction, initialState)
 
   return (
     <form action={formAction} className="space-y-3">
-      <h2 className="font-medium">Новый пользователь</h2>
+      <h2 className="font-medium">{dict.newUserTitle}</h2>
       <div className="flex flex-wrap gap-2">
         <input
           name="email"
@@ -22,7 +22,7 @@ export function CreateUserForm() {
         />
         <input
           name="name"
-          placeholder="Имя"
+          placeholder={dict.namePlaceholder}
           required
           className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         />
@@ -44,13 +44,14 @@ export function CreateUserForm() {
         >
           {DATA_SCOPES.map((s) => (
             <option key={s} value={s}>
-              видит: {DATA_SCOPE_LABELS[s]}
+              {dict.seesPrefix}
+              {scopeLabel(dict, s)}
             </option>
           ))}
         </select>
         <input
           name="site_id"
-          placeholder="Центр (site), для 'свой центр'"
+          placeholder={dict.siteFullPlaceholder}
           className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
         />
         <button
@@ -58,13 +59,13 @@ export function CreateUserForm() {
           disabled={isPending}
           className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
         >
-          {isPending ? '…' : 'Создать'}
+          {isPending ? '…' : dict.create}
         </button>
       </div>
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state.password && (
         <p className="rounded-md bg-amber-50 p-2 text-sm">
-          Пароль для <b>{state.email}</b> (покажется один раз):{' '}
+          {dict.passwordFor} <b>{state.email}</b> {dict.shownOnce}:{' '}
           <code className="font-mono">{state.password}</code>
         </p>
       )}
