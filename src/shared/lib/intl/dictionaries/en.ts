@@ -285,12 +285,12 @@ export const en: DictShape = {
             file: 'rdd-v1.md',
           },
           {
-            title: 'Protocol versioning without migrations',
+            title: 'Protocol versions without database migrations',
             problem:
-              'The CRF changes while enrollment is ongoing: what does a value entered before an ethics-committee amendment mean?',
+              'The questions asked of a doctor change while the study is running: an ethics-committee amendment rewrites the wording. Otherwise, a year later there is no way to tell what the doctor meant by an answer given under the old wording.',
             solution:
-              'registry_version on the record plus a registry of versions; the schema only changes through a full DB reset.',
-            why: 'Historical values are never rewritten, and the export carries the protocol version on every row.',
+              'Every patient record and every phase is tagged with the protocol version it was collected under, and the versions themselves are listed in a registry. Editing the wording shows up in the data right away: for an old record the field stays, but is marked as retired. The database schema is not restructured — it only changes through a full reset.',
+            why: 'Data entered earlier is never rewritten: the export shows which protocol version filled in each row, so answers from different revisions cannot be mixed up.',
             ref: 'schema-evolution.md',
             file: 'schema-evolution.md',
           },
