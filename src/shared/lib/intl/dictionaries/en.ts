@@ -357,12 +357,12 @@ export const en: DictShape = {
         title: 'Access and security',
         cards: [
           {
-            title: 'Passwords and sessions on the edge',
+            title: 'Password sign-in where there is no server of our own',
             problem:
-              'Cloudflare Workers has no node:crypto, so bcrypt/argon2 are not available natively.',
+              'A clinician signs in with a password, and it must never be stored in the clear. The app runs on Cloudflare Workers without Node.js, so the usual bcrypt and argon2 do not run there either.',
             solution:
-              'PBKDF2-SHA256 through Web Crypto (100k iterations) and own sessions in D1, with the token living only in an HttpOnly cookie.',
-            why: 'A database leak does not hijack sessions: D1 only holds the SHA-256 of the token.',
+              'The password is kept as a one-way PBKDF2-SHA256 hash with 100 thousand iterations. The session token lives only in a cookie marked HttpOnly, Secure and SameSite=Lax, and the D1 database holds nothing but its SHA-256. A session lasts 12 hours, is extended during active work, and never exceeds 7 days from sign-in.',
+            why: 'A database leak does not grant access: the password can only be brute-forced and the token cannot be reconstructed from its SHA-256. A stolen token buys at most 7 days of access, not an unlimited one.',
             ref: 'auth.md §2, §4–5',
             file: 'auth.md',
           },
@@ -503,15 +503,15 @@ export const en: DictShape = {
       },
       { label: 'Patients', href: '/patients', note: 'patient records filtered by data_scope' },
     ],
-    limitsTitle: 'Boundaries of the demo',
+    limitsTitle: 'What this version does not do',
     limitsText:
-      'Not “forgotten” but deliberately out of scope: each item would require a separate body of work and is documented with an escalation threshold.',
+      'This is a demo version: the whole clinician workflow works here — patient record, phase matrix, roles, audit and data export — but the data is synthetic rather than real medical data. Nothing below was forgotten or left broken: each item would require a separate project with its own budget and timeline, so it is deliberately out of scope for this version and written down in the documentation as the point where the work moves to the next stage. Everything described here can be verified in the code and in the tests; everything that is missing here is a matter of separate work with lawyers, the security team and operations.',
     limits: [
-      'Compliance and regulation (HIPAA / personal-data law), DPAs with processors, e-signature for consent.',
-      'Encryption at rest (BYOK/KMS) and separation of demo and production environments.',
-      'Regular D1 backups, point-in-time recovery and a disaster recovery plan.',
-      'Retention policies and patient deletion together with the append-only audit log.',
-      'Active collaboration sync: 30–60 s polling instead of WebSocket/SSE.',
+      'Compliance with personal-data and medical-record regulation (Russian personal-data law, 152-FFZ, and HIPAA in the US), agreements with data processors, e-signature for patient consent.',
+      'Encryption of data at rest, separate key storage, and separation of the demo and production environments.',
+      'Regular database backups, point-in-time recovery, and a tested disaster recovery plan.',
+      'Data retention policies and deletion of a patient record together with the audit log, which cannot be rewritten.',
+      'Instant screen updates for a second clinician: data is currently re-fetched by polling the server every 30–60 seconds rather than over a persistent connection (WebSocket or SSE).',
     ],
     limitsRef: 'architecture-overview.md — “Boundaries of the demo project”',
     limitsFile: 'architecture-overview.md',
