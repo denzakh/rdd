@@ -269,10 +269,10 @@ export const en: DictShape = {
           {
             title: 'Single field registry (SSOT)',
             problem:
-              '50+ clinical fields: the DB schema, validation and the UI would be described in three places and would inevitably drift apart.',
+              'A clinical study has more than 50 clinical fields. For every field, validation, the UI element and the value in the DB schema have to be defined. If these values were described in three places, they would inevitably drift apart as the app changes.',
             solution:
               'One TS registry generates the D1 schema, the Zod schemas, the input fields, the matrix and the data dictionary.',
-            why: 'The “field = column” invariant: a new or fixed field is a single edit in the registry.',
+            why: 'With this setup a single edit in the registry updates every related place at once. That makes changes fast, easy and safe.',
             ref: 'rdd-v1.md §3',
             file: 'rdd-v1.md',
           },
@@ -280,8 +280,7 @@ export const en: DictShape = {
             title: 'Storing binary signs',
             problem:
               'A clinical study can have many signs that take YES or NO values (symptoms, therapy, remission). We had to choose how to store them: separate columns, a sign-value table, a bitmask, or a single JSON column.',
-            solution:
-              'Every sign is stored as its own column holding 0 or 1 in the shared registry schema. Five storage options were considered and this one was chosen.',
+            solution: 'Every sign is stored as a separate column (0/1).',
             why: 'While the number of signs is small (fewer than 150), plain columns are simply more convenient. They make export and edits easy, fit the single-registry logic, and allow fast symptom search without extra load on the database.',
             ref: 'rdd-v1.md §7',
             file: 'rdd-v1.md',
@@ -289,9 +288,9 @@ export const en: DictShape = {
           {
             title: 'Protocol versions without database migrations',
             problem:
-              'The questions asked of a doctor change while the study is running: an ethics-committee amendment rewrites the wording. Otherwise, a year later there is no way to tell what the doctor meant by an answer given under the old wording.',
+              'The signs being studied and the ways of filling them in can change, while the values already entered stay as they are. A year later it is no longer clear what the doctor meant when entering an answer under the old wording.',
             solution:
-              'Every patient record and every phase is tagged with the protocol version it was collected under, and the versions themselves are listed in a registry. Editing the wording shows up in the data right away: for an old record the field stays, but is marked as retired. The database schema is not restructured — it only changes through a full reset.',
+              'Every record is tagged with a protocol version number, and the versions themselves are described in a separate registry. An entry in an old field stays, but is marked as retired. The database schema is not restructured.',
             why: 'Data entered earlier is never rewritten: the export shows which protocol version filled in each row, so answers from different revisions cannot be mixed up.',
             ref: 'schema-evolution.md',
             file: 'schema-evolution.md',
@@ -301,7 +300,7 @@ export const en: DictShape = {
             problem:
               'A doctor needs to know what each sign means and what answers it allows, while a developer needs to know the data type and which table holds it. Describing this by hand means that when signs are added or edited, it is easy to forget to update the description — and the documentation drifts away from the real database.',
             solution:
-              'The /data-dictionary page is built from the same sign definitions the database tables are generated from. Nothing has to be maintained by hand: rename a sign or change its allowed answers, and the dictionary shows exactly that.',
+              'The dictionary is built from the same registry as the rest of the app. When the registry is edited, the dictionary changes automatically.',
             why: 'Clinicians see the clinical meaning of a sign, developers see types and column names, and both read the same single source — so the description and the database cannot fall out of sync.',
             ref: 'data-dictionary.md',
             file: 'data-dictionary.md',
@@ -469,9 +468,9 @@ export const en: DictShape = {
         file: 'auth.md',
       },
       {
-        threat: 'IDOR: a clinician sees other clinicians’ patients',
+        threat: 'IDOR: a clinician sees other patients’ charts',
         measure:
-          'Row-level access: per-user data_scope plus a scoped repository on every query, findById included',
+          'Per-user visibility scope (data_scope) plus a repository filter on every query, findById included',
         where: 'auth.md — Row-level access',
         file: 'auth.md',
       },
