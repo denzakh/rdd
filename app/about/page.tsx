@@ -15,9 +15,9 @@ export default async function AboutPage() {
   ])
 
   const links = [
-    { key: 'thesis', label: about.thesisLink, href: about.thesisUrl, external: true },
-    { key: 'arch', label: about.docsLink, href: about.docsUrl, external: true },
     { key: 'docs-hub', label: about.docsHubLink, href: about.docsHubUrl, external: false },
+    { key: 'arch', label: about.docsLink, href: about.docsUrl, external: true },
+    { key: 'thesis', label: about.thesisLink, href: about.thesisUrl, external: true },
   ]
 
   const linkClass =
