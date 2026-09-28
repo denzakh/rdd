@@ -15,8 +15,8 @@ import {
   getDb,
   requireUser,
   SESSION_COOKIE,
+  sessionCookieOptions,
 } from '@/shared/api'
-import { sessionCookieOptions } from '@/shared/api/session-cookie'
 import { generatePassword, hashPassword, MIN_PASSWORD_LENGTH } from '@/shared/lib/password'
 import {
   auditUser,

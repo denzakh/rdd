@@ -19,8 +19,8 @@ import {
   requireUser,
   resetLoginFailures,
   SESSION_COOKIE,
+  sessionCookieOptions,
 } from '@/shared/api'
-import { sessionCookieOptions } from '@/shared/api/session-cookie'
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '@/shared/lib/password'
 
 export interface LoginState {
