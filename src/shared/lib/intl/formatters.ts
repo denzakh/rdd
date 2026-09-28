@@ -5,16 +5,19 @@ export type IntlLocale = 'ru-RU' | 'en-US'
 /** Cookie локали UI (docs/en/i18n.md §4). */
 export const LOCALE_COOKIE = 'rdd_locale'
 
+/** Локаль по умолчанию, если cookie нет или значение неизвестно. */
+export const DEFAULT_LOCALE: Locale = 'en'
+
 export const isLocale = (v: unknown): v is Locale => v === 'ru' || v === 'en'
 
-export const resolveLocale = (v: unknown): Locale => (isLocale(v) ? v : 'ru')
+export const resolveLocale = (v: unknown): Locale => (isLocale(v) ? v : DEFAULT_LOCALE)
 
 /** Маппинг короткой локали UI на локаль Intl (docs/en/i18n.md §3). */
 export const toIntlLocale = (locale: Locale): IntlLocale => (locale === 'en' ? 'en-US' : 'ru-RU')
 
 /**
- * Локализованная строка реестра: `{ ru, en }` или простая строка (RU-фолбэк).
- * Единая точка резолва подписей полей и опций — фолбэк на ru осознанный:
+ * Локализованная строка реестра: `{ ru, en }` или простая строка (EN-фолбэк).
+ * Единая точка резолва подписей полей и опций — фолбэк на en осознанный:
  * клиницисты вводят данные на русском, английский слой не должен ронять UI.
  */
 export type LocalizedText = { ru: string; en: string } | string
@@ -27,7 +30,7 @@ export const pickLocale = (text: LocalizedText, locale: Locale): string => {
  * Форматирование даты в строку по стандарту Intl.
  * Принимает и короткую локаль UI ('ru'/'en'), и полную ('ru-RU'/'en-US').
  */
-export const formatDate = (date: string | Date | number, locale: Locale | IntlLocale = 'ru-RU') => {
+export const formatDate = (date: string | Date | number, locale: Locale | IntlLocale = 'en-US') => {
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
 

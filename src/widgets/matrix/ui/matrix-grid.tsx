@@ -40,7 +40,7 @@ export interface MatrixGridProps {
   /** Начальные данные { [phaseId]: { [fieldId]: value } }. */
   data: MatrixData
   isReadOnly?: boolean
-  /** Локаль UI матрицы (подписи полей/секций, RU-фолбэк, docs/en/i18n.md). */
+  /** Локаль UI матрицы (подписи полей/секций, EN-фолбэк, docs/en/i18n.md). */
   locale?: Locale
   /** Персист батча dirty-ячеек (вызывается вне React, с дебаунсом 300ms). */
   onPersist?: (batch: DirtyCommit[]) => void
@@ -108,7 +108,7 @@ function CellConnector({
   isReadOnly: boolean
   isComputed: boolean
   computedValue: FieldValue
-  /** Локаль подписей опций и deprecated-тултипа (RU-фолбэк). */
+  /** Локаль подписей опций и deprecated-тултипа (EN-фолбэк). */
   locale: Locale
   error?: string
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
@@ -196,7 +196,7 @@ export function MatrixGrid({
   columns,
   data,
   isReadOnly = false,
-  locale = 'ru',
+  locale = 'en',
   onPersist,
   onResolveConflict: onResolveConflictProp,
   scopes,

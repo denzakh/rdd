@@ -1,5 +1,5 @@
 /**
- * Серверные helpers локали (docs/en/i18n.md §4): cookie `rdd_locale`, дефолт `ru`.
+ * Серверные helpers локали (docs/en/i18n.md §4): cookie `rdd_locale`, дефолт `en`.
  * Сами серверные чтения/записи cookie живут на Edge/Node (next/headers);
  * чистые хелперы (locale/resolveLocale/constants) — в `formatters.ts` (клиент+сервер).
  */

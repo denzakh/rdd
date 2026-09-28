@@ -21,7 +21,7 @@ export function LocaleSwitcher({ locale }: { locale: Locale }) {
 
   return (
     <div className="flex items-center gap-1 text-xs" aria-label="Language / Язык">
-      {(['ru', 'en'] as const).map((l) => (
+      {(['en', 'ru'] as const).map((l) => (
         <button
           key={l}
           type="button"

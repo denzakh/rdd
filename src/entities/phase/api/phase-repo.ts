@@ -44,7 +44,7 @@ export const isSystemPhaseRelativeId = (relId: number | null | undefined): boole
 /** Заголовок колонки матрицы (верхняя строка, "фаза №"): 98 → «Поступление», 99 → «Выписка». */
 export function phaseColumnTitle(
   relId: number | null | undefined,
-  locale: 'ru' | 'en' = 'ru'
+  locale: 'ru' | 'en' = 'en'
 ): string {
   if (relId === PHASE_RELATIVE_ADMISSION) return locale === 'en' ? 'Admission' : 'Поступление'
   if (relId === PHASE_RELATIVE_DISCHARGE) return locale === 'en' ? 'Discharge' : 'Выписка'

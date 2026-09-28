@@ -28,7 +28,7 @@ export interface MatrixClientProps {
   /** Токены версий CAS: { [phaseId]: updated_at }. */
   versions: Record<string, string | null>
   isReadOnly: boolean
-  /** Локаль UI матрицы (RU-фолбэк). */
+  /** Локаль UI матрицы (EN-фолбэк). */
   locale?: 'ru' | 'en'
 }
 
@@ -41,7 +41,7 @@ export default function MatrixClient({
   data,
   versions,
   isReadOnly,
-  locale = 'ru',
+  locale = 'en',
 }: MatrixClientProps) {
   const router = useRouter()
   const versionsRef = useRef(versions)

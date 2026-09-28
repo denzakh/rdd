@@ -6,7 +6,7 @@ import { dictFor } from '@/shared/lib/intl/dictionaries'
 import type { RegistryField } from '@/shared/config/registry/types'
 
 describe('buildDataDictionary', () => {
-  const sections = buildDataDictionary()
+  const sections = buildDataDictionary('ru')
 
   it('покрывает все 6 разделов реестра и все поля FLAT_REGISTRY', () => {
     expect(sections.map((s) => s.key).sort()).toEqual(
@@ -93,7 +93,7 @@ describe('i18n: registry labels + dictionaries (docs/en/i18n.md)', () => {
     expect(bad).toEqual([])
   })
 
-  it('fieldLabel/optionLabel: en + RU-фолбэк на строке', () => {
+  it('fieldLabel/optionLabel: en + EN-фолбэк на строке', () => {
     const field = {
       id: 'x',
       label: { ru: 'Тоска', en: 'Melancholy' },
@@ -107,7 +107,7 @@ describe('i18n: registry labels + dictionaries (docs/en/i18n.md)', () => {
 
   it('pickLocale/resolveLocale/toIntlLocale', () => {
     expect(pickLocale({ ru: 'а', en: 'b' }, 'en')).toBe('b')
-    expect(resolveLocale('xx')).toBe('ru')
+    expect(resolveLocale('xx')).toBe('en')
     expect(resolveLocale('en')).toBe('en')
     expect(toIntlLocale('en')).toBe('en-US')
     expect(toIntlLocale('ru')).toBe('ru-RU')

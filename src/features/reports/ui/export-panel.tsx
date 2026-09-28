@@ -71,7 +71,7 @@ function download(result: ExportResult): void {
   URL.revokeObjectURL(url)
 }
 
-export function ExportPanel({ locale = 'ru' }: { locale?: Locale }) {
+export function ExportPanel({ locale = 'en' }: { locale?: Locale }) {
   const en = locale === 'en'
   const [pending, start] = useTransition()
   const [last, setLast] = useState<ExportResult | null>(null)

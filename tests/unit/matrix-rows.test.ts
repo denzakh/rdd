@@ -11,20 +11,20 @@ import type { RegistryField } from '@/shared/config/registry/types'
 
 describe('matrix-rows: buildMatrixRows', () => {
   it('первая строка — заголовок секции «Контроль фазы», секция patient не входит', () => {
-    const rows = buildMatrixRows()
+    const rows = buildMatrixRows(undefined, 'ru')
     expect(rows[0]).toEqual({ kind: 'section', sectionId: 'phase', title: 'Контроль фазы' })
     expect(rows.some((r) => r.kind === 'section' && r.sectionId === 'patient')).toBe(false)
   })
 
   it('порядок секций: phase, status, diagnostic, therapy, remission', () => {
-    const sections = buildMatrixRows()
+    const sections = buildMatrixRows(undefined, 'ru')
       .filter((r) => r.kind === 'section')
       .map((r) => (r as { sectionId: string }).sectionId)
     expect(sections).toEqual(['phase', 'status', 'diagnostic', 'therapy', 'remission'])
   })
 
   it('число field-строк равно числу видимых полей секций, индексы последовательны', () => {
-    const rows = buildMatrixRows()
+    const rows = buildMatrixRows(undefined, 'ru')
     const fieldRows = rows.filter((r) => r.kind === 'field') as Array<
       Extract<(typeof rows)[number], { kind: 'field' }>
     >
@@ -47,7 +47,7 @@ describe('matrix-rows: buildMatrixRows', () => {
   })
 
   it('hide_in_matrix: авто-дубли скрыты из грида', () => {
-    const ids = buildMatrixRows()
+    const ids = buildMatrixRows(undefined, 'ru')
       .filter((r) => r.kind === 'field')
       .map((r) => (r as { field: RegistryField }).field.id)
     const hiddenIds = ['phase_relative_id', 'hamd_severity', 'pure_remission', 'ad_any']
@@ -61,7 +61,7 @@ describe('matrix-rows: buildMatrixRows', () => {
   })
 
   it('scopes-фильтр отбирает только указанные секции', () => {
-    const rows = buildMatrixRows(['phase'])
+    const rows = buildMatrixRows(['phase'], 'ru')
     expect(rows[0]).toEqual({ kind: 'section', sectionId: 'phase', title: 'Контроль фазы' })
     const visiblePhase = Object.values(REGISTRY.phase).filter(
       (f) => !(f as RegistryField).hide_in_matrix
@@ -70,12 +70,12 @@ describe('matrix-rows: buildMatrixRows', () => {
   })
 
   it('секция без подгрупп рендерится плоским списком (subheader-строк нет)', () => {
-    const rows = buildMatrixRows(['phase'])
+    const rows = buildMatrixRows(['phase'], 'ru')
     expect(rows.some((r) => r.kind === 'subgroup')).toBe(false)
   })
 
   it('терапия: 5 subheader-строк в порядке THERAPY_GROUPS, поля идут после своей подгруппы', () => {
-    const rows = buildMatrixRows(['therapy'])
+    const rows = buildMatrixRows(['therapy'], 'ru')
     const subs = rows.filter((r) => r.kind === 'subgroup') as Array<
       Extract<(typeof rows)[number], { kind: 'subgroup' }>
     >
@@ -99,7 +99,7 @@ describe('matrix-rows: buildMatrixRows', () => {
   })
 
   it('subheader-строки не влияют на field-индексы (index/totalFields считаются по полям)', () => {
-    const rows = buildMatrixRows()
+    const rows = buildMatrixRows(undefined, 'ru')
     const fieldRows = rows.filter((r) => r.kind === 'field')
     const totalFields = fieldRows.length
     fieldRows.forEach((r, i) => {
@@ -131,22 +131,27 @@ describe('matrix-rows: утилиты поля', () => {
     expect(isComputedField(stored)).toBe(false)
   })
 
-  it('fieldLabel: строка возвращается как есть, объект — по ru', () => {
+  it('fieldLabel: строка возвращается как есть, объект — по локали (по умолчанию en)', () => {
     const labeled = Object.values(FLAT_REGISTRY).find(
       (f) => typeof (f as RegistryField).label === 'object'
     ) as RegistryField | undefined
     expect(labeled).toBeDefined()
-    expect(fieldLabel(labeled!)).toBe((labeled!.label as { ru: string }).ru)
+    // дефолт приложения — en
+    expect(fieldLabel(labeled!)).toBe((labeled!.label as { en: string }).en)
+    expect(fieldLabel(labeled!, 'ru')).toBe((labeled!.label as { ru: string }).ru)
     expect(fieldLabel({ ...labeled!, label: 'Просто строка' })).toBe('Просто строка')
   })
 
-  it('deprecatedTooltip: «Устарело с версии N» + «См. вместо: label replacedBy»', () => {
+  it('deprecatedTooltip: локализованный текст «Устарело с версии N» + «См. вместо: label»', () => {
     // replacedBy резолвится по реестру — берём реальное существующее поле
     const replacementId = Object.keys(FLAT_REGISTRY)[0] as string
     const replField = (FLAT_REGISTRY as unknown as Record<string, RegistryField>)[replacementId]
     const dep = { ...replField, deprecated_since: 2, replacedBy: replacementId } as RegistryField
     expect(deprecatedTooltip(dep)).toBe(
-      `Устарело с версии 2 · См. вместо: ${fieldLabel(replField)}`
+      `Deprecated since v2 · See instead: ${fieldLabel(replField)}`
+    )
+    expect(deprecatedTooltip(dep, 'ru')).toBe(
+      `Устарело с версии 2 · См. вместо: ${fieldLabel(replField, 'ru')}`
     )
 
     // replacedBy без записи в реестре — падает на id
@@ -155,7 +160,10 @@ describe('matrix-rows: утилиты поля', () => {
       deprecated_since: 3,
       replacedBy: 'no_such_field',
     } as RegistryField
-    expect(deprecatedTooltip(depUnknown)).toBe('Устарело с версии 3 · См. вместо: no_such_field')
+    expect(deprecatedTooltip(depUnknown)).toBe('Deprecated since v3 · See instead: no_such_field')
+    expect(deprecatedTooltip(depUnknown, 'ru')).toBe(
+      'Устарело с версии 3 · См. вместо: no_such_field'
+    )
 
     // не-deprecated — undefined
     expect(deprecatedTooltip({ ...replField } as RegistryField)).toBeUndefined()

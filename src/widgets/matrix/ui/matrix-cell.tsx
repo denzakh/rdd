@@ -35,7 +35,7 @@ function MatrixCellBase({
   error,
   conflict,
   options,
-  locale = 'ru',
+  locale = 'en',
   onChange,
   onResolveConflict,
 }: MatrixCellProps) {
@@ -229,7 +229,7 @@ function ConflictBadge({
 function renderBadge(
   value: FieldValue,
   options?: readonly RegistryOption[],
-  locale: Locale = 'ru'
+  locale: Locale = 'en'
 ): string {
   if (value === null || value === undefined) return '—'
   if (options) {

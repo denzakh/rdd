@@ -1,6 +1,7 @@
 export { diffYears, diffMonths, getAgeGroup, map_age_to_group } from './calculations'
 export {
   formatDate,
+  DEFAULT_LOCALE,
   isLocale,
   LOCALE_COOKIE,
   pickLocale,
