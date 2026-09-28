@@ -29,6 +29,7 @@
     "user:create:remote": "tsx scripts/create-user.ts --remote",
     "user:reset-password:local": "tsx scripts/reset-password-local.ts",
     "user:delete:remote": "tsx scripts/delete-user-remote.ts",
+    "user:delete:remote:all": "tsx scripts/delete-user-remote.ts --all --force",
     "user:delete:local": "tsx scripts/delete-user-remote.ts --local",
     "test:db": "tsx scripts/ensure-local-db.ts && vitest run -c vitest.integration.config.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",

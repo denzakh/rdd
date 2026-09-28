@@ -3,6 +3,7 @@
  *
  * Запуск:
  *   npm run user:delete:remote -- <email>              — удалить одного
+ *   npm run user:delete:remote:all                    — полная очистка: всех, включая админов
  *   npm run user:delete:remote -- --all --keep a@b.ru  — удалить всех, кроме указанных
  *   npm run user:delete:remote -- --list               — только показать пользователей
  *
@@ -10,11 +11,18 @@
  *   <email>…   позиционные аргументы: email'ы удаляемых пользователей
  *   --all      удалить всех (в т.ч. админов)
  *   --keep e   не удалять этих (список через запятую)
+ *   --force    разрешить удаление, после которого НЕ останется ни одного админа
+ *              (синоним --allow-no-admin); входит в user:delete:remote:all
  *   --detach   снять привязку карт пациентов (assigned_clinician_id = NULL)
  *              вместо падения по внешнему ключу
  *   --list     показать список и выйти
  *   --yes      не спрашивать подтверждение (CI/агенты)
  *   --local    работать с ЛОКАЛЬНОЙ БД (.wrangler/state) — для отладки скрипта
+ *
+ * Про «не останется админа»: без --force скрипт отказывается удалять последнего
+ * admin — нового можно завести только скриптом create-user.ts, и потерять
+ * единственную учётку с доступом к /admin/users нельзя молча. С `--force`
+ * очистка проходит, и в выводе печатается команда для создания нового админа.
  *
  * Что происходит при удалении:
  *   • сессии удаляются (sessions.user_id — каскад), все входы пользователя
@@ -59,6 +67,8 @@ interface Args {
   all: boolean
   list: boolean
   detach: boolean
+  /** Снять защиту «не должно остаться ни одного админа» (полная очистка). */
+  force: boolean
   keep: string[]
   emails: string[]
 }
@@ -83,6 +93,7 @@ function parseArgs(): Args {
     all: has('--all'),
     list: has('--list'),
     detach: has('--detach'),
+    force: has('--force') || has('--allow-no-admin'),
     keep: (keepValue ?? '')
       .split(',')
       .map((s) => s.trim().toLowerCase())
@@ -175,6 +186,10 @@ function printUsers(rows: UserRow[]): void {
   }
 }
 
+/** Команда создания первого admin после полной очистки (первый в базе = admin). */
+const createAdminHint = (remote: boolean): string =>
+  remote ? 'npm run user:create:remote' : 'npm run user:create'
+
 const NON_INTERACTIVE_HINT =
   'Неинтерактивный режим: укажите email позиционным аргументом, например:\n' +
   '  npm run user:delete:remote -- user@example.com\n' +
@@ -230,10 +245,21 @@ async function main(): Promise<void> {
         args.remote
       )[0]?.n ?? 0
     )
-    if (adminsLeft - adminsRemoved === 0) {
-      throw new Error(
-        'После удаления не останется ни одного админа — управление пользователями станет недоступно. ' +
-          'Исключите админа из выборки (--keep) или не удаляйте его.'
+    const noAdminsLeft = adminsLeft - adminsRemoved === 0
+    if (noAdminsLeft) {
+      if (!args.force) {
+        throw new Error(
+          'После удаления не останется ни одного админа — управление пользователями станет недоступно.\n' +
+            '  • исключите админа из выборки:  --all --keep ' +
+            (all[0]?.email ?? 'admin@example.com') +
+            '\n' +
+            '  • или полная очистка (после неё вход закрыт для всех):  --all --force'
+        )
+      }
+      console.log(
+        '⚠️  --force: после удаления НЕ останется ни одного админа. ' +
+          'Вход в приложение будет закрыт для всех, пока не создать нового админа:\n' +
+          `      ${createAdminHint(args.remote)}`
       )
     }
 
@@ -289,6 +315,13 @@ async function main(): Promise<void> {
     )
     console.log('Остались:')
     printUsers(listUsers(args.remote))
+    if (noAdminsLeft) {
+      console.log(
+        '\n⚠️  Админов не осталось — вход закрыт. Создайте первого заново:\n' +
+          `   ${createAdminHint(args.remote)}\n` +
+          '   (первый пользователь в пустой базе автоматически получает роль admin)'
+      )
+    }
   } finally {
     prompt.close()
   }
