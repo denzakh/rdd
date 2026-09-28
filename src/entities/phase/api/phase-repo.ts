@@ -1,6 +1,7 @@
 import type { PhaseRow } from '@/shared/api'
 import { createAuditRepository, type AuditEntry } from '@/shared/api'
 import { REGISTRY_CURRENT_VERSION } from '@/shared/lib/registry'
+import { DEFAULT_LOCALE, type Locale } from '@/shared/lib/intl'
 
 /**
  * Репозиторий фаз (перенос из shared/api, docs/ru/spec-stage-2.md §3).
@@ -44,7 +45,7 @@ export const isSystemPhaseRelativeId = (relId: number | null | undefined): boole
 /** Заголовок колонки матрицы (верхняя строка, "фаза №"): 98 → «Поступление», 99 → «Выписка». */
 export function phaseColumnTitle(
   relId: number | null | undefined,
-  locale: 'ru' | 'en' = 'en'
+  locale: Locale = DEFAULT_LOCALE
 ): string {
   if (relId === PHASE_RELATIVE_ADMISSION) return locale === 'en' ? 'Admission' : 'Поступление'
   if (relId === PHASE_RELATIVE_DISCHARGE) return locale === 'en' ? 'Discharge' : 'Выписка'

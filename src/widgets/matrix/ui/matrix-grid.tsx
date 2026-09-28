@@ -31,7 +31,7 @@ import {
   isFieldHiddenForPhase,
 } from '@/shared/lib/registry/field-availability'
 import type { FieldValue, MatrixColumn, MatrixScope } from '../model/types'
-import type { Locale } from '@/shared/lib/intl'
+import { DEFAULT_LOCALE, type Locale } from '@/shared/lib/intl'
 import { MatrixCell } from './matrix-cell'
 
 export interface MatrixGridProps {
@@ -40,7 +40,7 @@ export interface MatrixGridProps {
   /** Начальные данные { [phaseId]: { [fieldId]: value } }. */
   data: MatrixData
   isReadOnly?: boolean
-  /** Локаль UI матрицы (подписи полей/секций, EN-фолбэк, docs/en/i18n.md). */
+  /** Локаль UI матрицы (подписи полей/секций; по умолчанию `DEFAULT_LOCALE`). */
   locale?: Locale
   /** Персист батча dirty-ячеек (вызывается вне React, с дебаунсом 300ms). */
   onPersist?: (batch: DirtyCommit[]) => void
@@ -196,7 +196,7 @@ export function MatrixGrid({
   columns,
   data,
   isReadOnly = false,
-  locale = 'en',
+  locale = DEFAULT_LOCALE,
   onPersist,
   onResolveConflict: onResolveConflictProp,
   scopes,

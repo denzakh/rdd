@@ -101,7 +101,7 @@ originals). Start with the entry point.
 - UI chrome (buttons, menus, auth forms) — switchable RU/EN via cookie `rdd_locale`
   - `<LocaleSwitcher />` in the user menu (see `docs/en/i18n.md`).
 - `RegistryField.label` — `{ ru, en }` everywhere (was partially RU-only); resolved
-  via `fieldLabel(field, locale)` with RU fallback.
+  via `fieldLabel(field, locale)` with `DEFAULT_LOCALE` (`en`) fallback.
 - `RegistryOption.label` — `{ ru, en } | string`; resolved via `optionLabel(opt, locale)`.
 - Deliberately **out of scope** (documented in `docs/en/i18n.md`): translating
   historical DB values (codes, not text), clinically validated translation of rating

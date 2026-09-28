@@ -1,6 +1,6 @@
 import { REGISTRY, FLAT_REGISTRY, THERAPY_GROUPS } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
-import { fieldLabel as pickFieldLabel, type Locale } from '@/shared/lib/intl'
+import { DEFAULT_LOCALE, fieldLabel as pickFieldLabel, type Locale } from '@/shared/lib/intl'
 import type { MatrixRowItem, MatrixScope } from './types'
 
 /**
@@ -35,21 +35,24 @@ const SECTION_GROUPS: Partial<
   therapy: THERAPY_GROUPS,
 }
 
-/** Заголовок секции под локаль (EN-фолбэк). */
-export function sectionTitle(section: keyof typeof REGISTRY, locale: Locale = 'en'): string {
+/** Заголовок секции под локаль (по умолчанию `DEFAULT_LOCALE`). */
+export function sectionTitle(
+  section: keyof typeof REGISTRY,
+  locale: Locale = DEFAULT_LOCALE
+): string {
   const t = SECTION_TITLES[section]
   return locale === 'en' ? (t.en ?? t.ru) : (t.ru ?? t.en)
 }
 
 /**
- * Заголовок подгруппы секции под локаль (EN-фолбэк). Единственный источник
+ * Заголовок подгруппы секции под локаль (по умолчанию `DEFAULT_LOCALE`). Единственный источник
  * правды — словарь подгрупп рядом с блоком реестра (`THERAPY_GROUPS` и т.п.).
  * Если у секции нет словаря подгрупп или id неизвестен — падает на сам id.
  */
 export function sectionGroupTitle(
   section: keyof typeof REGISTRY,
   groupId: string,
-  locale: Locale = 'en'
+  locale: Locale = DEFAULT_LOCALE
 ): string {
   const groups = SECTION_GROUPS[section]
   const t = groups?.[groupId]
@@ -62,8 +65,8 @@ export function isComputedField(field: RegistryField): boolean {
   return typeof field.calculate === 'function'
 }
 
-/** Разрешение локализованной подписи (EN-фолбэк, docs/en/i18n.md §3). */
-export function fieldLabel(field: RegistryField, locale: Locale = 'en'): string {
+/** Разрешение локализованной подписи (по умолчанию `DEFAULT_LOCALE`, docs/en/i18n.md §3). */
+export function fieldLabel(field: RegistryField, locale: Locale = DEFAULT_LOCALE): string {
   return pickFieldLabel(field, locale)
 }
 
@@ -73,7 +76,10 @@ export function fieldLabel(field: RegistryField, locale: Locale = 'en'): string 
  * Версия задаётся сверху (читается `field.deprecated_since`), label поля-замены
  * резолвится по реестру, при отсутствии — падает на id. Не-deprecated — undefined.
  */
-export function deprecatedTooltip(field: RegistryField, locale: Locale = 'en'): string | undefined {
+export function deprecatedTooltip(
+  field: RegistryField,
+  locale: Locale = DEFAULT_LOCALE
+): string | undefined {
   if (field.deprecated_since === undefined) return undefined
   let text =
     locale === 'en'
@@ -106,7 +112,7 @@ export function isFieldRowHiddenForVersions(
 }
 export function buildMatrixRows(
   scopes?: readonly MatrixScope[],
-  locale: Locale = 'en'
+  locale: Locale = DEFAULT_LOCALE
 ): MatrixRowItem[] {
   const rows: MatrixRowItem[] = []
 

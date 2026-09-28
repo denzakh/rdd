@@ -2,12 +2,12 @@ import Link from 'next/link'
 import type { PatientRow } from '@/shared/api'
 import { REGISTRY } from '@/shared/config'
 import type { RegistryField } from '@/shared/config'
-import { fieldLabel, optionLabel, type Locale } from '@/shared/lib/intl'
+import { DEFAULT_LOCALE, fieldLabel, optionLabel, type Locale } from '@/shared/lib/intl'
 
 /** Заголовки таблицы — из реестра (паспортная часть). */
 const COLUMNS = ['id', 'study_entry_date', 'birth_year', 'gender', 'education_level'] as const
 
-function cellLabel(fieldId: string, row: PatientRow, locale: Locale = 'en'): string {
+function cellLabel(fieldId: string, row: PatientRow, locale: Locale = DEFAULT_LOCALE): string {
   const value = (row as unknown as Record<string, unknown>)[fieldId]
   if (value === null || value === undefined) return '—'
   const field = (REGISTRY.patient as Record<string, RegistryField>)[fieldId]
@@ -18,7 +18,7 @@ function cellLabel(fieldId: string, row: PatientRow, locale: Locale = 'en'): str
 /** Таблица пациентов (/patients). Серверный компонент. */
 export function PatientsTable({
   patients,
-  locale = 'en',
+  locale = DEFAULT_LOCALE,
 }: {
   patients: PatientRow[]
   locale?: Locale

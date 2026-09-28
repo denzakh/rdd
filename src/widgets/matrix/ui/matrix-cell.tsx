@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useRef, useState } from 'react'
 import type { RegistryField, RegistryOption } from '@/shared/config'
-import { optionLabel, type Locale } from '@/shared/lib/intl'
+import { DEFAULT_LOCALE, optionLabel, type Locale } from '@/shared/lib/intl'
 import type { FieldValue } from '../model/types'
 import type { CellConflict } from '../model/matrix-store'
 
@@ -15,7 +15,7 @@ export interface MatrixCellProps {
   error?: string
   conflict?: CellConflict
   options?: readonly RegistryOption[]
-  /** Локаль подписей опций (по дефолту ru — фолбэк, docs/en/i18n.md §3). */
+  /** Локаль подписей опций (по умолчанию `DEFAULT_LOCALE`, docs/en/i18n.md §3). */
   locale?: Locale
   onChange: (phaseId: string, fieldId: string, value: FieldValue) => void
   onResolveConflict: (phaseId: string, fieldId: string, resolution: 'mine' | 'theirs') => void
@@ -35,7 +35,7 @@ function MatrixCellBase({
   error,
   conflict,
   options,
-  locale = 'en',
+  locale = DEFAULT_LOCALE,
   onChange,
   onResolveConflict,
 }: MatrixCellProps) {
@@ -229,7 +229,7 @@ function ConflictBadge({
 function renderBadge(
   value: FieldValue,
   options?: readonly RegistryOption[],
-  locale: Locale = 'en'
+  locale: Locale = DEFAULT_LOCALE
 ): string {
   if (value === null || value === undefined) return '—'
   if (options) {

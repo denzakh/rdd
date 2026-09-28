@@ -92,7 +92,7 @@ npm run dev                 # http://localhost:3000
 - UI-обвязка (кнопки, меню, формы аутентификации) — переключается RU/EN через cookie
   `rdd_locale`; `<LocaleSwitcher />` в меню пользователя (см. `docs/en/i18n.md`).
 - `RegistryField.label` — `{ ru, en }` во всём реестре; резолвится через
-  `fieldLabel(field, locale)` с RU-фолбэком.
+  `fieldLabel(field, locale)`; дефолт локали — `DEFAULT_LOCALE` (`en`).
 - `RegistryOption.label` — `{ ru, en } | string`; резолвится через `optionLabel(opt, locale)`.
 - Сознательно **вне scope** (задокументировано в `docs/en/i18n.md`): перевод
   исторических значений БД (там коды, не текст), клинически валидированный перевод

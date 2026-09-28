@@ -5,7 +5,7 @@
  * Клиент вызывает Server Action exportDeidentified и скачивает base64.
  */
 import { useState, useTransition } from 'react'
-import { type Locale } from '@/shared/lib/intl'
+import { DEFAULT_LOCALE, type Locale } from '@/shared/lib/intl'
 import { exportDeidentified, type ExportFormat, type ExportResult } from '../api/actions'
 
 const FORMATS: Array<{ id: ExportFormat; label: string; hint: string }> = [
@@ -71,7 +71,7 @@ function download(result: ExportResult): void {
   URL.revokeObjectURL(url)
 }
 
-export function ExportPanel({ locale = 'en' }: { locale?: Locale }) {
+export function ExportPanel({ locale = DEFAULT_LOCALE }: { locale?: Locale }) {
   const en = locale === 'en'
   const [pending, start] = useTransition()
   const [last, setLast] = useState<ExportResult | null>(null)

@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { buildDataDictionary } from '@/shared/lib/registry/data-dictionary'
 import { FLAT_REGISTRY } from '@/shared/config/registry'
-import { fieldLabel, optionLabel, pickLocale, resolveLocale, toIntlLocale } from '@/shared/lib/intl'
+import {
+  DEFAULT_LOCALE,
+  fieldLabel,
+  optionLabel,
+  pickLocale,
+  resolveLocale,
+  toIntlLocale,
+} from '@/shared/lib/intl'
 import { dictFor } from '@/shared/lib/intl/dictionaries'
 import type { RegistryField } from '@/shared/config/registry/types'
 
@@ -107,10 +114,24 @@ describe('i18n: registry labels + dictionaries (docs/en/i18n.md)', () => {
 
   it('pickLocale/resolveLocale/toIntlLocale', () => {
     expect(pickLocale({ ru: 'а', en: 'b' }, 'en')).toBe('b')
-    expect(resolveLocale('xx')).toBe('en')
+    expect(resolveLocale('xx')).toBe(DEFAULT_LOCALE)
     expect(resolveLocale('en')).toBe('en')
+    expect(resolveLocale('ru')).toBe('ru')
     expect(toIntlLocale('en')).toBe('en-US')
     expect(toIntlLocale('ru')).toBe('ru-RU')
+  })
+
+  it('DEFAULT_LOCALE — единый источник дефолта (docs/en/i18n.md §4)', () => {
+    expect(DEFAULT_LOCALE).toBe('en')
+    // хелперы без явной локали используют DEFAULT_LOCALE
+    const field = {
+      id: 'x',
+      label: { ru: 'Тоска', en: 'Melancholy' },
+      ui: 'checkbox',
+    } as RegistryField
+    expect(fieldLabel(field)).toBe(pickLocale(field.label, DEFAULT_LOCALE))
+    expect(optionLabel({ value: 1, label: { ru: 'Нет', en: 'None' } })).toBe('None')
+    expect(fieldLabel(field, DEFAULT_LOCALE)).toBe(fieldLabel(field))
   })
 
   it('словари en/ru: одинаковые ключи неймспейсов', () => {

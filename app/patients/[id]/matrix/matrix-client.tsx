@@ -19,6 +19,7 @@ import {
   type MatrixData,
 } from '@/widgets/matrix'
 import { createPhase, deletePhase, savePhaseCells } from '@/features/matrix'
+import { DEFAULT_LOCALE, type Locale } from '@/shared/lib/intl'
 
 export interface MatrixClientProps {
   patientId: number
@@ -28,8 +29,8 @@ export interface MatrixClientProps {
   /** Токены версий CAS: { [phaseId]: updated_at }. */
   versions: Record<string, string | null>
   isReadOnly: boolean
-  /** Локаль UI матрицы (EN-фолбэк). */
-  locale?: 'ru' | 'en'
+  /** Локаль UI матрицы (по умолчанию `DEFAULT_LOCALE`). */
+  locale?: Locale
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error' | 'conflict'
@@ -41,7 +42,7 @@ export default function MatrixClient({
   data,
   versions,
   isReadOnly,
-  locale = 'en',
+  locale = DEFAULT_LOCALE,
 }: MatrixClientProps) {
   const router = useRouter()
   const versionsRef = useRef(versions)

@@ -30,7 +30,10 @@ export const pickLocale = (text: LocalizedText, locale: Locale): string => {
  * Форматирование даты в строку по стандарту Intl.
  * Принимает и короткую локаль UI ('ru'/'en'), и полную ('ru-RU'/'en-US').
  */
-export const formatDate = (date: string | Date | number, locale: Locale | IntlLocale = 'en-US') => {
+export const formatDate = (
+  date: string | Date | number,
+  locale: Locale | IntlLocale = toIntlLocale(DEFAULT_LOCALE)
+) => {
   const d = new Date(date)
   if (isNaN(d.getTime())) return ''
 

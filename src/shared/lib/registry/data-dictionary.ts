@@ -1,7 +1,7 @@
 import { REGISTRY, THERAPY_GROUPS } from '@/shared/config/registry'
 import type { RegistryField } from '@/shared/config/registry/types'
 import { DB_TYPE_TO_SQL } from './d1-schema'
-import { fieldLabel, optionLabel, type Locale } from '../intl'
+import { fieldLabel, optionLabel, DEFAULT_LOCALE, type Locale } from '../intl'
 
 /** Названия разделов реестра (RU/EN, docs/en/i18n.md §3). */
 const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> = {
@@ -14,7 +14,7 @@ const SECTION_TITLES: Record<keyof typeof REGISTRY, { ru: string; en: string }> 
 }
 
 /** Строка допустимых значений для колонки «Допустимые значения». */
-const allowedValues = (field: RegistryField, locale: Locale = 'en'): string => {
+const allowedValues = (field: RegistryField, locale: Locale = DEFAULT_LOCALE): string => {
   if (field.options && field.options.length > 0) {
     return field.options.map((o) => `${o.value} — ${optionLabel(o, locale)}`).join('; ')
   }
@@ -95,9 +95,9 @@ const SECTION_GROUPS: Partial<
  * Автогенерируемый Data Dictionary из единственного источника правды —
  * реестра полей `src/shared/config/registry`. Никаких ручных описаний:
  * страница /data-dictionary всегда синхронна с реестром.
- * Локаль подписей — параметром (EN-фолбэк, docs/en/i18n.md §3).
+ * Локаль подписей — параметром (по умолчанию `DEFAULT_LOCALE`, docs/en/i18n.md §3).
  */
-export const buildDataDictionary = (locale: Locale = 'en'): DictionarySection[] =>
+export const buildDataDictionary = (locale: Locale = DEFAULT_LOCALE): DictionarySection[] =>
   (Object.entries(REGISTRY) as [keyof typeof REGISTRY, Record<string, RegistryField>][]).map(
     ([key, fields]) => {
       const groups = SECTION_GROUPS[key]
