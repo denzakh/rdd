@@ -18,9 +18,8 @@ import { randomBytes, randomUUID } from 'node:crypto'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createInterface } from 'node:readline/promises'
-import { Writable } from 'node:stream'
 import { getPlatformProxy } from 'wrangler'
+import { createPrompter, type Prompter } from './lib/prompt'
 import { hashPassword, MIN_PASSWORD_LENGTH } from '../src/shared/lib/password'
 
 const ROLES = ['admin', 'clinician', 'readonly'] as const
@@ -31,28 +30,20 @@ const D1_NAME = 'rdd'
 
 // ---------- ввод ----------
 
-const makeRl = () => createInterface({ input: process.stdin, output: process.stdout })
+/** Подсказка для неинтерактивного запуска (CI, агент, пайп). */
+const NON_INTERACTIVE_HINT =
+  'Интерактивный ввод недоступен (нет TTY). Задайте значения флагами, например:\n' +
+  '  npx tsx scripts/create-user.ts --email a@b.ru --name "Имя" --role admin --gen-password\n' +
+  '  …и для прода добавьте --remote --yes'
 
-/** Ввод со скрытием символов (для пароля) — readline по умолчанию всё эхо-печатает. */
-async function askHidden(question: string): Promise<string> {
-  const muted = new Writable({
-    write(chunk, _enc, cb) {
-      // глотаем вводимые символы, но на Enter переводим строку
-      if (String(chunk).includes('\r') || String(chunk).includes('\n')) process.stdout.write('\n')
-      cb()
-    },
-  })
-  const rl = createInterface({ input: process.stdin, output: muted, terminal: true })
-  process.stdout.write(question)
-  const answer = await rl.question('')
-  rl.close()
-  return answer.trim()
+async function askRequired(prompt: Prompter, question: string, def = ''): Promise<string> {
+  if (!prompt.interactive) throw new Error(`${question} не передан. ${NON_INTERACTIVE_HINT}`)
+  return prompt.ask(question, def)
 }
 
-async function ask(rl: ReturnType<typeof makeRl>, question: string, def = ''): Promise<string> {
-  const suffix = def ? ` (${def})` : ''
-  const answer = (await rl.question(`${question}${suffix}: `)).trim()
-  return answer || def
+async function askRequiredHidden(prompt: Prompter, question: string): Promise<string> {
+  if (!prompt.interactive) throw new Error(`Пароль не передан. ${NON_INTERACTIVE_HINT}`)
+  return prompt.askHidden(question)
 }
 
 // ---------- аргументы ----------
@@ -218,15 +209,17 @@ async function main(): Promise<void> {
   const target = args.remote ? 'ПРОД (remote D1)' : 'локальная база (D1 rdd, .wrangler/state)'
   console.log(`Создание пользователя. Цель: ${target}\n`)
 
-  const rl = makeRl()
+  const prompt = createPrompter()
   try {
     let email = args.email ?? ''
-    if (!email) email = await ask(rl, 'Email')
+    if (!email) email = await askRequired(prompt, 'Email')
     email = email.toLowerCase()
     if (!EMAIL_RE.test(email)) throw new Error(`Некорректный email: ${email}`)
 
     let displayName = args.name ?? ''
-    if (!displayName) displayName = await ask(rl, 'Имя (display name)', email.split('@')[0] ?? '')
+    if (!displayName) {
+      displayName = await askRequired(prompt, 'Имя (display name)', email.split('@')[0] ?? '')
+    }
     if (!displayName) throw new Error('Имя не может быть пустым')
 
     // пароль
@@ -236,11 +229,11 @@ async function main(): Promise<void> {
       password = generatePassword()
       generated = true
     } else if (!password) {
-      password = await askHidden('Пароль (ввод скрыт): ')
+      password = await askRequiredHidden(prompt, 'Пароль (ввод скрыт): ')
       if (password.length < MIN_PASSWORD_LENGTH) {
         throw new Error(`Пароль должен быть не короче ${MIN_PASSWORD_LENGTH} символов`)
       }
-      const repeat = await askHidden('Повторите пароль: ')
+      const repeat = await askRequiredHidden(prompt, 'Повторите пароль: ')
       if (repeat !== password) throw new Error('Пароли не совпадают')
     } else if (password.length < MIN_PASSWORD_LENGTH) {
       throw new Error(`Пароль должен быть не короче ${MIN_PASSWORD_LENGTH} символов`)
@@ -260,7 +253,7 @@ async function main(): Promise<void> {
       }
       role = args.role as Role
     } else if (args.interactive) {
-      const input = await ask(rl, `Роль [${ROLES.join('/')}]`, 'clinician')
+      const input = await askRequired(prompt, `Роль [${ROLES.join('/')}]`, 'clinician')
       if (!ROLES.includes(input as Role)) {
         throw new Error(`Неизвестная роль: ${input}. Допустимо: ${ROLES.join(', ')}`)
       }
@@ -272,8 +265,8 @@ async function main(): Promise<void> {
     // Подтверждение записи в прод. `--yes` пропускает его — нужно для CI/агентов,
     // где ввод с клавиатуры недоступен (иначе скрипт висит на вопросе).
     if (args.remote && !args.yes) {
-      const answer = await ask(
-        rl,
+      const answer = await askRequired(
+        prompt,
         `Записать в ${D1_NAME} (remote)? Напечатайте "prod" для подтверждения`
       )
       if (answer !== 'prod') {
@@ -300,7 +293,7 @@ async function main(): Promise<void> {
       console.log(`\n🔑 Сгенерированный пароль (покажется один раз, передайте врачу): ${password}`)
     }
   } finally {
-    rl.close()
+    prompt.close()
   }
 }
 

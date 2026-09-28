@@ -23,35 +23,12 @@
  * новый хэш, сброс счётчика неудачных попыток и снятие блокировки.
  */
 import { execSync } from 'node:child_process'
-import { createInterface } from 'node:readline/promises'
-import { Writable } from 'node:stream'
+import { createPrompter, type Prompter } from './lib/prompt'
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from '../src/shared/lib/password'
 
 const D1_NAME = 'rdd'
 
-// ---------- ввод (паттерн scripts/create-user.ts) ----------
-
-const makeRl = () => createInterface({ input: process.stdin, output: process.stdout })
-
-/** Ввод со скрытием символов (для пароля) — readline по умолчанию всё эхо-печатает. */
-async function askHidden(question: string): Promise<string> {
-  const muted = new Writable({
-    write(chunk, _enc, cb) {
-      // глотаем вводимые символы, но на Enter переводим строку
-      if (String(chunk).includes('\r') || String(chunk).includes('\n')) process.stdout.write('\n')
-      cb()
-    },
-  })
-  const rl = createInterface({ input: process.stdin, output: muted, terminal: true })
-  process.stdout.write(question)
-  const answer = await rl.question('')
-  rl.close()
-  return answer.trim()
-}
-
-async function ask(rl: ReturnType<typeof makeRl>, question: string): Promise<string> {
-  return (await rl.question(`${question}: `)).trim()
-}
+// ---------- ввод (промптер общий с scripts/create-user.ts) ----------
 
 /** Интерактивный режим возможен только при TTY — иначе скрипт не должен висеть. */
 const isInteractive = (): boolean => Boolean(process.stdin.isTTY && process.stdout.isTTY)
@@ -139,14 +116,14 @@ function listUsers(): void {
 async function main(): Promise<void> {
   const args = parseArgs()
   // Интерактив только при TTY: в CI/агенте скрипт не должен висеть на вопросе.
-  const rl = isInteractive() ? makeRl() : null
+  const prompt: Prompter | null = isInteractive() ? createPrompter() : null
 
   try {
     let email = args.email ?? ''
     let password = args.password ?? ''
 
     if (!email) {
-      if (!rl) {
+      if (!prompt) {
         listUsers()
         throw new Error(
           'Укажите email: npx tsx scripts/reset-password-local.ts user@example.com ' +
@@ -154,7 +131,7 @@ async function main(): Promise<void> {
         )
       }
       listUsers()
-      email = (await ask(rl, 'Email')).toLowerCase()
+      email = (await prompt.ask('Email')).toLowerCase()
       if (!email) throw new Error('Email не указан')
     }
 
@@ -162,12 +139,12 @@ async function main(): Promise<void> {
       `SELECT id, password_hash FROM users WHERE email = '${sqlQuote(email)}';`
     )
     if (!existing.length) {
-      if (rl) listUsers()
+      if (prompt) listUsers()
       throw new Error(`Пользователь ${email} не найден`)
     }
 
     if (!password) {
-      if (!rl) {
+      if (!prompt) {
         throw new Error(
           'Пароль не передан. Задайте RDD_NEW_PASSWORD=<пароль> или запустите в терминале — ' +
             'пароль спросят со скрытием эха'
@@ -175,14 +152,14 @@ async function main(): Promise<void> {
       }
       // Цикл повторов: слишком короткий или несовпадающий пароль — снова вопрос.
       for (;;) {
-        const first = await askHidden(
+        const first = await prompt.askHidden(
           `Новый пароль (ввод скрыт, минимум ${MIN_PASSWORD_LENGTH} символов): `
         )
         if (first.length < MIN_PASSWORD_LENGTH) {
           console.log(`⚠️  Минимум ${MIN_PASSWORD_LENGTH} символов, введено ${first.length}`)
           continue
         }
-        const repeat = await askHidden('Повторите пароль: ')
+        const repeat = await prompt.askHidden('Повторите пароль: ')
         if (first !== repeat) {
           console.log('⚠️  Пароли не совпадают, попробуйте ещё раз')
           continue
@@ -223,8 +200,8 @@ async function main(): Promise<void> {
     )
     console.log('✅ Пароль обновлён:', state[0])
   } finally {
-    // close() идемпотентен: askHidden уже закрывает свой собственный интерфейс.
-    rl?.close()
+    // close() идемпотентен: askHidden использует тот же интерфейс.
+    prompt?.close()
   }
 }
 
