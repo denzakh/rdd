@@ -49,9 +49,15 @@ export const en: DictShape = {
   },
   auth: {
     loginTitle: 'Sign in to registry',
+    email: 'Email',
     password: 'Password',
     login: 'Sign in',
     loggingIn: 'Signing in…',
+    /** Demo test account login (pre-filled into the login form). */
+    testEmail: 'test@testmaul.com',
+    /** Hint under the form: the test password is ten digits from one down to zero. */
+    testPasswordHint:
+      'Test sign-in: the password is ten digits in a row, from one down to zero — one, two, three, four, five, six, seven, eight, nine, zero.',
     currentPassword: 'Current password',
     newPassword: 'New password',
     repeatNewPassword: 'Repeat new password',
